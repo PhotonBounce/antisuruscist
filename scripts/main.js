@@ -5265,6 +5265,61 @@ $(document).ready(function () {
   $(document).on('click', '[data-target="inv-sec-naperstki"]', function(){ setTimeout(function(){ _napRender('Pick a cup... 👀'); }, 50); });
   $(document).on('click', '[data-target="inv-sec-putinpool"]', function(){ setTimeout(_ppoolRender, 50); });
 
+  // ── Leaderboard: async server refresh when section is opened ────────
+  $(document).on('click', '[data-target="inv-sec-leaders"]', function() {
+    setTimeout(function() { _lbRefreshFromServer(); }, 80);
+  });
+
+  /** Fetch the global leaderboard from the server and update #inv-sec-leaders */
+  function _lbRefreshFromServer() {
+    if (!window.ARC_API) return;
+    var $sec = $('#inv-sec-leaders');
+    if (!$sec.length) return;
+    var $body = $sec.find('.lb-server-body');
+    if (!$body.length) return;
+    // Show loading state
+    $body.find('.lb-footer-note').text('Loading global leaderboard…');
+    window.ARC_API.fetchLeaderboard(_getLbPeriod(), 20).then(function(data) {
+      if (!data || !Array.isArray(data.entries) || !data.entries.length) {
+        // Server unreachable or empty — restore local fallback note
+        $body.find('.lb-footer-note').text('📡 Showing personal best board. Connect to server for global rankings.');
+        return;
+      }
+      _lbRenderServerData($sec, data);
+    });
+  }
+
+  /** Render server leaderboard data into the #inv-sec-leaders section */
+  function _lbRenderServerData($sec, data) {
+    var myName = localStorage.getItem('arc_username') || 'Fighter';
+    var rows = data.entries.map(function(e, i) {
+      var rank = i + 1;
+      var isMe = e.username === myName;
+      var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank);
+      var rowCls = isMe ? ' lb-row--me' : '';
+      var youBadge = isMe ? ' <span class="lb-you-badge">YOU</span>' : '';
+      return '<tr class="lb-row' + rowCls + '">'
+        + '<td class="lb-rank">' + medal + '</td>'
+        + '<td class="lb-name">' + _escHtml(e.username || '?') + youBadge + '</td>'
+        + '<td class="lb-wave">W' + (e.wave || 0) + '</td>'
+        + '<td class="lb-kills">' + (e.kills || 0) + '</td>'
+        + '<td class="lb-score">' + (e.score || 0).toLocaleString() + '</td>'
+        + '<td class="lb-arc">—</td>'
+        + '</tr>';
+    }).join('');
+
+    var myRankStr = data.myRank != null ? ('#' + data.myRank + ' of ' + data.total) : 'Not ranked yet';
+    var tableHtml = '<table class="lb-table"><thead><tr>'
+      + '<th>#</th><th>Player</th><th>Wave</th><th>Kills</th><th>Score</th><th>ARC</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    var footerHtml = '<div class="lb-footer-note lb-source-badge">🌐 Global leaderboard — top ' + data.entries.length + ' of ' + data.total + ' players.</div>';
+
+    var $body = $sec.find('.lb-server-body');
+    $body.find('.lb-myrank').html('🎯 Your rank: <b>' + myRankStr + '</b>');
+    $body.find('.lb-table-wrap').html(tableHtml);
+    $body.find('.lb-footer-note').replaceWith(footerHtml);
+  }
+
   // ── User Registration Modal ──────────────────────────────────
   function showRegModal(onDone) {
     var _cb = typeof onDone === 'function' ? onDone : function(){};
@@ -6245,6 +6300,7 @@ $(document).ready(function () {
       cosm: _ownedCosm ? _ownedCosm.length : 0,
       ts: Date.now()
     };
+    // ── Local fallback (always written) ──────────────────────────────
     var lb; try { lb = JSON.parse(localStorage.getItem('arc_leaderboard') || '[]'); } catch(e) { lb = []; }
     const idx = lb.findIndex(e => e.name === name);
     if (idx >= 0) { if (entry.score > lb[idx].score) lb[idx] = entry; }
@@ -6253,6 +6309,22 @@ $(document).ready(function () {
     localStorage.setItem('arc_leaderboard', JSON.stringify(lb.slice(0, 50)));
     const _myRankIdx = lb.findIndex(e => e.name === name);
     if (_myRankIdx >= 0) localStorage.setItem('arc_lb_rank', String(_myRankIdx + 1));
+    // ── Server submit (best-effort, non-blocking) ─────────────────────
+    if (window.ARC_API && score > 0) {
+      const _period = _getLbPeriod();
+      window.ARC_API.submitLeaderboard(_period, { score: score, kills: zombieKilled, wave: wave })
+        .then(function(r) {
+          if (r && r.rank) localStorage.setItem('arc_lb_server_rank', String(r.rank));
+        });
+    }
+  }
+
+  // Return the current weekly period key (e.g. '2026-W25')
+  function _getLbPeriod() {
+    var now = new Date();
+    var jan1 = new Date(now.getFullYear(), 0, 1);
+    var weekNum = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return now.getFullYear() + '-W' + (weekNum < 10 ? '0' : '') + weekNum;
   }
 
   function getLeaderboard() {
@@ -13231,7 +13303,7 @@ $(document).ready(function () {
             <h2 class="inv-sec-title">🏆 Leaderboard</h2>
             <p class="inv-sec-sub">Top fighters this week — ranked by score. Yours is highlighted. Resets every Monday.</p>
           </div>
-          ${(()=>{
+          <div class="lb-server-body">${(()=>{
             const _myName = localStorage.getItem('arc_username') || 'Fighter';
             const _lb     = getLeaderboard();
             const _now    = new Date();
@@ -13262,11 +13334,11 @@ $(document).ready(function () {
               + '<div class="lb-reset-lbl">Resets in ' + _daysToMon + ' day' + (_daysToMon===1?'':'s') + '</div>'
               + '<div class="lb-myrank">🎯 Your rank: <b>' + _myRankStr + '</b></div>'
               + '</div>'
-              + '<table class="lb-table"><thead><tr>'
+              + '<div class="lb-table-wrap"><table class="lb-table"><thead><tr>'
               + '<th>#</th><th>Player</th><th>Wave</th><th>Kills</th><th>Score</th><th>ARC</th>'
-              + '</tr></thead><tbody>' + _rows + '</tbody></table>'
-              + '<div class="lb-footer-note">� Personal best board. Global leaderboard sync coming with server update!</div>';
-          })()}
+              + '</tr></thead><tbody>' + _rows + '</tbody></table></div>'
+              + '<div class="lb-footer-note">📋 Personal best board. Loading global rankings…</div>';
+          })()}</div>
         </section>
 
         <!-- ╔═══════════════ PLAYER STATS ═══════════════╗ -->

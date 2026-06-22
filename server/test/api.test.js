@@ -195,3 +195,104 @@ test('POST /api/player/arc-earn caps earn to 50 ARC per call', async () => {
   const lastEntry = ledgerBody[0]; // most recent
   assert.ok(lastEntry.amount <= 50, `Expected amount <=50, got ${lastEntry.amount}`);
 });
+
+// ── Leaderboard tests ──────────────────────────────────────────────────
+
+test('POST /api/leaderboard/:period without auth returns 401', async () => {
+  const res = await fetch(`${BASE_URL}/api/leaderboard/weekly`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ score: 100, kills: 5, wave: 1 }),
+  });
+  assert.equal(res.status, 401, 'should require x-anon-id header');
+});
+
+test('Leaderboard: submit 2 scores and GET returns them ranked highest-first with caller rank', async () => {
+  assert.ok(global._adminAnonId, 'admin anon_id must be set by setup test');
+
+  // Create a second player
+  const p2AnonId = 'arc_test_p2_' + Date.now().toString(36);
+  const authRes = await fetch(`${BASE_URL}/api/player/auth`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': p2AnonId },
+    body: JSON.stringify({ anon_id: p2AnonId }),
+  });
+  assert.ok(authRes.ok, 'p2 auth should succeed');
+
+  const period = 'test-week-' + Date.now();
+
+  // Player 1 (admin) submits a higher score
+  const sub1Res = await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': global._adminAnonId },
+    body: JSON.stringify({ score: 5000, kills: 50, wave: 3 }),
+  });
+  assert.equal(sub1Res.status, 200);
+  const sub1Body = await sub1Res.json();
+  assert.equal(sub1Body.ok, true, 'submit should return ok:true');
+  assert.ok(typeof sub1Body.rank === 'number', 'submit should return rank');
+
+  // Player 2 submits a lower score
+  const sub2Res = await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': p2AnonId },
+    body: JSON.stringify({ score: 2500, kills: 20, wave: 2 }),
+  });
+  assert.equal(sub2Res.status, 200);
+
+  // GET leaderboard — should be ordered highest-first
+  const getRes = await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    headers: { 'x-anon-id': global._adminAnonId },
+  });
+  assert.equal(getRes.status, 200);
+  const getBody = await getRes.json();
+
+  assert.ok(Array.isArray(getBody.entries), 'entries should be an array');
+  assert.equal(getBody.entries.length, 2, 'should have 2 entries');
+  assert.ok(getBody.entries[0].score >= getBody.entries[1].score, 'first entry should have highest score');
+  assert.equal(getBody.entries[0].score, 5000, 'top score should be 5000');
+  assert.equal(getBody.entries[1].score, 2500, 'second score should be 2500');
+  assert.equal(getBody.total, 2, 'total should be 2');
+  assert.equal(getBody.myRank, 1, 'admin player (score 5000) should be rank 1');
+});
+
+test('Leaderboard: best-score upsert — re-submit lower score does not overwrite', async () => {
+  assert.ok(global._adminAnonId, 'admin anon_id must be set');
+
+  const period = 'test-upsert-' + Date.now();
+
+  // Submit initial score
+  await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': global._adminAnonId },
+    body: JSON.stringify({ score: 8000, kills: 80, wave: 4 }),
+  });
+
+  // Submit lower score — should be ignored
+  await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': global._adminAnonId },
+    body: JSON.stringify({ score: 100, kills: 1, wave: 1 }),
+  });
+
+  const getRes = await fetch(`${BASE_URL}/api/leaderboard/${period}`, {
+    headers: { 'x-anon-id': global._adminAnonId },
+  });
+  const body = await getRes.json();
+  assert.equal(body.entries[0].score, 8000, 'best score (8000) should be preserved after lower re-submit');
+});
+
+test('Leaderboard: invalid period returns 400', async () => {
+  const res = await fetch(`${BASE_URL}/api/leaderboard/bad period!`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': global._adminAnonId },
+    body: JSON.stringify({ score: 100 }),
+  });
+  // Express URL encoding will likely strip the space; test with shell-illegal chars
+  const res2 = await fetch(`${BASE_URL}/api/leaderboard/${encodeURIComponent('../../etc')}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-anon-id': global._adminAnonId },
+    body: JSON.stringify({ score: 100 }),
+  });
+  assert.equal(res2.status, 400, 'path traversal period should be rejected');
+});

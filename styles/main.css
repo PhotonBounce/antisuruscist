@@ -9398,6 +9398,12 @@ body::before {
   border-radius: 6px; font-family: 'Oswald', monospace; font-size: 10px;
   color: rgba(150,200,255,0.6); letter-spacing: 0.06em;
 }
+/* Global leaderboard source indicator — replaces the "coming soon" note */
+.lb-source-badge {
+  background: rgba(0,180,100,0.08); border-color: rgba(100,255,160,0.25);
+  color: rgba(100,255,160,0.75);
+}
+.lb-table-wrap { overflow-x: auto; }
 
 /* ══════════════════════════════════════════════════════════════
    FEATURE 3: BATTLE PASS
