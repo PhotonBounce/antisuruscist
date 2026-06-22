@@ -3708,6 +3708,9 @@ $(document).ready(function () {
   let _waveDmgTaken     = 0;
   let _waveStartMs      = 0;
   let _sessionArcEarned = 0;
+  // Wave-clear cinematic trackers
+  let _waveKillsAtStart = 0;   // zombieKilled count at the start of each wave
+  let _waveArcAtStart   = 0;   // _sessionArcEarned at start of each wave
   // Whale-farming velocity guard — ring buffer of recent earn timestamps
   let _arcEarnTimestamps = [];
   const _ARC_VELOCITY_WINDOW_MS  = 30000; // 30-second rolling window
@@ -9108,6 +9111,8 @@ $(document).ready(function () {
     _ironWillUsed = false;
     _waveDmgTaken = 0;
     _waveStartMs = Date.now();
+    _waveKillsAtStart = zombieKilled;
+    _waveArcAtStart   = _sessionArcEarned;
     _ambushShotsLeft = hasSkill('ambush') ? 3 : 0;
     _berserkShotCounter = 0;
     $('body').off('keydown.game');
@@ -9693,7 +9698,51 @@ $(document).ready(function () {
       masterGain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.55);
     }
 
+    // ── Wave-clear cinematic overlay (~2 s) — shown BEFORE inventory opens ──────
+    (function _showWaveCinematic() {
+      var _wccKills    = zombieKilled - _waveKillsAtStart;
+      var _wccArc      = _sessionArcEarned - _waveArcAtStart;
+      var _wccAcc      = shotsFired > 0 ? Math.round(shotsHit / shotsFired * 100) : null;
+      var _wccElapsed  = _waveStartMs ? Date.now() - _waveStartMs : 0;
+      var _wccM = Math.floor(_wccElapsed / 60000);
+      var _wccS = Math.floor((_wccElapsed % 60000) / 1000);
+      var _wccTimeStr  = _wccM + ':' + (_wccS < 10 ? '0' : '') + _wccS;
+
+      var _accHtml = _wccAcc !== null
+        ? '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccAcc + '%</span><span class="wcc-stat-lbl">Accuracy</span></span>'
+        : '';
+
+      var $wcc = $('<div class="wcc-overlay" role="status" aria-live="polite">' +
+        '<div class="wcc-card">' +
+          '<div class="wcc-title">WAVE ' + completedWave + ' CLEARED</div>' +
+          '<div class="wcc-stats-row">' +
+            '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccKills + '</span><span class="wcc-stat-lbl">Kills</span></span>' +
+            '<span class="wcc-stat"><span class="wcc-stat-val">🪙 ' + _wccArc + '</span><span class="wcc-stat-lbl">ARC Earned</span></span>' +
+            _accHtml +
+            '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccTimeStr + '</span><span class="wcc-stat-lbl">Time</span></span>' +
+          '</div>' +
+          '<div class="wcc-continue">&#9654; CONTINUE</div>' +
+        '</div>' +
+      '</div>');
+
+      $canves.append($wcc);
+
+      // Animate in (skip if reduced-motion)
+      if (!window._reducedMotion) {
+        requestAnimationFrame(function() { $wcc.addClass('wcc-overlay--in'); });
+      } else {
+        $wcc.addClass('wcc-overlay--in wcc-overlay--static');
+      }
+
+      // Auto-dismiss after 2 s; player click also dismisses early
+      var _wccDuration = window._reducedMotion ? 800 : 2000;
+      var _wccTid = setTimeout(function() { $wcc.remove(); }, _wccDuration);
+      $wcc.on('click', function() { clearTimeout(_wccTid); $wcc.remove(); });
+    })();
+
     // ── Build & reveal inventory ~660 ms later (lets flash + fanfare breathe) ─
+    // Offset by cinematic duration so inventory opens after cinematic completes
+    var _wccOffset = window._reducedMotion ? 800 : 2000;
     setTimeout(() => {
       buildInventory();
 
@@ -9824,7 +9873,7 @@ $(document).ready(function () {
         waveTransitioning = false;
         nextWaveFn();
       });
-    }, 660);
+    }, _wccOffset + 660);
   }
 
   let trackZombies = function repeatOften() {
@@ -10985,7 +11034,7 @@ $(document).ready(function () {
     shooterXP = 0; shooterShotsFired = 0; shooterShotsHit = 0;
     consecutiveMisses = 0; _skillUnlocks = [];
     _bestCombo = 0; _headshots = 0; _hsStreak = 0; _bestHsStreak = 0; _gameStartMs = 0; _bpLastToast = 0;
-    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {};
+    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {}; _waveKillsAtStart = 0; _waveArcAtStart = 0;
     _comboKills = 0; _comboMultiLive = 1.0; if (_comboTimer) { clearTimeout(_comboTimer); _comboTimer = null; }
     _bossAlive = false;
     $('#kill-feed').remove();
