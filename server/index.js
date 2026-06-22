@@ -24,7 +24,13 @@ db.pragma('foreign_keys = ON');
 
 const app = express();
 const PORT = process.env.API_PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || (function () {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET must be set in production (refusing to start with a random secret that would invalidate all tokens on restart).');
+    process.exit(1);
+  }
+  return crypto.randomBytes(32).toString('hex'); // dev-only ephemeral secret
+})();
 const JWT_EXPIRES = '7d';
 
 // ── Middleware ─────────────────────────────────────────────────────────
@@ -42,10 +48,15 @@ app.use(helmet({
       frameAncestors: ["'none'"],
     },
   },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+if (process.env.NODE_ENV === 'production' && !ALLOWED_ORIGINS.length) {
+  console.error('FATAL: CORS_ORIGINS must be set in production (refusing to reflect all origins).');
+  process.exit(1);
+}
 app.use(cors({
-  origin: ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : true,
+  origin: ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : true, // dev only: reflect all origins
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
@@ -82,6 +93,17 @@ const syncLimiter = rateLimit({
   message: { error: 'Sync rate limited' },
 });
 app.use('/api/player/sync', syncLimiter);
+
+// Strict limit on first-time admin setup. It is self-securing (only works while no
+// admin exists), but throttle to prevent brute/race abuse during the bootstrap window.
+const setupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many setup attempts, try again later' },
+});
+app.use('/api/setup', setupLimiter);
 
 // Serve static game files from parent directory
 app.use(express.static(path.join(__dirname, '..')));
@@ -182,8 +204,8 @@ app.post('/api/setup', (req, res) => {
   if (username.length < 2 || username.length > 24) {
     return res.status(400).json({ error: 'Username must be 2-24 characters' });
   }
-  if (typeof password !== 'string' || password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (typeof password !== 'string' || password.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters' });
   }
 
   const existing = db.prepare('SELECT id FROM players WHERE username = ?').get(username);
@@ -216,8 +238,8 @@ app.post('/api/signup', (req, res) => {
   if (typeof username !== 'string' || username.length < 2 || username.length > 24) {
     return res.status(400).json({ error: 'Username must be 2-24 characters' });
   }
-  if (typeof password !== 'string' || password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (typeof password !== 'string' || password.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters' });
   }
   // Check username uniqueness
   const existing = db.prepare('SELECT id FROM players WHERE username = ?').get(username.trim());
@@ -709,13 +731,11 @@ app.post('/api/player/sync', authMiddleware, (req, res) => {
 // ADMIN ROUTES
 // ══════════════════════════════════════════════════════════════════════
 
-// Admin routes accept JWT OR anon_id for backward compatibility
+// Admin routes require a valid JWT. The previous anon_id fallback was a footgun
+// (any player row with is_admin=1 could reach admin endpoints without a token);
+// the admin panel authenticates with a Bearer JWT, so JWT-only is the correct gate.
 function adminAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return jwtAuth(req, res, next);
-  }
-  return authMiddleware(req, res, next);
+  return jwtAuth(req, res, next);
 }
 
 app.get('/api/admin/players', adminAuth, adminOnly, (req, res) => {

@@ -7,7 +7,9 @@ const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-const DB_PATH = path.join(__dirname, 'game.db');
+// Env-overridable so the DB can live on a persistent volume (or a Turso/libSQL
+// embedded-replica path) in production instead of the ephemeral container FS.
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'game.db');
 
 function initDB() {
   const db = new Database(DB_PATH, { verbose: null });

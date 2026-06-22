@@ -35,15 +35,19 @@ get an explicit baseline reset in that PR.
 
 ## Phases
 
-### Phase 0 — Safety net & repo hygiene *(no behavior change)* — IN PROGRESS
+### Phase 0 — Safety net & repo hygiene *(no behavior change)* — DONE ✅ (PR #1)
 - [x] Make `scripts/guardian-snapshot.sh` path-portable (was hardcoded `/workspaces/antiruscist`).
 - [x] Baseline proofs captured (`screencaptures/00-guardian-baseline.txt`, `01-baseline-*.png`, `03-headless-qa-baseline.txt`).
-- [ ] Delete `.github/workflows/deploy-pages.yml` (conflicts with cPanel-only; leaks `server/`+`contracts/`).
-- [ ] Delete `.github/workflows/codespace-watchdog.yml` (dead Codespaces keep-alive; wastes scheduled Actions minutes).
-- [ ] Track `package-lock.json` (un-ignore) so CI `npm ci` is reproducible.
-- [ ] Add `.github/workflows/ci.yml` PR gate: `node --check` + guardian diff (fail if counts drop).
+- [x] Delete `.github/workflows/deploy-pages.yml` (conflicts with cPanel-only; leaks `server/`+`contracts/`).
+- [x] Delete `.github/workflows/codespace-watchdog.yml` (dead Codespaces keep-alive; wastes scheduled Actions minutes).
+- [x] Track `package-lock.json` (un-ignore) so CI `npm ci` is reproducible.
+- [x] Add `.github/workflows/ci.yml` PR gate: `node --check` + guardian diff (fail if counts drop). CI green.
 
-### Phase 1 — Backend persistence + hardening *(highest severity, isolated)*
+### Phase 1 — Backend persistence + hardening *(highest severity, isolated)* — hardening DONE ✅; DB backend pending decision
+> Security hardening shipped + proven (`screencaptures/08`): JWT-required-in-prod, admin JWT-only
+> (anon_id fallback removed), `/api/setup` rate-limited, CORS fail-closed in prod, password min 6→10,
+> explicit HSTS, `DB_PATH` env-overridable. **Remaining:** choose persistence backend (Turso libSQL free
+> vs Render persistent disk paid) + telemetry-table pruning. Live contracts untouched.
 - DB persistence: migrate `server/db.js` (`DB_PATH` hardcode, line ~10) to **Turso/libSQL** (SQLite-compatible,
   free tier survives redeploy, near-zero query rewrites). Keep `file:` driver for local dev.
 - Security, ordered: JWT_SECRET required in prod (no random fallback); remove admin `anon_id` fallback (JWT-only);
@@ -60,7 +64,7 @@ get an explicit baseline reset in that PR.
 - Generate `sw.js` precache from Vite manifest; `CACHE_NAME = arc-<buildhash>` (no manual `batchNNN` bumps).
 - Tune `.htaccess`: hashed JS/CSS/images `immutable, 1y`; HTML/sw/manifest `no-cache`.
 
-### Phase 4 — Dead-code & asset cleanup *(quick wins)* — every delete preceded by a reference grep
+### Phase 4 — Dead-code & asset cleanup *(quick wins)* — Phase 4a (dead scripts) DONE ✅ — every delete preceded by a reference grep
 - Remove 3 truly-dead scripts: `agent-memory.js`, `ml-brain.js`, `agent-manager.js` (0 game refs).
   **Keep `adaptive-ai.js`** (8 guarded uses, drives difficulty) — move it modular later. Update `headless-qa.js`/`mobile-qa.js` assertions.
 - Delete `images/src` (9.1M, 0 refs), `styles/zombies/zombie-1.png` (dup), stale SCSS (`styles/main.scss`, `styles/modules|ui|zombies/*.scss`).
