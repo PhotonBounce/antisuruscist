@@ -45,3 +45,8 @@ jobs:
             BASE="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
           fi
           bash scripts/guardian-check.sh "$BASE"
+
+      - name: Backend tests (node:test)
+        run: |
+          npm ci --prefix server || npm install --prefix server
+          npm test --prefix server
