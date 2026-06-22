@@ -9178,12 +9178,13 @@ $(document).ready(function () {
     }
     $canves.append($z);
     // ── Elite enemy callout (backlog #6) ───────────────────────────────────────
-    // Heuristic: rank.hp >= 7 (captain/commander) OR zombieType >= 5 (Titan/Commander)
-    // → tiered: captain+type3-4 = "tank", commander+type5-6 = "titan", fallback = "brute"
+    // Eliteness is driven by the rarity-weighted military RANK, not the cosmetic
+    // zombieType (which rolls 1-6 uniformly and would flag ~60% of late-wave enemies).
+    // Rank-based keeps elites special: ~17% in late waves, none in wave 1.
     (function _eliteCallout() {
-      var _isTitan  = rank.hp >= 10 || zombieType >= 5;
-      var _isTank   = !_isTitan && (rank.hp >= 7  || zombieType === 4);
-      var _isBrute  = !_isTitan && !_isTank && (rank.hp >= 5 || zombieType === 3);
+      var _isTitan  = rank.id === 'commander';
+      var _isTank   = rank.id === 'captain';
+      var _isBrute  = rank.id === 'lieutenant';
       if (!_isTitan && !_isTank && !_isBrute) return;  // not elite — skip
       var _tier = _isTitan ? 'titan' : _isTank ? 'tank' : 'brute';
       var _label = _isTitan ? '☠ TITAN' : _isTank ? '⚠ TANK' : '⚠ BRUTE';
