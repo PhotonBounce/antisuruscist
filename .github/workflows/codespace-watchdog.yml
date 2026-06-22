@@ -1,0 +1,33 @@
+name: Codespace Watchdog
+on:
+  schedule:
+    # Runs every 30 min — catches shutdown before idle timeout
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Manual trigger too
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start codespace if stopped
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # List codespaces for this repo
+          CODESPACES=$(gh codespace list --repo ${{ github.repository }} --json name,state -q '.[] | select(.state != "Available") | .name')
+          
+          if [ -n "$CODESPACES" ]; then
+            for CS in $CODESPACES; do
+              echo "Restarting stopped codespace: $CS"
+              gh codespace start -c "$CS" || true
+            done
+          else
+            echo "All codespaces already running ✓"
+          fi
+          
+          # Also ping the forwarded port to generate activity
+          ACTIVE=$(gh codespace list --repo ${{ github.repository }} --json name,state -q '.[] | select(.state == "Available") | .name' | head -1)
+          if [ -n "$ACTIVE" ]; then
+            echo "Pinging codespace $ACTIVE to keep alive"
+            gh codespace ssh -c "$ACTIVE" -- "touch /workspaces/antiruscist/.keep-alive" || true
+          fi

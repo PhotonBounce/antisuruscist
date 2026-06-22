@@ -1,0 +1,86 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# ANTI-RUSCIST — cPanel Git Deployment
+# Deploys static frontend files to public_html/ar/ on every git pull
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Setup:
+#   1. In cPanel → Git Version Control → Create
+#   2. Clone URL: https://github.com/lindapot-art/antiruscist.git
+#   3. Repository Path: /home/<cpanel-user>/repositories/antiruscist
+#   4. Deploy HEAD Commit (checked)
+#   5. This file runs automatically after each pull
+#
+# The DEPLOYDIR below must match your hosting path.
+# Default: public_html/ar  (serves as photon-bounce.com/ar/)
+# If deploying at domain root, change to: public_html
+# ═══════════════════════════════════════════════════════════════════════════
+
+---
+deployment:
+  tasks:
+    # Set deploy target — adjust if your cPanel username or path differs
+    # $USER is set by cPanel's deployment environment; verify with: echo $USER
+    - export DEPLOYDIR=/home/$USER/public_html/ar
+    - test -n "$USER" || { echo "ERROR: \$USER not set — cannot deploy"; exit 1; }
+
+    # Create deploy directory if it doesn't exist
+    - mkdir -p $DEPLOYDIR
+
+    # ── Core HTML & Config ──────────────────────────────────────────────
+    - /bin/cp index.html $DEPLOYDIR/
+    - /bin/cp admin.html $DEPLOYDIR/
+    - /bin/cp manifest.json $DEPLOYDIR/
+    - /bin/cp sw.js $DEPLOYDIR/
+    - /bin/cp robots.txt $DEPLOYDIR/
+    - /bin/cp sitemap.xml $DEPLOYDIR/
+    - /bin/cp .htaccess $DEPLOYDIR/
+
+    # ── Icons & Images ──────────────────────────────────────────────────
+    - /bin/cp favicon.ico $DEPLOYDIR/
+    - /bin/cp apple-touch-icon.png $DEPLOYDIR/
+    - /bin/cp icon-192.png $DEPLOYDIR/
+    - /bin/cp icon-512.png $DEPLOYDIR/
+    - /bin/cp zombie-mayhem.jpg $DEPLOYDIR/
+
+    # ── Directories (recursive, force-overwrite to avoid stale timestamps) ─
+    - /bin/cp -Rf scripts $DEPLOYDIR/
+    - /bin/cp -Rf styles $DEPLOYDIR/
+    - /bin/cp -Rf images $DEPLOYDIR/
+    - /bin/cp -Rf sounds $DEPLOYDIR/
+    - /bin/cp -Rf fonts $DEPLOYDIR/
+    - /bin/cp -Rf icons $DEPLOYDIR/
+    - /bin/cp -Rf vendor $DEPLOYDIR/
+    - /bin/cp -Rf mobile $DEPLOYDIR/
+
+    # ── Clean up files that should NOT be publicly accessible ───────────
+    # (defense-in-depth — .htaccess also blocks these, but belt & suspenders)
+    - /bin/rm -f $DEPLOYDIR/.cpanel.yml
+    - /bin/rm -f $DEPLOYDIR/package.json
+    - /bin/rm -f $DEPLOYDIR/package-lock.json
+    - /bin/rm -f $DEPLOYDIR/DEPLOY.md
+    - /bin/rm -f $DEPLOYDIR/STARTUP.md
+    - /bin/rm -f $DEPLOYDIR/PROJECT_HANDOFF.txt
+    - /bin/rm -f $DEPLOYDIR/.gitignore
+    - /bin/rm -rf $DEPLOYDIR/server
+    - /bin/rm -rf $DEPLOYDIR/contracts
+    - /bin/rm -rf $DEPLOYDIR/nft-deploy
+    - /bin/rm -rf $DEPLOYDIR/node_modules
+    - /bin/rm -rf $DEPLOYDIR/.git
+    - /bin/rm -rf $DEPLOYDIR/.github
+    - /bin/rm -rf $DEPLOYDIR/.devcontainer
+    - /bin/rm -rf $DEPLOYDIR/.vscode
+    # Remove QA/debug scripts that shouldn't be on production
+    - /bin/rm -f $DEPLOYDIR/headless-qa.js
+    - /bin/rm -f $DEPLOYDIR/headless-playtest.js
+    - /bin/rm -f $DEPLOYDIR/mobile-qa.js
+    - /bin/rm -f $DEPLOYDIR/deep-browser-qa-tmp.js
+    - /bin/rm -f $DEPLOYDIR/deep-visual-qa.js
+    - /bin/rm -f $DEPLOYDIR/deep-flow-qa.js
+    - /bin/rm -f $DEPLOYDIR/full-flow-qa.js
+    - /bin/rm -f $DEPLOYDIR/real-proxy-qa.js
+    - /bin/rm -f $DEPLOYDIR/ext-click-tmp.js
+    - /bin/rm -f $DEPLOYDIR/ext-qa-tmp.js
+    - /bin/rm -f $DEPLOYDIR/qa-watchdog.log
+    - /bin/rm -f $DEPLOYDIR/.heartbeat-evidence.log
+    - /bin/rm -f $DEPLOYDIR/.keep-alive
+    - /bin/rm -f $DEPLOYDIR/MARKETING-DEPLOYMENT-GUIDE.md

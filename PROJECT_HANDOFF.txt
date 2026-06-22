@@ -1,0 +1,631 @@
+================================================================================
+  ARC ZOMBIE SHOOTER — PROJECT HANDOFF NOTES
+  Generated: March 1, 2026
+  AI: GitHub Copilot (Claude Sonnet 4.6)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 1: WORKSPACE
+────────────────────────────────────────────────────────────────────────────────
+
+Root path:
+  /workspaces/deer-flow/frontend/final-v4c_1BAK_extracted/final-v4c_1BAK/app/
+
+Files:
+  scripts/main.js    — 4339 lines  (jQuery game engine, all logic)
+  styles/main.css    — 4051 lines  (all styling)
+  index.html         — 220 lines   (DOM skeleton)
+
+No build step. Open index.html directly in browser.
+
+Validation command (run after every JS edit):
+  cd /workspaces/deer-flow/frontend/final-v4c_1BAK_extracted/final-v4c_1BAK/app
+  node --check scripts/main.js && echo "JS OK"
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 2: TECH STACK
+────────────────────────────────────────────────────────────────────────────────
+
+- jQuery (CDN, loaded in index.html)
+- Vanilla JS — all logic inside one $(document).ready(function(){ ... })
+- Web Audio API — all sounds generated programmatically (no audio files)
+- SVG — weapon sprites, ruin decorations, ammo visuals
+- LocalStorage — ARC balance, ledger, referral code persistence
+- MetaMask + Polygon — blockchain integration already wired (not yet live)
+- CSS animations — all visual effects, no animation libraries
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 3: GAME OVERVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+Side-scrolling zombie wave shooter.
+- Zombies walk right→left, player clicks/taps to shoot
+- 4 waves per game; between waves an inventory/armory modal opens
+- Player earns credits (💰) from kills, arcoins (🪙 ARC) per wave cleared
+- Credits buy weapon upgrades and ammo refills
+- ARC is the play-to-earn token (future Polygon ERC-20)
+- God mode: unlocks all weapons, all upgrades, infinite ammo
+
+Canvas dimensions: 1024×550 (scaled to fit viewport via CSS --canvas-scale)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 4: KEY STATE VARIABLES (all inside document.ready scope)
+────────────────────────────────────────────────────────────────────────────────
+
+  let score = 0, credits = 0;
+  let arcoins = 0;               // ARC token balance
+  let shooterHp = 100;           // player health 0-100
+  let life = 3;                  // lives (heart icons)
+  let currentWeapon = REVOLVER_WEAPON;
+  let godMode = false;
+  let gamePaused = false;
+  let waveTransitioning = false;
+  let gameActive = false;
+  const ammoReserve = { revolver:3, shotgun:3, m16:2, lmg:2, gl:2, sniper:2 };
+  const weaponUpgradesBought = {};   // keyed "wname_idx"
+  const arcoinLedger = [];           // [{ts, amount, balance, reason, hash}]
+  let _autoSwitchPending = false;    // debounce for empty-gun auto-switch
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 5: WEAPONS
+────────────────────────────────────────────────────────────────────────────────
+
+  Name        | JS constant            | Unlock flag
+  ------------|------------------------|------------------
+  revolver    | REVOLVER_WEAPON        | always unlocked
+  shotgun     | SHOTGUN_WEAPON         | shotgunUnlocked
+  m16         | M16_WEAPON             | m16Unlocked
+  lmg         | LMG_WEAPON             | lmgUnlocked
+  gl          | GRENADE_LAUNCHER_WEAPON| glUnlocked
+  sniper      | SNIPER_WEAPON          | sniperUnlocked
+
+Upgrade data: WEAPON_UPGRADES object at line ~1714 (6 weapons × 5-6 upgrades each)
+Each upgrade: { cat, icon, name, cost, desc, apply() }
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 6: KEY FUNCTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+  earnArcoin(amount, reason)     line ~1833
+    Awards ARC, pushes to arcoinLedger, saves to localStorage,
+    calls updateCoinHUD(true) which shows popup notification.
+
+  updateCoinHUD(animate)         line ~1845
+    Updates #arcoin-val display. Shows arcoin-popup if animate=true.
+
+  updateScoreHUD()               line ~1824
+    Updates #score-val and #credits-val display elements.
+
+  buildInventory()               line ~3685
+    Rebuilds entire inventory panel HTML. Call after any state change
+    that should be reflected in the inventory.
+
+  showWaveBreak(completedWave, nextWaveFn)   line ~3073
+    Between-wave sequence: fanfare sound → golden flash → 660ms delay
+    → buildInventory() → prepend wave-break-banner with continue button.
+
+  switchToWeapon(wname)          line ~2100ish
+    Switches current weapon, calls renderAmmoUI(), renderWeaponHands(),
+    renderWeaponSwitcher().
+
+  equipSniper()                  (added by this session)
+    Unlocks + equips sniper. Called from switchToWeapon().
+
+  renderWeaponSwitcher()         line ~3214
+    Re-renders the weapon selector widget (#weapon-switcher).
+
+  updateShooterHpBar()           line ~1277
+    Syncs HP bar fill/color and mugshot pulse to shooterHp value.
+
+  shooterSpeech(text)            (search for function shooterSpeech)
+    Shows speech bubble above shooter portrait.
+
+  sndWaveComplete()              (added by this session, search for it)
+    C-major arpeggio fanfare — plays on wave end.
+
+  sndNoAmmo()                    (modified by this session)
+    3 rapid mechanical dry-fire clicks.
+
+  resetGame()                    (search for function resetGame)
+    Full reset — resets ammoReserve, _autoSwitchPending, score, etc.
+
+  spawnRuins()                   (rewritten by this session)
+    3-layer depth system: near/mid/far ruins with different scale/opacity.
+
+  generateARCTokenCanvas(tokenId, waveNum)    NOT YET IMPLEMENTED
+    Planned: canvas-based procedural ARC token visual generator.
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 7: HTML STRUCTURE (index.html key IDs)
+────────────────────────────────────────────────────────────────────────────────
+
+  #canves                — main game canvas wrapper (1024×550)
+  .info-board            — left HUD (level, kills, hearts, mute, god mode)
+  #score-hud             — bottom score/credits/ARC badges
+  #shooter-hud           — player health bar + mugshot + speech bubble
+                           currently: bottom:8px right:10px
+  #inventory-panel       — armory modal (rebuilt by buildInventory())
+  #wave-complete-flash   — golden cinematic overlay div
+  #weapon-switcher       — weapon swap buttons (bottom-right, above ammo)
+  .ammo                  — ammo display widget (bottom-right)
+  #ammo-reserve-hud      — reserve count inside .ammo
+  #callin-panel          — artillery/drone/himars support panel
+  #pause-game            — pause/armory trigger button (top-right)
+  #vision-blur-overlay   — drone concussion blur effect
+  #scope-overlay         — sniper scope overlay
+  #wave-break-banner     — prepended to inventory on wave end (has continue btn)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 8: INVENTORY PANEL STRUCTURE
+────────────────────────────────────────────────────────────────────────────────
+
+Opened by: $pauseGameTrigger click, space/ESC, or automatically on wave end
+Closed by: same triggers, or #wbr-continue-btn click
+
+Current NAV TABS (in order):
+  ⚔️ ARSENAL    → #inv-sec-armory     (weapon upgrades)
+  🔋 AMMO       → #inv-sec-ammo       (buy ammo packs)
+  🔄 EXCHANGE   → #inv-sec-exchange   (ARC → credits conversion)
+  🪙 ARC        → #inv-sec-arc        (transaction ledger)
+  🦊 WALLET     → #inv-sec-wallet     (MetaMask connect)
+  🖼️ NFTs        → #inv-sec-nfts       (NFT showcase, locked/coming soon)
+
+TO ADD (not yet done):
+  💰 EARN       → #inv-sec-earn       (all player earning methods)
+  Insert between AMMO and EXCHANGE tabs.
+
+Topbar elements:
+  .inv-topbar-title    "⚔️ ARMORY"
+  .inv-topbar-funds    credit + ARC balance display
+  .inv-close-hint      "ESC · SPACE to resume" (text hint, no button)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 9: WHAT WAS IMPLEMENTED IN THIS SESSION (all validated)
+────────────────────────────────────────────────────────────────────────────────
+
+1. sndWaveComplete() — C-major arpeggio fanfare on wave end
+2. #wave-complete-flash — golden overlay CSS animation
+3. Smooth inventory slide-in — visibility/opacity/transform transition
+4. sndNoAmmo() — 3 mechanical dry-fire clicks
+5. Auto-switch on empty gun — 320ms delay, _autoSwitchPending guard
+6. ammoReserve per-weapon — uses one magazine per reload, gated
+7. AMMO shop tab in inventory — buy pack bundles per weapon
+8. #ammo-reserve-hud — live reserve counter, pulses red when ≤1
+9. Weapon hands hidden — #weapon-hands { display:none !important }
+10. 3-layer perspective ruins — near/mid/far depth classes + spawnRuins() rewrite
+11. God mode full unlock — all weapons, all upgrades applied, reserves=99
+12. equipSniper() — fully wired end to end
+13. Weapon switcher — sniper added (🎯 SNP), switchToWeapon() updated
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 10: PENDING TASKS — NOT YET IMPLEMENTED
+────────────────────────────────────────────────────────────────────────────────
+
+── UI TASKS (requested but not done) ──────────────────────────────────────────
+
+[UI-1] EXIT INVENTORY BUTTON
+  Add a visible ✕ close button to the inventory topbar (.inv-topbar).
+  Currently only ESC/SPACE hint text exists.
+  On click → trigger $pauseGameTrigger.trigger('click')
+  Add to .inv-topbar in buildInventory() HTML template.
+
+[UI-2] PROMINENT "START NEXT WAVE" BUTTON
+  #wbr-continue-btn exists during wave breaks but is not prominent enough.
+  Redesign: large full-width glowing green button, visible above the fold.
+  In showWaveBreak(), update the banner HTML and CSS for wbr-continue-btn.
+
+[UI-3] GOD MODE: PER-WEAPON UPGRADE ICONS
+  In god mode, show each upgrade icon visually highlighted in the arsenal.
+  Currently bought upgrades just show "✓ OWNED" text.
+  Enhancement: when godMode===true, render each .inv-upg with bright icon
+  and a god-mode gold glow effect to indicate all are powered up.
+
+[UI-4] WEAPON DEPICTION ON MAIN HUD
+  Show current weapon art/icon on the main game screen (not just ammo dial).
+  Suggested: small weapon emoji+name badge near the ammo area or above it.
+  Or: re-enable a compact version of #weapon-hands showing weapon only (no arm).
+
+[UI-5] HEALTH TO BOTTOM-CENTER
+  Move #shooter-hud from bottom:8px right:10px → bottom-center of canvas.
+  CSS: left:50%; transform:translateX(-50%); bottom:8px; right:auto;
+  Must also adjust z-index so it doesn't conflict with ammo widget.
+
+[UI-6] BEEF UP WEAPON SWITCHER HUD (3D/metallic effects)
+  #weapon-switcher currently: simple dark box, bottom:92px right:22px
+  Enhancements wanted:
+    - Metallic/chrome gradient background
+    - 3D perspective transform on hover (rotateX/Y subtle tilt)
+    - Glow border on active weapon (.ws-btn.ws-active)
+    - Larger weapon emoji (24px → 28px)
+    - Weapon name text bolder and larger
+    - Drop shadow / emboss effect
+
+── EARNING METHODS (all confirmed by user, none yet implemented) ───────────────
+
+[EARN-1] DAILY SPIN WHEEL ← START HERE (simplest)
+  Logic:
+    - Check localStorage('arc_spin_date') vs today's date
+    - If already spun today: show countdown timer to midnight
+    - If not yet spun: animate spin wheel, reveal prize, award it
+  Prize segments (6):
+    +1 ARC, +2 ARC, +3 ARC, +50💰, +100💰, +200💰
+  Award via earnArcoin(n, 'Daily Spin') or credits += n; updateScoreHUD()
+  After spin: localStorage.setItem('arc_spin_date', todayISO)
+  UI: spinner wheel using CSS conic-gradient or canvas, CSS spin animation
+  Location: new #inv-sec-earn section in buildInventory()
+
+  Implementation sketch:
+    function doSpinWheel() {
+      const PRIZES = [
+        { label:'+1 ARC',  arc:1,   money:0   },
+        { label:'+2 ARC',  arc:2,   money:0   },
+        { label:'+50 💰', arc:0,   money:50  },
+        { label:'+100 💰',arc:0,   money:100 },
+        { label:'+3 ARC',  arc:3,   money:0   },
+        { label:'+200 💰',arc:0,   money:200 },
+      ];
+      const idx = Math.floor(Math.random() * PRIZES.length);
+      const prize = PRIZES[idx];
+      // animate wheel to land on idx segment
+      // after animation: award prize
+      const today = new Date().toISOString().slice(0,10);
+      localStorage.setItem('arc_spin_date', today);
+      if (prize.arc) earnArcoin(prize.arc, 'Daily Spin');
+      if (prize.money) { credits += prize.money; updateScoreHUD(); }
+      buildInventory();
+    }
+
+[EARN-2] REFERRAL REWARDS
+  Logic:
+    - On load: check URL param ?ref=CODE
+    - If ref param present AND localStorage('arc_ref_rewarded_'+CODE) not set:
+        earnArcoin(2, 'Referral bonus'); localStorage.setItem('arc_ref_rewarded_'+CODE, '1')
+    - Generate own code: localStorage('arc_ref_code') || 'ARC-'+Date.now().toString(36).toUpperCase()
+    - Share URL: window.location.href.split('?')[0] + '?ref=' + code
+    - Counter: localStorage('arc_refs_count') — increment when rewarding
+  UI in #inv-sec-earn:
+    - Display own referral code in styled box
+    - "📋 Copy Link" button → navigator.clipboard.writeText(shareUrl)
+    - "X friends referred" badge
+  Init: call checkReferralParam() inside $(document).ready before startGame()
+
+[EARN-3] WAVE LEADERBOARD PRIZE POOL (local HS)
+  Logic:
+    - After each wave break when nextWaveFn called, record score as wave HS:
+        const hsKey = 'arc_wave_hs_' + completedWave;
+        const prevBest = parseInt(localStorage.getItem(hsKey) || '0', 10);
+        if (score > prevBest) {
+          localStorage.setItem(hsKey, String(score));
+          earnArcoin(1, 'Wave ' + completedWave + ' high score!');
+          // append "🏆 New High Score! +1 ARC" to wbr-banner
+        }
+    - Show per-wave personal bests in #inv-sec-earn leaderboard table
+  UI: table showing Wave | Your Best | ARC Earned
+
+[EARN-4] OFFERWALL (AdGate)
+  Requires free AdGate publisher account at adgaterewards.com
+  Logic:
+    - "📺 Watch & Earn" button opens iframe modal overlay
+    - URL: https://wall.adgaterewards.com/{PUBLISHER_ID}/{USER_ID}
+    - USER_ID = walletAddr || localStorage('arc_anon_id') || auto UUID
+    - AdGate postMessage: window.addEventListener('message', e => {
+        if (e.data && e.data.type === 'offer_complete') {
+          earnArcoin(e.data.reward_amount || 1, 'AdGate Offer');
+        }
+      })
+  Use placeholder publisher ID 'DEMO' until real account set up.
+
+── ARC TOKEN MINTING / VISUAL DESIGN ──────────────────────────────────────────
+
+[TOKEN-1] DYNAMIC ARC TOKEN VISUAL GENERATOR
+  Purely cosmetic for now (not real ERC-721). Each earned ARC coin gets
+  a unique procedurally-generated visual displayed in the ledger.
+
+  Function to implement:
+    function generateARCTokenCanvas(tokenId, waveNum) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const ctx = c.getContext('2d');
+      // 1. Hexagon path (6 sides)
+      const cx = 32, cy = 32, r = 28;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        i === 0 ? ctx.moveTo(cx + r*Math.cos(a), cy + r*Math.sin(a))
+                : ctx.lineTo(cx + r*Math.cos(a), cy + r*Math.sin(a));
+      }
+      ctx.closePath();
+      // 2. Radial gradient — hue unique per tokenId
+      const hue = (tokenId * 37 + waveNum * 13) % 60 + 30; // 30-90 (gold range)
+      const grad = ctx.createRadialGradient(cx-8, cy-8, 4, cx, cy, r);
+      grad.addColorStop(0, `hsl(${hue}, 100%, 80%)`);
+      grad.addColorStop(0.6, `hsl(${hue}, 90%, 55%)`);
+      grad.addColorStop(1, `hsl(${hue-15}, 80%, 30%)`);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // 3. Gold border stroke
+      ctx.strokeStyle = `hsl(${hue+10}, 100%, 70%)`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // 4. Inner emboss ring
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        const ri = r * 0.75;
+        i === 0 ? ctx.moveTo(cx + ri*Math.cos(a), cy + ri*Math.sin(a))
+                : ctx.lineTo(cx + ri*Math.cos(a), cy + ri*Math.sin(a));
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${hue+20}, 100%, 85%, 0.5)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // 5. "ARC" text
+      ctx.fillStyle = `hsl(${hue+15}, 100%, 90%)`;
+      ctx.font = 'bold 11px Oswald, Impact, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = `hsl(${hue}, 100%, 30%)`;
+      ctx.shadowBlur = 3;
+      ctx.fillText('ARC', cx, cy - 4);
+      // 6. Wave/token number
+      ctx.font = '7px Oswald, sans-serif';
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = `hsla(${hue+10}, 80%, 85%, 0.8)`;
+      ctx.fillText('W' + waveNum, cx, cy + 6);
+      return c.toDataURL('image/png');
+    }
+
+  Integration: In buildInventory() ARC ledger section, render each tx as:
+    <img class="arc-token-thumb" src="${generateARCTokenCanvas(idx, txWave)}" title="${tx.reason}">
+  
+  txWave: parse wave number from tx.reason string or store it in the ledger entry.
+  Add 'wave' field to earnArcoin: arcoinLedger.push({..., wave: currentWave})
+
+  CSS for thumbnail:
+    .arc-token-thumb {
+      width: 32px; height: 32px;
+      border-radius: 4px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+      animation: token-shimmer 3s ease-in-out infinite;
+    }
+    @keyframes token-shimmer {
+      0%,100% { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)) brightness(1); }
+      50%      { filter: drop-shadow(0 0 8px gold) brightness(1.15); }
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 11: CSS CLASSES REFERENCE
+────────────────────────────────────────────────────────────────────────────────
+
+INVENTORY:
+  #inventory-panel          modal container (visibility/opacity transition)
+  #inventory-panel.open     shown state
+  .inv-onepage-wrap         inner scroll container
+  .inv-topbar               sticky header (title + funds + close hint)
+  .inv-nav                  tab navigation bar
+  .inv-nav-btn              tab button; .active = highlighted
+  .inv-section              each scrollable section
+  .inv-sec-header           section heading + subtitle
+  .inv-weapons              weapon list container
+  .inv-weapon               single weapon row
+  .inv-weapon--locked       locked weapon style
+  .inv-weapon--current      active weapon style
+  .inv-weapon--new          new unlock highlight
+  .inv-upgrades             upgrade buttons container
+  .inv-upg                  upgrade button
+  .inv-upg--bought          purchased (disabled, check mark)
+  .inv-upg--cant            can't afford (dimmed)
+  .inv-upg--shake           shake animation on failed purchase
+  .inv-upg-icon             upgrade icon span
+  .inv-upg-name             upgrade name span
+  .inv-upg-cost             cost display
+  .inv-equip-btn            equip weapon button
+  .inv-ammo-shop            ammo section container
+  .inv-ammo-buy-btn         buy ammo button
+
+WAVE BREAK BANNER:
+  #wave-break-banner        prepended to #inventory-panel on wave end
+  #wbr-continue-btn         "▶ START WAVE N" button
+  .wbr-badge                "⚔️ WAVE N COMPLETE ⚔️"
+  .wbr-coins                ARC earned display
+  .wbr-unlocks              new weapon unlock announcements
+  .wbr-unlock-item          individual unlock item
+
+FOREGROUND RUINS (depth system):
+  .fg-ruin                  base class
+  .fg-ruin--near            z:9, scale 0.88-1.18, full opacity/saturation
+  .fg-ruin--mid             z:7, scale 0.55-0.80, 0.82 opacity, desaturated
+  .fg-ruin--far             z:5, scale 0.28-0.50, 0.52 opacity, blurred
+
+SHOOTER HUD:
+  #shooter-hud              container (bottom-right currently)
+  #shooter-mugshot          portrait box; .taking-hit .low-hp variants
+  #shooter-speech           speech bubble; .visible .critical variants
+  #shooter-hp-wrap          HP bar + label container
+  #shooter-hp-bar           bar track
+  #shooter-hp-fill          fill; .medium .low color variants
+  #shooter-hp-label         "100%" percentage text
+
+WEAPON SWITCHER:
+  #weapon-switcher          container (bottom:92px right:22px)
+  .ws-title                 "WEAPON" label
+  .ws-btn                   individual weapon button; .ws-active = current
+  .ws-hint                  "🖱 wheel" hint text
+
+SCORE HUD:
+  #score-hud                bottom score/credits/ARC container
+  .hud-badge                individual badge
+  .hud-badge-label          label line
+  .hud-badge-value          value line
+  .hud-badge--arc           ARC badge variant (gold border)
+
+AMMO:
+  .ammo                     ammo widget (bottom-right)
+  #ammo-reserve-hud         reserve count in .ammo; .ammo-reserve--low = red pulse
+  #revolver-cylinder        SVG cylinder overlay for revolver
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 12: BLOCKCHAIN INTEGRATION (existing, not changing)
+────────────────────────────────────────────────────────────────────────────────
+
+  const POLYGON_CHAIN_ID = '0x89';
+  let walletAddr = null;
+  let walletChainId = null;
+
+  initWeb3()        — sets up MetaMask event listeners
+  connectWallet()   — triggers MetaMask connect + chain switch to Polygon
+
+Ledger entry format:
+  { ts: Date.now(), amount: N, balance: arcoins, reason: 'string', hash: '0x...' }
+  'hash' is a random 12-char hex string (simulated until real contract)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 13: SUGGESTED IMPLEMENTATION ORDER FOR NEXT SESSION
+────────────────────────────────────────────────────────────────────────────────
+
+Step 1: Add 💰 EARN nav tab to buildInventory() inv-nav block
+Step 2: Add #inv-sec-earn section HTML in buildInventory() (before exchange section)
+Step 3: Implement doSpinWheel() function + CSS spin wheel animation
+Step 4: Add spin click handler in buildInventory() click handler section
+Step 5: Implement checkReferralParam() + call in document.ready before startGame()
+Step 6: Add referral UI to #inv-sec-earn
+Step 7: Implement wave high score check in showWaveBreak() / calcWave()
+Step 8: Add leaderboard UI to #inv-sec-earn
+Step 9: Add offerwall modal HTML + postMessage listener
+Step 10: Implement generateARCTokenCanvas() + integrate with ARC ledger display
+Step 11: Add wave field to earnArcoin ledger entries
+Step 12: CSS for all new earn section elements
+Step 13: node --check validation
+Step 14: UI tasks (health center, close button, weapon switcher 3D, etc.)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 14: CONVERSATION THREAD SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+
+EXCHANGE 1:
+  USER: [previous session work — wallet button removed from HUD, visualViewport
+         mobile sizing, CSS chrome cleanup]
+
+EXCHANGE 2:
+  USER: "create level finish sounds and some sort of smooth transition from
+         current game instead of abrupt jump to inventory"
+  DONE: sndWaveComplete() fanfare, #wave-complete-flash overlay + CSS animation,
+        inventory panel CSS changed to visibility/opacity/transform slide-in,
+        showWaveBreak() rewritten with 660ms delay + music fade
+
+EXCHANGE 3:
+  USER: "when gun runs out of bullets, it should not be shooting out traces but
+         rather create series of clicks and then autoswitch to next available gun"
+  DONE: sndNoAmmo() → 3 mechanical dry-fire clicks, doShoot() stops firing +
+        plays clicks + auto-switches weapon after 320ms, _autoSwitchPending guard
+
+EXCHANGE 4:
+  USER: "make sure ammo is not unlimited, we wanna sell ammo to user"
+  DONE: ammoReserve object per weapon, reload() gated on reserve, speech bubble
+        "No ammo! Buy more in Armory" when empty, AMMO tab in inventory with
+        buy packs, #ammo-reserve-hud HUD indicator with low-ammo pulse
+
+EXCHANGE 5:
+  USER: "remove current weapon images. remove transparency from foreground items
+         and position them more to resemble perspective depth of field"
+  DONE: #weapon-hands { display:none !important }, spawnRuins() rewritten with
+        3-layer depth system (near/mid/far), CSS for each layer with appropriate
+        scale, opacity, saturation, blur
+
+EXCHANGE 6:
+  USER: "in god mode unlock all weapons for me and addons"
+  DONE: $godMode click expanded — unlocks all 6 weapons, applies ALL
+        WEAPON_UPGRADES via loop, maxes ammoReserve to 99, equipSniper()
+        function added, getUnlockedWeapons() updated, switchToWeapon() updated,
+        weapon switcher icons/names updated with sniper
+
+EXCHANGE 7:
+  USER: "is there a way for my game to earn crypto somehow?"
+  ANSWER (text only, no code): Explained 5 options — ERC-20 ARC on Polygon,
+        MATIC prize pools, NFT drops on Immutable X, Brave BAT, crypto ad
+        networks. Recommended simplest = Brave BAT (zero code) or Coinzilla
+        ad tag (one script tag).
+
+EXCHANGE 8:
+  USER: "which option is fastest and easiest for us?"
+  ANSWER: Brave BAT = zero code (register at creators.brave.com, verify domain).
+          Second easiest = Coinzilla/Bitmedia ad script tag.
+          Asked if user wants ad slot added.
+
+EXCHANGE 9:
+  USER: "it nice, but i want my game players to somehow also earn while playing.
+         is there a method where i dont have to spend money or crypto to pay them?"
+  ANSWER: Offerwall ads explained (AdGate/Torox/Adjoe) — advertiser pays players,
+          user gets 30-50% cut. Table of 4 zero-cost methods presented.
+          Asked if user wants offerwall + "Earn ARC" button implemented.
+
+EXCHANGE 10:
+  USER: "im i talking to copilot or to deer-flow plugin? create ui to exit
+         inventory and to start next level ui. in god mode allow each weapons
+         upgrade and add icons for each weapon and use same weapon depiction on
+         main ui screen. move shooters health into bottom middle and put the
+         current weapon and swap weapon ui there and beef it up with effects and
+         3d looks."
+  STATUS: Agent started reading files to gather context. Interrupted before
+          implementation began. NONE of these UI tasks were implemented.
+
+EXCHANGE 11:
+  USER: "regarding player earning methods, can we implement several methods
+         into our app?"
+  USER SELECTED (via multi-choice): All 4 methods:
+    - Offerwall (AdGate)
+    - Referral rewards
+    - Wave leaderboard prize pool
+    - Daily spin wheel
+  STATUS: Agent began reading files. Interrupted before implementation.
+
+EXCHANGE 12:
+  USER: "lets prep for all of them but implement simplest one and lets creating
+         minting mechanism to create our ARC tokens (can they be dynamically
+         created graphics-wise?)"
+  ANSWER: Yes — canvas-based procedural token art explained with full code
+          sketch (hexagonal coin, radial gradient unique per tokenId, "ARC"
+          text embossed, shimmer animation). Full implementation design provided.
+  STATUS: Agent read more file context. Interrupted before implementation.
+
+EXCHANGE 13:
+  USER: "prepare this chat thread for export to another instance of AI to pickup
+         where you left off for this project"
+  ACTION: Detailed handoff notes created (what you are reading now).
+
+EXCHANGE 14:
+  USER: "i dont want to add any code to index etc, you do it from your explorer"
+  STATUS: User confirmed agent should make all file edits directly.
+          Agent found earnArcoin() at line 1833, score var at line 1619,
+          calcWave() at line 3028, full inventory click handlers at lines 3964+.
+          Ready to implement — was reading context when interrupted.
+
+EXCHANGE 15:
+  USER: "prepare project transfer notes. the new session will have same file
+         structure. create .txt with all the notes and copy of this threads'
+         dialog."
+  ACTION: This file being created now.
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION 15: FIRST ACTIONS FOR NEW SESSION
+────────────────────────────────────────────────────────────────────────────────
+
+1. Read lines 3760-3775 of scripts/main.js to confirm exact inv-nav HTML
+2. Read lines 3924-4060 of scripts/main.js to confirm click handler block ends
+3. Implement ALL changes in one multi_replace_string_in_file call:
+   a. Add EARN tab to nav (after AMMO button, before EXCHANGE)
+   b. Add #inv-sec-earn section HTML (before exchange section)
+   c. Add doSpinWheel() function (after earnArcoin function ~line 1843)
+   d. Add checkReferralParam() function (after doSpinWheel)
+   e. Add wave HS check in showWaveBreak (before nextWaveFn call)
+   f. Add spin + referral click handlers in buildInventory handler block
+   g. Add offerwall modal HTML + postMessage listener in document.ready
+   h. Add generateARCTokenCanvas() function
+4. Add all CSS to styles/main.css in one multi_replace_string_in_file call
+5. Run: node --check scripts/main.js && echo "JS OK"
+6. Then tackle UI tasks (health center, close button, weapon switcher 3D)
+
+================================================================================
+END OF HANDOFF NOTES
+================================================================================

@@ -1,0 +1,59 @@
+# Secrets — NEVER commit
+.env
+*.env
+nft-deploy/.env
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Large binary assets (prevent git push failures)
+*.psd
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Build artifacts
+new_build_tmp/
+extracted/
+
+# Backup / messy files
+*.MESSY_BAK
+*.bak
+*.pre_recolour.bak
+ZZZ_FULL_GAME_BACKUP_*.tar.gz
+
+# Temp QA/debug scripts (root-level)
+b190-*.js
+bug-repro.js
+full-qa.js
+qa-full.js
+deep-*.js
+ext-*.js
+full-flow-qa.js
+real-proxy-qa.js
+headless-playtest.js
+
+# Temp/garbage files
+zixWLxzY
+backups/ziTXCuCu
+backups/ziZwQ0Xn
+
+# Keep-alive state
+.keep-alive
+.vscode/.heartbeat
+server/game.db
+server/node_modules/
+server/game.db-wal
+server/game.db-shm
+dist/

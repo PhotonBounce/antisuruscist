@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Defend Ukraine in this zombie shooter with blockchain economy. 18 weapons, 7 call-ins, adaptive AI difficulty, ARC token rewards. Play free in 15 languages.">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#060E05">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Anti-Ruscist — Zombie Shooter with Blockchain Economy">
+    <meta property="og:description" content="Defend Ukraine in this zombie shooter. 18 weapons, 7 call-ins, adaptive AI, ARC token rewards. Play free in 15 languages.">
+    <meta property="og:url" content="https://www.photon-bounce.com/ar/">
+    <link rel="canonical" href="https://www.photon-bounce.com/ar/">
+    <meta property="og:image" content="https://www.photon-bounce.com/ar/apple-touch-icon.png">
+    <meta property="og:image:alt" content="Anti-Ruscist game — Ukrainian flag themed zombie shooter">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Anti-Ruscist — Zombie Shooter">
+    <meta name="twitter:description" content="Defend Ukraine. Earn ARC tokens. Mint kill NFTs. 18 weapons, 7 call-ins, adaptive AI difficulty.">
+    <meta name="twitter:image" content="https://www.photon-bounce.com/ar/apple-touch-icon.png">
+
+    <title>Anti-Ruscist — Zombie Shooter with Blockchain Economy</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preload" as="image" href="images/zombies/zombie-1.png">
+    <link rel="preload" as="image" href="images/zombies/zombie-2.png">
+    <link rel="preload" as="image" href="images/zombies/zombie-3.png">
+    <link rel="preload" as="image" href="images/zombies/zombie-4.png">
+    <link rel="preload" as="image" href="images/zombies/zombie-5.png">
+    <link rel="preload" as="image" href="images/zombies/zombie-6.png">
+    <script>
+      // Auto-redirect touch devices to mobile version
+      if (/nomobile/.test(location.search)) {
+        try { localStorage.setItem('arc_force_desktop', '1'); } catch (e) {}
+      }
+      if (/forcemobile/.test(location.search)) {
+        try { localStorage.removeItem('arc_force_desktop'); } catch (e) {}
+      }
+      var forceDesktop = false;
+      try { forceDesktop = localStorage.getItem('arc_force_desktop') === '1'; } catch (e) {}
+      if (('ontouchstart' in window || navigator.maxTouchPoints > 0) && !/nomobile/.test(location.search) && !forceDesktop) {
+        location.replace('mobile/');
+      }
+    </script>
+    <link rel="stylesheet" href="vendor/tootik.min.css">
+    <link rel="stylesheet" href="styles/main.css?v=172">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Russo+One&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <h1 class="sr-only">Anti-Ruscist — Zombie Shooter</h1>
+
+    <div id="canves" data-wave="" class="loading intro" role="main">
+
+      <!-- Parallax background layers -->
+      <div class="parallax-layer" id="parallax-far"  data-depth="0.02"></div>
+      <div class="parallax-layer" id="parallax-mid"  data-depth="0.04"></div>
+      <div class="parallax-layer" id="parallax-near" data-depth="0.06"></div>
+
+      <!-- Lane ground terrain paths — visual depth cues for enemy march routes -->
+      <div class="lane-ground lane-ground-far"></div>
+      <div class="lane-ground lane-ground-mid"></div>
+      <div class="lane-ground lane-ground-near"></div>
+
+      <!-- Muzzle flash + shoot overlay -->
+      <div id="muzzle-flash"></div>
+      <div id="shoot-overlay"></div>
+
+      <!-- Environmental effects -->
+      <div id="env-layer"></div>
+
+      <!-- Loading screen -->
+      <div class="loader">
+        <div class="loading-char">
+          <div class="zombie-loader"></div>
+          <span>Loading&hellip;</span>
+        </div>
+      </div>
+
+      <!-- Game cover -->
+      <div class="game-cover">
+        <div class="cover-title">Anti-Ruscist</div>
+        <div class="cover-sub">
+          <span id="cover-typewriter"></span><span class="cover-cursor">|</span>
+        </div>
+        <div id="lang-picker" class="lang-picker">
+          <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+          <button class="lang-btn" data-lang="ua">🇺🇦 UA</button>
+          <button class="lang-btn" data-lang="de">🇩🇪 DE</button>
+          <button class="lang-btn" data-lang="fr">🇫🇷 FR</button>
+          <button class="lang-btn" data-lang="es">🇪🇸 ES</button>
+          <button class="lang-btn" data-lang="pl">🇵🇱 PL</button>
+          <button class="lang-btn" data-lang="pt">🇵🇹 PT</button>
+          <button class="lang-btn" data-lang="it">🇮🇹 IT</button>
+          <button class="lang-btn" data-lang="nl">🇳🇱 NL</button>
+          <button class="lang-btn" data-lang="cs">🇨🇿 CS</button>
+          <button class="lang-btn" data-lang="ja">🇯🇵 JA</button>
+          <button class="lang-btn" data-lang="ko">🇰🇷 KO</button>
+          <button class="lang-btn" data-lang="zh">🇨🇳 ZH</button>
+          <button class="lang-btn" data-lang="tr">🇹🇷 TR</button>
+          <button class="lang-btn" data-lang="sv">🇸🇪 SV</button>
+        </div>
+
+        <!-- ═══ PRE-GAME LOBBY HUB ═══ -->
+        <div id="lobby-hub" class="lobby-hub">
+          <div class="lobby-row">
+            <button class="lobby-card lc-spin" id="lobby-spin" aria-label="Daily Spin — free ARC reward">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🎰</span>
+              <span class="lc-label">Daily Spin</span>
+              <span class="lc-sub">Free ARC!</span>
+              <span class="lc-badge lc-badge-free">FREE</span>
+            </button>
+            <button class="lobby-card lc-armory" id="lobby-armory" aria-label="Armory — weapons and gear">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🎒</span>
+              <span class="lc-label">Armory</span>
+              <span class="lc-sub">Weapons &amp; Gear</span>
+            </button>
+            <button class="lobby-card lc-nft" id="lobby-nft" aria-label="Mint NFT — costs 5 ARC">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🃏</span>
+              <span class="lc-label">Mint NFT</span>
+              <span class="lc-sub">5 ARC</span>
+              <span class="lc-badge lc-badge-hot">HOT</span>
+            </button>
+          </div>
+          <div class="lobby-row">
+            <button class="lobby-card lc-missions" id="lobby-missions" aria-label="Missions — earn ARC rewards">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">📋</span>
+              <span class="lc-label">Missions</span>
+              <span class="lc-sub">Earn ARC</span>
+              <span class="lc-badge lc-badge-count" id="lobby-mission-count">3</span>
+            </button>
+            <button class="lobby-card lc-stake" id="lobby-stake" aria-label="Staking — up to 48 percent APR">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">📈</span>
+              <span class="lc-label">Staking</span>
+              <span class="lc-sub">Up to 48% APR</span>
+              <span class="lc-badge lc-badge-new">NEW</span>
+            </button>
+            <button class="lobby-card lc-shop" id="lobby-shop" aria-label="Shop — skins and titles">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🛒</span>
+              <span class="lc-label">Shop</span>
+              <span class="lc-sub">Skins &amp; Titles</span>
+            </button>
+          </div>
+          <div class="lobby-row lobby-row-wide">
+            <button class="lobby-card lc-ad lc-wide" id="lobby-watch-ad" aria-label="Watch and Earn — watch a video for 3 ARC">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🎬</span>
+              <span class="lc-label">Watch &amp; Earn</span>
+              <span class="lc-sub">Watch a short video → +3 ARC</span>
+              <span class="lc-badge lc-badge-free">FREE</span>
+            </button>
+            <button class="lobby-card lc-refer lc-wide" id="lobby-refer" aria-label="Invite Friends — 2 ARC per referral">
+              <span class="lc-glow"></span>
+              <span class="lc-icon">🔗</span>
+              <span class="lc-label">Invite Friends</span>
+              <span class="lc-sub">+2 ARC per referral</span>
+            </button>
+          </div>
+          <div class="lobby-balance" id="lobby-balance">
+            <span class="lb-icon">🪙</span>
+            <span class="lb-amount" id="lb-arc-amount">0</span>
+            <span class="lb-label">ARC</span>
+          </div>
+        </div>
+
+        <button id="start-game-btn" class="start-game-btn" type="button" aria-label="Start game">
+          <span class="sgb-icon">🎯</span>
+          <span class="sgb-text" data-i18n="startBtn">Kill Ruscists Now!</span>
+          <span class="sgb-icon">🎯</span>
+        </button>
+        <div class="cover-donate">
+          <a href="https://u24.gov.ua/" target="_blank" rel="noopener">🇺🇦 United24</a>
+          <a href="https://savelife.in.ua/en/donate-en/" target="_blank" rel="noopener">💙 Come Back Alive</a>
+          <a href="https://bank.gov.ua/en/about/support-the-armed-forces" target="_blank" rel="noopener">🏦 NBU Fund</a>
+          <a href="https://buymeacoffee.com/antiruscist" target="_blank" rel="noopener" class="bmc-link">☕ Buy Me a Coffee</a>
+        </div>
+      </div>
+
+      <!-- Overlay: game-over / won / pause / level -->
+      <div class="overlay-screen" role="dialog" aria-label="Game state">
+        <h2 class="big-title game-over-title" data-i18n="gameOver">Game <div>Over</div></h2>
+        <h2 class="big-title end-game-title" data-i18n="youWon">You <div>Won</div></h2>
+        <span class="restart-hint" data-i18n="restartHint">Click Here to Restart</span>
+        <button class="restart-game-btn" id="restart-game-btn" data-i18n="newGame" aria-label="New game">🔄 NEW GAME</button>
+        <!-- Death Upsell Panel -->
+        <div id="death-upsell" class="death-upsell" style="display:none">
+          <div class="du-stats">
+            <div class="du-stat"><span class="du-val" id="du-wave">0</span><span class="du-lbl">WAVE</span></div>
+            <div class="du-stat"><span class="du-val" id="du-kills">0</span><span class="du-lbl">KILLS</span></div>
+            <div class="du-stat"><span class="du-val" id="du-score">0</span><span class="du-lbl">SCORE</span></div>
+            <div class="du-stat"><span class="du-val" id="du-arc">0</span><span class="du-lbl">ARC 🪙</span></div>
+          </div>
+          <button id="du-continue-btn" class="du-btn du-btn-continue" aria-label="Continue game for ARC coins">⚡ CONTINUE — <span id="du-cost">25</span> ARC</button>
+          <div id="du-streak-save" class="du-streak-save" style="display:none">
+            <span class="du-streak-label">🔥 Save your <span id="du-streak-count">0</span>x streak?</span>
+            <button id="du-streak-btn" class="du-btn du-btn-streak">💎 SAVE — <span id="du-streak-cost">5</span> ARC</button>
+          </div>
+          <button id="du-restart-btn" class="du-btn du-btn-restart">🔄 NEW GAME</button>
+          <div class="du-tip" id="du-tip"></div>
+          <div class="du-cosm-flex" id="du-cosm-flex"></div>
+        </div>
+        <!-- Starter Pack OTO -->
+        <div id="starter-pack" class="starter-pack" style="display:none">
+          <div class="sp-badge">🎁 FOUNDER'S DEAL</div>
+          <div class="sp-title">Welcome Pack — One Time Only!</div>
+          <div class="sp-items">
+            <span>🪙 150 ARC</span>
+            <span>🎨 Exclusive Skin</span>
+            <span>✨ Gold Name Color</span>
+          </div>
+          <div class="sp-price"><s>~300 ARC value</s> → <strong>Just 0.5 POL</strong></div>
+          <div class="sp-social"><span id="sp-claimed-count">0</span> players claimed this</div>
+          <button id="sp-buy-btn" class="du-btn du-btn-continue" aria-label="Claim special deal">🚀 CLAIM DEAL</button>
+          <button id="sp-dismiss-btn" class="sp-dismiss" aria-label="Dismiss special offer">No thanks, I'll earn it</button>
+        </div>
+        <h2 class="big-title game-pause-title">Paused</h2>
+        <div id="pause-fact-box"></div>
+        <div class="pause-donate" id="pause-donate">
+          <a href="https://u24.gov.ua/" target="_blank" rel="noopener">🇺🇦 Donate to Ukraine</a>
+        </div>
+        <h2 class="big-title level-title">Level <span></span></h2>
+        <div class="version-overlay" id="version-overlay"></div>
+      </div>
+
+      <!-- Score + Credits HUD — rebuilt military-style 4-stat panel -->
+      <div id="score-hud">
+        <div class="hud-stat-blk">
+          <span class="hud-stat-ico">📡</span>
+          <div class="hud-stat-inner">
+            <span class="hud-stat-lbl" data-i18n="hudWave">WAVE</span>
+            <span class="hud-stat-val" id="hud-wave-val" aria-live="polite">01</span>
+          </div>
+        </div>
+        <div class="hud-vsep"></div>
+        <div class="hud-stat-blk">
+          <span class="hud-stat-ico">🎯</span>
+          <div class="hud-stat-inner">
+            <span class="hud-stat-lbl" data-i18n="hudScore">SCORE</span>
+            <span class="hud-stat-val" id="score-val" aria-live="polite">0</span>
+          </div>
+        </div>
+        <div class="hud-vsep"></div>
+        <div class="hud-stat-blk">
+          <span class="hud-stat-ico">₴</span>
+          <div class="hud-stat-inner">
+            <span class="hud-stat-lbl" data-i18n="hudHryvni">HRYVNI</span>
+            <span class="hud-stat-val credits" id="credits-val" aria-live="polite">0</span>
+          </div>
+        </div>
+        <div class="hud-vsep"></div>
+        <div class="hud-stat-blk">
+          <span class="hud-stat-ico">💀</span>
+          <div class="hud-stat-inner">
+            <span class="hud-stat-lbl" data-i18n="hudKills">KILLS</span>
+            <span class="hud-stat-val" id="hud-kills-val" aria-live="polite">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wave progress bar -->
+      <div id="wave-progress" class="wave-progress">
+        <div class="wave-progress-fill" id="wave-progress-fill"></div>
+        <span class="wave-progress-txt" id="wave-progress-txt"></span>
+      </div>
+
+      <!-- FPS counter (toggle in Display settings) -->
+      <div id="fps-counter" class="fps-counter" style="display:none">0 FPS</div>
+
+      <!-- Live game timer -->
+      <div id="game-timer" class="game-timer">⏱ 0:00</div>
+
+      <!-- Live accuracy HUD (toggle in Display settings) -->
+      <div id="accuracy-hud" class="accuracy-hud" style="display:none">🎯 0%</div>
+
+      <!-- Shots for Ukraine counter -->
+      <div id="shots-ukraine">
+        <span class="su-flag">🇺🇦</span>
+        <span id="shots-ukraine-val">0</span>
+        <span class="su-label" data-i18n="hudShots">shots for Ukraine</span>
+        <span class="su-divider">→</span>
+        <span id="shots-ukraine-usd" class="su-usd">$0.00</span>
+        <span class="su-usd-label">for UA</span>
+      </div>
+
+      <!-- Wallet earn notification -->
+      <div id="wallet-earn-notify" class="wallet-earn-notify" style="display:none"></div>
+
+      <!-- TOP-LEFT: Wave jump buttons -->
+      <div id="level-jump-btns">
+        <span class="lvl-lbl">WAVE</span>
+        <button class="lvl-btn" data-wave="1" aria-label="Wave 1">1</button>
+        <button class="lvl-btn" data-wave="2" aria-label="Wave 2">2</button>
+        <button class="lvl-btn" data-wave="3" aria-label="Wave 3">3</button>
+        <button class="lvl-btn" data-wave="4" aria-label="Wave 4">4</button>
+      </div>
+
+      <!-- TOP-CENTER: Call-In Strike Panel -->
+      <div id="callin-panel">
+        <div class="ci-panel-title">⚡ <span data-i18n="hudCallIn">CALL IN SUPPORT</span>
+          <button id="ci-collapse-btn" class="ci-collapse-btn" title="Toggle panel" aria-label="Toggle call-in panel">▲</button>
+        </div>
+        <div class="ci-btns">
+          <button id="callin-arty" class="ci-btn" type="button">
+            <span class="ci-key-badge">⇧1</span>
+            <span class="ci-icon">💥</span>
+            <span class="ci-name" data-i18n="ciArty">ARTY</span>
+            <span class="ci-cost-badge">500₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-drones" class="ci-btn ci-btn--drones" type="button">
+            <span class="ci-key-badge">⇧2</span>
+            <span class="ci-icon">🛩</span>
+            <span class="ci-name">DRONES</span>
+            <span class="ci-cost-badge">350₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-himars" class="ci-btn ci-btn--himars" type="button">
+            <span class="ci-key-badge">⇧3</span>
+            <span class="ci-icon">🚀</span>
+            <span class="ci-name" data-i18n="ciHimars">HIMARS</span>
+            <span class="ci-cost-badge">1200₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-bradley" class="ci-btn ci-btn--bradley" type="button">
+            <span class="ci-key-badge">⇧4</span>
+            <img class="ci-icon-img" src="images/vehicles/bradley.png" alt="Bradley" loading="lazy">
+            <span class="ci-name" data-i18n="ciBradley">BRAD</span>
+            <span class="ci-cost-badge">800₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-rover" class="ci-btn ci-btn--rover" type="button">
+            <span class="ci-key-badge">⇧5</span>
+            <span class="ci-icon">🤖</span>
+            <span class="ci-name" data-i18n="ciRover">ROVER</span>
+            <span class="ci-cost-badge">200₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-firedrone" class="ci-btn ci-btn--firedrone" type="button">
+            <span class="ci-key-badge">⇧6</span>
+            <img class="ci-icon-img" src="images/vehicles/firedrone.png" alt="Fire Drone" loading="lazy">
+            <span class="ci-name" data-i18n="ciFiredrone">FIRE</span>
+            <span class="ci-cost-badge">600₴</span>
+            <span class="ci-cd"></span>
+          </button>
+          <button id="callin-fpv" class="ci-btn ci-btn--fpv" type="button">
+            <span class="ci-key-badge">⇧7</span>
+            <img class="ci-icon-img" src="images/vehicles/fpv.png" alt="FPV Drone" loading="lazy">
+            <span class="ci-name" data-i18n="ciFpv">FPV</span>
+            <span class="ci-cost-badge">450₴</span>
+            <span class="ci-cd"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TOP-RIGHT: Pause / Main Menu button -->
+      <div id="pause-game" data-tootik="ESC / P — Pause · Armory" data-tootik-conf="bottom invert">⏸ <span data-i18n="hudMenu">MENU</span></div>
+      <button id="medkit-btn" class="medkit-btn" title="Use Medkit (auto at <10% HP)" onclick="if(typeof useMedkit==='function')useMedkit()">💊 <span id="medkit-count">0</span></button>
+      <div id="inv-shortcut-label">SPACE · MENU</div>
+
+      <!-- TOP-RIGHT: HUD Controls -->
+      <div id="hud-controls">
+        <button id="mute-music"  class="hud-ctrl-btn" data-tootik="Mute Music"        data-tootik-conf="bottom invert" aria-label="Mute Music">🎵</button>
+        <button id="mute-sounds" class="hud-ctrl-btn" data-tootik="Mute SFX"          data-tootik-conf="bottom invert" aria-label="Mute SFX">🔊</button>
+        <button id="god-mode"    class="hud-ctrl-btn hud-ctrl-btn--god" data-tootik="God Mode" data-tootik-conf="bottom invert" aria-label="God Mode">⚡</button>
+
+        <button id="settings-btn" class="hud-ctrl-btn" data-tootik="Settings" data-tootik-conf="bottom invert" aria-label="Settings">⚙️</button>
+      </div>
+
+      <!-- JOKE TICKER — only shown inside inventory/pause panel now -->
+      <div id="joke-ticker" class="joke-ticker" style="display:none" aria-hidden="true">
+        <span class="joke-ticker-label">😂 FRONT LINE INTEL:</span>
+        <div class="joke-ticker-track">
+          <div class="joke-ticker-inner" id="joke-ticker-inner"></div>
+        </div>
+        <button class="joke-ticker-submit-btn" id="joke-ticker-submit-btn" title="Submit your joke">+ Submit</button>
+      </div>
+
+      <!-- BOTTOM: In-canvas info strip -->
+      <div id="in-canvas-footer">
+        <span>🪙 ARC&nbsp;<span id="arcoin-val" class="footer-arc-val">0</span></span>
+        <span id="streak-hud" class="streak-hud" style="display:none"></span>
+        <span class="icf-div">·</span>
+        <span>🇺🇦 10% of NFT proceeds → <a href="https://etherscan.io/address/0x165CD37b4C644C2921454429E7F9358d18A45e14" target="_blank" style="color:inherit">verified UA gov wallet</a></span>
+        <span class="icf-div">·</span>
+        <span id="in-canvas-testnet" style="display:none;color:#FFD700">⚠ TESTNET &mdash; Amoy</span>
+        <span>&copy; 2026 Anti-Ruscist</span>
+        <span class="icf-div">·</span>
+        <span class="build-ver" style="color:rgba(255,255,255,.3);font-size:9px;letter-spacing:.05em">v4c · Mar 22 2026 · build B145-f84f118</span>
+      </div>
+      <span id="footer-ts"></span>
+
+      <!-- Combo kill indicator -->
+      <div id="combo-indicator"></div>
+
+      <!-- Wave clear bonus popup -->
+      <div id="wave-bonus">
+        <span class="wave-bonus-title">WAVE CLEARED!</span>
+        <span class="wave-bonus-pts" id="wave-bonus-pts">+0</span>
+      </div>
+
+      <!-- Inventory / Armory modal -->
+      <div id="inventory-panel" role="dialog" aria-modal="true" aria-label="Inventory"></div>
+
+      <!-- Jukebox mini widget (left edge) -->
+      <div id="jukebox-mini">
+        <button class="jb-btn" id="jb-prev" title="Previous" aria-label="Previous track">⏮</button>
+        <button class="jb-btn" id="jb-toggle" title="Play/Pause" aria-label="Play or pause music">▶</button>
+        <button class="jb-btn" id="jb-next" title="Next" aria-label="Next track">⏭</button>
+        <span class="jb-track" id="jb-track-name">Jukebox</span>
+      </div>
+
+      <!-- Wave-complete cinematic flash -->
+      <div id="wave-complete-flash"></div>
+
+      <!-- Vision blur overlay -->
+      <div id="vision-blur-overlay"></div>
+
+      <!-- WoT-style crosshair (DOM element, follows cursor via JS) -->
+      <div id="combo-hud"></div>
+      <div id="boss-hp-bar" style="display:none"><span class="boss-hp-name">☠ BOSS</span><div class="boss-hp-track"><div class="boss-hp-fill" id="boss-hp-fill"></div></div></div>
+      <div id="game-crosshair">
+        <svg class="chx-svg" viewBox="-40 -40 80 80" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="0" cy="0" r="24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+          <line x1="0" y1="-14" x2="0" y2="-34" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="0" y1="14"  x2="0" y2="34"  stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="-14" y1="0" x2="-34" y2="0" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="14"  y1="0" x2="34"  y2="0" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="0" cy="0" r="2.4" fill="rgba(255,50,50,0.95)"/>
+          <line x1="18" y1="-18" x2="23" y2="-23" stroke="rgba(255,255,255,0.28)" stroke-width="1.2"/>
+          <line x1="-18" y1="-18" x2="-23" y2="-23" stroke="rgba(255,255,255,0.28)" stroke-width="1.2"/>
+          <line x1="18"  y1="18"  x2="23"  y2="23"  stroke="rgba(255,255,255,0.28)" stroke-width="1.2"/>
+          <line x1="-18" y1="18"  x2="-23" y2="23"  stroke="rgba(255,255,255,0.28)" stroke-width="1.2"/>
+        </svg>
+        <span class="chx-lbl chx-lbl-top" id="chx-weapon">REVOLVER</span>
+        <span class="chx-lbl chx-lbl-bot" id="chx-ammo">6 / 6</span>
+        <div class="chx-hp-bar"><div class="chx-hp-fill" id="chx-hp-fill" style="width:100%"></div></div>
+      </div>
+
+      <!-- M-16 fire mode toggle -->
+      <div id="m16-mode-toggle" class="hidden" title="Toggle Auto / Semi-Auto">
+        <span id="m16-mode-label">AUTO</span>
+      </div>
+
+      <!-- Weapon Switcher -->
+      <div id="weapon-switcher" style="display:none"></div>
+
+      <!-- Ammo display -->
+      <div class="ammo" data-ammo="6" data-weapon="revolver">
+        <div id="revolver-cylinder" aria-hidden="true"></div>
+        <div class="ammo-visual" aria-hidden="true"></div>
+        <span class="reload-key">R</span>
+        <span id="ammo-reserve-hud"></span>
+      </div>
+
+      <!-- Reload hint — full-center overlay -->
+      <div class="reload-hint">
+        <div class="reload-center-prompt">
+          <div class="rcp-ring"></div>
+          <div class="rcp-icon">🔄</div>
+          <div class="rcp-text">Click Here to Reload</div>
+          <div class="rcp-sub">or press <kbd>R</kbd></div>
+        </div>
+      </div>
+
+      <!-- Floating reload FAB -->
+      <button id="reload-fab" type="button" aria-label="Reload weapon">
+        <svg width="34" height="34" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 5 A12 12 0 1 0 29 17" fill="none" stroke="#FFD700" stroke-width="2.6" stroke-linecap="round"/>
+          <polyline points="25,10 29,17 22,16" fill="none" stroke="#FFD700" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+          <text x="17" y="20" text-anchor="middle" font-size="6.5" fill="rgba(255,215,0,0.72)" font-family="Oswald,Impact,sans-serif" letter-spacing="0.8">RLD</text>
+        </svg>
+      </button>
+
+      <!-- Floating FIRE button (near crosshair / bottom-center) -->
+      <button id="fire-fab" type="button" aria-label="Fire weapon">
+        <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="20" fill="rgba(200,30,30,0.55)" stroke="rgba(255,80,60,0.7)" stroke-width="2"/>
+          <circle cx="22" cy="22" r="6" fill="rgba(255,255,255,0.85)"/>
+          <circle cx="22" cy="22" r="12" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+        </svg>
+      </button>
+
+      <!-- ── AI Tactical Advisor ─────────────────────────────── -->
+      <div id="ai-advisor">
+        <!-- Proactive tip bubble (floats above avatar) -->
+        <div id="ai-tip-bubble" class="ai-tip-bubble">
+          <span id="ai-tip-text"></span>
+          <button class="ai-tip-close" id="ai-tip-close" aria-label="Dismiss">×</button>
+        </div>
+        <!-- Chat panel (toggles open) -->
+        <div id="ai-chat-panel" class="ai-chat-panel">
+          <div class="ai-chat-header">
+            <span class="ai-chat-title">🇺🇦 Tactical AI Advisor</span>
+            <button class="ai-chat-close" id="ai-chat-close" aria-label="Close">×</button>
+          </div>
+          <div class="ai-chat-messages" id="ai-chat-messages"></div>
+          <div class="ai-chat-input-row">
+            <input
+              type="text"
+              id="ai-chat-input"
+              class="ai-chat-input"
+              placeholder="Ask strategy, weapons, how to earn ARC…"
+              maxlength="200"
+              autocomplete="off"
+            />
+            <button class="ai-chat-send" id="ai-chat-send" aria-label="Send">➤</button>
+          </div>
+        </div>
+        <!-- Avatar FAB -->
+        <button class="ai-avatar-btn" id="ai-avatar-btn" aria-label="Open AI Advisor">
+          <span class="ai-avatar-trident">🤖</span>
+          <span class="ai-avatar-badge" id="ai-avatar-badge"></span>
+        </button>
+      </div>
+
+      <!-- Weapon Hands -->
+      <div id="weapon-hands" data-weapon="revolver"></div>
+
+      <!-- Shooter HUD — rebuilt with weapon row -->
+      <div id="shooter-hud">
+        <div id="shooter-speech"></div>
+        <div id="shooter-mugshot">
+          <svg width="56" height="62" viewBox="0 0 56 62" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="28" cy="22" rx="18" ry="19" fill="#3D5C1A"/>
+            <rect x="12" y="31" width="32" height="7" rx="3" fill="#2a4010"/>
+            <rect x="14" y="23" width="28" height="11" rx="3" fill="#111" opacity="0.92"/>
+            <rect x="16" y="24" width="24" height="8" rx="2" fill="#1a3a6e" opacity="0.85"/>
+            <line x1="18" y1="26" x2="22" y2="30" stroke="#6af" stroke-width="1" opacity="0.5"/>
+            <ellipse cx="28" cy="45" rx="11" ry="10" fill="#c8a06a"/>
+            <circle cx="23" cy="44" r="2.3" fill="#2a1a0a"/>
+            <circle cx="33" cy="44" r="2.3" fill="#2a1a0a"/>
+            <path d="M23 50 Q28 54 33 50" stroke="#8a6040" stroke-width="1.5" fill="none"/>
+            <rect x="14" y="53" width="28" height="5" rx="2.5" fill="#2a4010"/>
+          </svg>
+        </div>
+        <div class="shud-center">
+          <div id="shooter-hp-wrap">
+            <div class="hp-hdr">
+              <span class="hp-ico">❤️</span>
+              <span id="shooter-hp-label">100%</span>
+            </div>
+            <div id="shooter-hp-bar"><div id="shooter-hp-fill"></div></div>
+          </div>
+          <div id="hud-weapon-row">
+            <span id="hud-weapon-name">REVOLVER</span>
+            <span class="hud-ammo-sep">|</span>
+            <span id="hud-ammo-display">6 / 6</span>
+            <span id="hud-reserve-badge">×3</span>
+          </div>
+        </div>
+      </div>
+
+    <!-- Joke Submission Modal -->
+    <div id="joke-submit-modal" class="joke-modal-overlay">
+      <div class="joke-modal-box">
+        <div class="joke-modal-title">😂 Submit an Anti-Tyrant Joke</div>
+        <p class="joke-modal-sub">Make it funny, make it true. Approved jokes earn you <b style="color:#FFD700">+3 ARC</b> and scroll across every player's screen. 🇺🇦</p>
+        <textarea id="joke-submit-text" class="joke-modal-textarea" maxlength="500" placeholder="e.g. Putin ordered his troops to take Kyiv in 3 days. His GPS keeps rerouting… it's been 2 years. 🇺🇦"></textarea>
+        <div class="joke-modal-charcount"><span id="joke-char-count">0</span>/500</div>
+        <div class="joke-modal-rules">
+          ✅ Make it anti-tyrant / anti-Putin / pro-Ukraine<br>
+          ❌ No slurs, no spam, no URLs — jokes only<br>
+          🎁 Get <b>+3 ARC</b> when moderators approve it
+        </div>
+        <div id="joke-submit-msg" class="joke-modal-msg" style="display:none"></div>
+        <div class="joke-modal-btns">
+          <button id="joke-submit-send-btn" class="joke-modal-send-btn">🚀 Submit Joke</button>
+          <button id="joke-modal-close-btn" class="joke-modal-close-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="sett-overlay">
+      <div class="sett-box">
+        <div class="sett-title">⚙️ Settings</div>
+        <div class="sett-tabs">
+          <button class="sett-tab active" data-tab="volume">🔊 Volume</button>
+          <button class="sett-tab" data-tab="display">🎨 Display</button>
+          <button class="sett-tab" data-tab="controls">🎮 Controls</button>
+        </div>
+        <div class="sett-tab-body" data-tab="volume">
+          <div class="sett-row">
+            <label class="sett-label">🎵 Music Volume</label>
+            <input type="range" id="set-mus-slider" class="sett-slider" min="0" max="100" step="1" value="38">
+            <span class="sett-val" id="set-mus-val">38%</span>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">🔊 SFX Volume</label>
+            <input type="range" id="set-sfx-slider" class="sett-slider" min="0" max="100" step="1" value="85">
+            <span class="sett-val" id="set-sfx-val">85%</span>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">💥 Ambient Volume</label>
+            <input type="range" id="set-amb-slider" class="sett-slider" min="0" max="100" step="1" value="60">
+            <span class="sett-val" id="set-amb-val">60%</span>
+          </div>
+        </div>
+        <div class="sett-tab-body" data-tab="display" style="display:none">
+          <div class="sett-row">
+            <label class="sett-label">🎨 UI Theme</label>
+            <div id="theme-picker" class="theme-picker">
+              <button class="theme-swatch" data-theme="default" style="background:linear-gradient(135deg,#060E05,#1a3a12)" title="Default Green" aria-label="Default Green theme"></button>
+              <button class="theme-swatch" data-theme="ukraine" style="background:linear-gradient(135deg,#005BBB,#FFD500)" title="Ukraine" aria-label="Ukraine theme"></button>
+              <button class="theme-swatch" data-theme="blood" style="background:linear-gradient(135deg,#1a0000,#8b0000)" title="Blood Red" aria-label="Blood Red theme"></button>
+              <button class="theme-swatch" data-theme="cyber" style="background:linear-gradient(135deg,#0a0a2e,#00f0ff)" title="Cyber Blue" aria-label="Cyber Blue theme"></button>
+              <button class="theme-swatch" data-theme="gold" style="background:linear-gradient(135deg,#1a1400,#ffd700)" title="Gold" aria-label="Gold theme"></button>
+              <button class="theme-swatch" data-theme="arctic" style="background:linear-gradient(135deg,#0a1929,#e0f7fa)" title="Arctic" aria-label="Arctic theme"></button>
+            </div>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">✨ Accent Color</label>
+            <input type="color" id="set-accent-color" class="sett-color-input" value="#77dd77">
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">🔇 Reduced Motion</label>
+            <label class="sett-toggle"><input type="checkbox" id="set-reduced-motion"><span class="sett-toggle-slider"></span></label>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">📳 Screen Shake</label>
+            <label class="sett-toggle"><input type="checkbox" id="set-screen-shake" checked><span class="sett-toggle-slider"></span></label>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">📊 FPS Counter</label>
+            <label class="sett-toggle"><input type="checkbox" id="set-fps-counter"><span class="sett-toggle-slider"></span></label>
+          </div>
+          <div class="sett-row">
+            <label class="sett-label">🎯 Accuracy HUD</label>
+            <label class="sett-toggle"><input type="checkbox" id="set-accuracy-hud"><span class="sett-toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="sett-tab-body" data-tab="controls" style="display:none">
+          <div class="sett-keys-grid">
+            <div class="sett-key-row"><kbd>R</kbd><span>Reload weapon</span></div>
+            <div class="sett-key-row"><kbd>M</kbd><span>Mute / unmute SFX</span></div>
+            <div class="sett-key-row"><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause game</span></div>
+            <div class="sett-key-row"><kbd>Q</kbd><span>Quick-swap previous weapon</span></div>
+            <div class="sett-key-row"><kbd>1</kbd>–<kbd>8</kbd><span>Switch to weapon slot</span></div>
+            <div class="sett-key-row"><kbd>Scroll</kbd><span>Cycle weapons</span></div>
+            <div class="sett-key-row"><kbd>Click</kbd><span>Shoot / interact</span></div>
+            <div class="sett-key-row"><kbd>Enter</kbd> / <kbd>Space</kbd><span>Start game / restart</span></div>
+            <div class="sett-key-row"><kbd>Tab</kbd><span>Quick stats (hold)</span></div>
+          </div>
+        </div>
+        <button id="settings-close-btn" class="sett-close-btn">✓ Done</button>
+      </div>
+    </div>
+
+    </div><!-- /#canves -->
+
+    <!-- Game Footer -->
+
+    <script src="vendor/jquery.min.js"></script>
+    <script src="scripts/api-client.js?v=172"></script>
+    <script src="scripts/main.js?v=172"></script>
+    <script src="scripts/engine-extras.js?v=172"></script>
+    <script src="scripts/adaptive-ai.js?v=172"></script>
+    <script src="scripts/agent-memory.js?v=172"></script>
+    <script src="scripts/ml-brain.js?v=172"></script>
+    <script src="scripts/agent-manager.js?v=172"></script>
+    <script src="scripts/jukebox.js?v=172"></script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js',{scope:'/ar/'}).then(function(r){console.log('SW registered, scope:',r.scope);}).catch(function(e){console.warn('SW fail:',e);});}</script>
+  </body>
+</html>

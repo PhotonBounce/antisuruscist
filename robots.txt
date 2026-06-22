@@ -1,0 +1,11 @@
+# robotstxt.org/
+
+User-agent: *
+Allow: /
+Disallow: /backups/
+Disallow: /extracted/
+Disallow: /new_build_tmp/
+Disallow: /nft-deploy/
+Disallow: /server/
+
+Sitemap: https://www.photon-bounce.com/ar/sitemap.xml

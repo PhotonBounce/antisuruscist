@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: antiruscist
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: API_PORT
+        value: 3001
+      - key: CORS_ORIGINS
+        value: https://www.photon-bounce.com,https://photon-bounce.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production

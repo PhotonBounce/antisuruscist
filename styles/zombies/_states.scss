@@ -1,0 +1,25 @@
+// Walk Speed
+@for $i from 1 through 6 {
+  $random-speed: $i + 10;
+  $animation-speed: 0.6;
+
+  .walk-speed-#{$i} {
+    animation-duration: $random-speed + s;
+    &:before { animation-duration: $animation-speed + s; animation-timing-function: steps(16, end); }
+  }
+  }
+}
+
+// Visibility Delay
+@for $i from 1 through 6 {
+  $random-speed: $i/1.5;
+
+  .walk-delay-#{$i} {
+    @if $i==1 { animation-delay: $random-speed + s; }
+    @if $i==2 { animation-delay: $random-speed + s; }
+    @if $i==3 { animation-delay: $random-speed + s; }
+    @if $i==4 { animation-delay: $random-speed + s; }
+    @if $i==5 { animation-delay: $random-speed + s; }
+    @if $i==6 { animation-delay: $random-speed + s; }
+  }
+}

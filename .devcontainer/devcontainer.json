@@ -1,0 +1,10 @@
+{
+  "name": "Anti-Ruscist Game",
+  "forwardPorts": [8080, 3001],
+  "portsAttributes": {
+    "8080": { "label": "Game", "visibility": "public", "onAutoForward": "notify" },
+    "3001": { "label": "API", "visibility": "public", "onAutoForward": "silent" }
+  },
+  "postStartCommand": "pgrep -af '/workspaces/antiruscist/scripts/keep-alive-supervisor.sh' >/dev/null || nohup bash /workspaces/antiruscist/scripts/keep-alive-supervisor.sh >/tmp/keep-alive-supervisor.out 2>&1 & disown",
+  "postAttachCommand": "pgrep -af '/workspaces/antiruscist/scripts/keep-alive-supervisor.sh' >/dev/null || nohup bash /workspaces/antiruscist/scripts/keep-alive-supervisor.sh >/tmp/keep-alive-supervisor.out 2>&1 & disown"
+}

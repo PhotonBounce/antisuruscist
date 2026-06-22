@@ -1,0 +1,3205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anti-Ruscist — Admin Panel</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<style>
+/* ═══ Reset + Base ═══ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--text:#c9d1d9;
+  --text2:#8b949e;--accent:#58a6ff;--accent2:#1f6feb;--green:#3fb950;--red:#f85149;
+  --yellow:#d29922;--orange:#db6d28;--cyan:#39d353}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+
+/* ═══ Login Screen ═══ */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px}
+#login-screen h1{font-size:24px;color:var(--accent);margin-bottom:8px}
+#login-screen .flag{font-size:48px;margin-bottom:12px}
+#login-form{background:var(--surface);padding:32px;border-radius:12px;border:1px solid var(--border);
+  display:flex;flex-direction:column;gap:12px;min-width:320px}
+#login-form input{padding:10px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:14px;outline:none}
+#login-form input:focus{border-color:var(--accent)}
+#login-form button{padding:10px;border:none;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:14px;font-weight:600;cursor:pointer}
+#login-form button:hover{background:var(--accent)}
+#login-error{color:var(--red);font-size:13px;display:none}
+#backend-setup{background:var(--surface);padding:24px;border-radius:12px;border:1px solid var(--border);
+  display:flex;flex-direction:column;gap:12px;min-width:320px;text-align:center}
+#backend-setup .hint{font-size:12px;color:var(--muted);line-height:1.5}
+#backend-setup input{padding:10px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:14px;outline:none}
+#backend-setup input:focus{border-color:var(--accent)}
+#backend-setup button{padding:10px;border:none;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:14px;font-weight:600;cursor:pointer}
+#backend-setup button:hover{background:var(--accent)}
+#backend-setup .status{font-size:13px;min-height:18px}
+
+/* ═══ Layout ═══ */
+#app{display:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar h1{font-size:18px;display:flex;align-items:center;gap:8px}
+.topbar .user-info{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text2)}
+.topbar .logout-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);cursor:pointer;font-size:12px}
+.topbar .logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+.layout{display:flex;min-height:calc(100vh - 48px)}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:12px 0;flex-shrink:0}
+.sidebar button{display:block;width:100%;text-align:left;padding:10px 20px;border:none;background:transparent;
+  color:var(--text2);font-size:13px;cursor:pointer;border-left:3px solid transparent}
+.sidebar button:hover{background:var(--surface2);color:var(--text)}
+.sidebar button.active{color:var(--accent);border-left-color:var(--accent);background:rgba(88,166,255,.08)}
+.sidebar .section-label{padding:8px 20px 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);font-weight:600}
+#server-status.offline{color:#f85149}
+#server-status.offline span{background:#f85149!important}
+.main{flex:1;padding:24px;overflow-y:auto}
+
+/* ═══ Cards ═══ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border-radius:8px;padding:16px;border:1px solid var(--border)}
+.stat-card .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.stat-card .value{font-size:28px;font-weight:700;margin-top:4px}
+.stat-card .value.green{color:var(--green)}
+.stat-card .value.yellow{color:var(--yellow)}
+.stat-card .value.cyan{color:var(--cyan)}
+.stat-card .value.red{color:var(--red)}
+
+/* ═══ Tables ═══ */
+.table-wrap{background:var(--surface);border-radius:8px;border:1px solid var(--border);overflow-x:auto;margin-bottom:24px}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:13px}
+.table-wrap th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);
+  font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.table-wrap td{padding:8px 14px;border-bottom:1px solid var(--surface2)}
+.table-wrap tr:hover{background:rgba(88,166,255,.04)}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge.admin{background:rgba(88,166,255,.15);color:var(--accent)}
+.badge.banned{background:rgba(248,81,73,.15);color:var(--red)}
+.badge.active{background:rgba(63,185,80,.15);color:var(--green)}
+
+/* ═══ Config Editor ═══ */
+.config-section{margin-bottom:32px}
+.config-section h3{font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px}
+.config-row{display:grid;grid-template-columns:280px 1fr 120px;gap:12px;align-items:center;padding:8px 0;
+  border-bottom:1px solid var(--surface2)}
+.config-row .config-label{font-size:13px}
+.config-row .config-desc{font-size:11px;color:var(--text2)}
+.config-row input[type="number"],.config-row input[type="text"]{
+  padding:6px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:13px;width:100%;outline:none}
+.config-row input:focus{border-color:var(--accent)}
+.config-row .range-hint{font-size:11px;color:var(--text2);text-align:right}
+.config-actions{margin-top:16px;display:flex;gap:12px}
+
+/* ═══ Buttons ═══ */
+.btn{padding:8px 16px;border-radius:6px;border:none;font-size:13px;font-weight:500;cursor:pointer}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-primary:hover{background:var(--accent)}
+.btn-danger{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.btn-danger:hover{background:rgba(248,81,73,.25)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-outline:hover{color:var(--text);border-color:var(--text2)}
+.btn-sm{padding:4px 10px;font-size:12px}
+
+/* ═══ Misc ═══ */
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;padding:8px 14px;border-radius:6px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text);outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+h2{font-size:20px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;
+  z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--green);color:#000}
+.toast.error{background:var(--red);color:#fff}
+.page{display:none}
+.page.active{display:block}
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.pagination{display:flex;gap:8px;margin-top:12px;justify-content:center}
+
+/* ═══ Player Detail Modal ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:12px;border:1px solid var(--border);max-width:700px;
+  width:90%;max-height:80vh;overflow-y:auto;padding:24px}
+.modal h3{font-size:18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.modal .close-btn{background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:20px;padding:4px 8px}
+.modal .close-btn:hover{color:var(--text)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.detail-item{background:var(--surface2);padding:10px 14px;border-radius:6px}
+.detail-item .dlabel{font-size:11px;color:var(--text2);text-transform:uppercase}
+.detail-item .dvalue{font-size:16px;font-weight:600;margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══ Login ═══ -->
+<div id="login-screen">
+  <div class="flag">🇺🇦</div>
+  <h1>Admin Login</h1>
+  <div id="backend-setup" style="display:none">
+    <p>⚠️ No backend server detected.</p>
+    <p class="hint">The admin panel requires the API server.<br>
+      If running in Codespaces, enter your Codespace URL below.<br>
+      Example: <code>https://your-codespace-3001.app.github.dev/api</code></p>
+    <input type="url" id="backend-url" placeholder="https://…-3001.app.github.dev/api">
+    <button onclick="connectBackend()">Connect</button>
+    <div class="status" id="backend-status"></div>
+  </div>
+  <div id="admin-setup" style="display:none">
+    <p>🔑 First-time setup — create your admin account</p>
+    <p class="hint">No admin account exists yet. Create one now to get started.</p>
+    <form id="setup-form" onsubmit="return doSetup(event)">
+      <input type="text" id="setup-user" placeholder="Admin username" required autocomplete="username" minlength="2" maxlength="24">
+      <input type="password" id="setup-pass" placeholder="Password (6+ chars)" required autocomplete="new-password" minlength="6">
+      <button type="submit">Create Admin Account</button>
+      <div id="setup-error"></div>
+      <div id="setup-success" style="display:none"></div>
+    </form>
+  </div>
+  <form id="login-form" onsubmit="return doLogin(event)">
+    <input type="text" id="login-user" placeholder="Username" required autocomplete="username">
+    <input type="password" id="login-pass" placeholder="Password" required autocomplete="current-password">
+    <button type="submit">Sign In</button>
+    <div id="login-error"></div>
+  </form>
+</div>
+
+<!-- ═══ App ═══ -->
+<div id="app">
+  <div class="topbar">
+    <h1>🇺🇦 Anti-Ruscist Admin</h1>
+    <div class="user-info">
+      <span id="admin-name"></span>
+      <button class="logout-btn" onclick="disconnectBackend()" title="Change backend URL" style="background:transparent;color:var(--muted);font-size:11px;padding:4px 8px">🔗</button>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div id="server-status" style="padding:6px 20px;font-size:11px;color:#58a6ff;display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#3fb950;display:inline-block"></span> API connected
+      </div>
+      <div class="section-label">Overview</div>
+      <button class="active" data-page="dashboard" onclick="showPage('dashboard')">📊 Dashboard</button>
+      <div class="section-label">Game Balance</div>
+      <button data-page="config-wave" onclick="showPage('config-wave')">🌊 Wave Config</button>
+      <button data-page="config-vehicles" onclick="showPage('config-vehicles')">🚛 Vehicles</button>
+      <button data-page="config-economy" onclick="showPage('config-economy')">💰 Economy</button>
+      <button data-page="config-strikes" onclick="showPage('config-strikes')">🎯 Call-in Strikes</button>
+      <button data-page="config-battlepass" onclick="showPage('config-battlepass')">🎖️ Battle Pass</button>
+      <button data-page="config-missions" onclick="showPage('config-missions')">📋 Daily Missions</button>
+      <button data-page="config-skills" onclick="showPage('config-skills')">🌳 Skill Tree</button>
+      <button data-page="config-prestige" onclick="showPage('config-prestige')">⬆️ Prestige</button>
+      <button data-page="config-endless" onclick="showPage('config-endless')">♾️ Endless Mode</button>
+      <button data-page="config-spinwheel" onclick="showPage('config-spinwheel')">🎰 Spin Wheel</button>
+      <button data-page="config-staking" onclick="showPage('config-staking')">📊 Staking Config</button>
+      <div class="section-label">Management</div>
+      <button data-page="players" onclick="showPage('players')">👥 Players</button>
+      <button data-page="economy-overview" onclick="showPage('economy-overview')">📊 Economy Overview</button>
+      <button data-page="cosmetics" onclick="showPage('cosmetics')">🎨 Cosmetics</button>
+      <button data-page="settings" onclick="showPage('settings')">⚙️ Settings</button>
+      <button data-page="news" onclick="showPage('news')">📢 News</button>
+      <button data-page="leaderboard" onclick="showPage('leaderboard')">🏆 Leaderboard</button>
+      <button data-page="clans" onclick="showPage('clans')">⚔️ Clans</button>
+      <button data-page="jokes" onclick="showPage('jokes')">😂 Jokes</button>
+      <button data-page="purchases" onclick="showPage('purchases')">💳 Purchases</button>
+      <button data-page="staking" onclick="showPage('staking')">🔒 Staking</button>
+      <button data-page="nfts" onclick="showPage('nfts')">🖼️ NFTs</button>
+      <button data-page="pvp" onclick="showPage('pvp')">⚔️ PvP Challenges</button>
+      <button data-page="streak-badges" onclick="showPage('streak-badges')">🔥 Streak Badges</button>
+      <button data-page="revenue" onclick="showPage('revenue')">💰 Revenue Analytics</button>
+      <button data-page="logs" onclick="showPage('logs')">📋 Audit Log</button>
+      <button data-page="config-history" onclick="showPage('config-history')">🕐 Config History</button>
+      <div class="section-label">🧠 ML & Intelligence</div>
+      <button data-page="ml-dashboard" onclick="showPage('ml-dashboard')">🧠 ML Dashboard</button>
+      <button data-page="ml-bugs" onclick="showPage('ml-bugs')">🐛 Bug Detector</button>
+      <button data-page="ml-economy" onclick="showPage('ml-economy')">📊 Economy Intel</button>
+      <button data-page="ml-segments" onclick="showPage('ml-segments')">👥 Player Segments</button>
+      <button data-page="ml-cheats" onclick="showPage('ml-cheats')">🛡️ Cheat Detection</button>
+      <button data-page="ml-balance" onclick="showPage('ml-balance')">⚖️ Game Balance</button>
+      <button data-page="ml-telemetry" onclick="showPage('ml-telemetry')">📡 Telemetry</button>
+      <button data-page="ml-control" onclick="showPage('ml-control')">⚙️ ML Control</button>
+      <div class="section-label">🤖 Admin Tools</div>
+      <button data-page="ai-robot" onclick="showPage('ai-robot')">🤖 AI Robot</button>
+      <button data-page="asset-mgmt" onclick="showPage('asset-mgmt')">🖼️ Asset Management</button>
+      <button data-page="player-assets" onclick="showPage('player-assets')">💎 Player Assets</button>
+      <button data-page="wire-money" onclick="showPage('wire-money')">💸 Wire Money</button>
+      <button data-page="broadcasts" onclick="showPage('broadcasts')">📢 Broadcasts</button>
+      <button data-page="ml-autoregulate" onclick="showPage('ml-autoregulate')">🧬 ML Auto-Regulate</button>
+      <button data-page="smart-contracts" onclick="showPage('smart-contracts')">📜 Smart Contracts</button>
+    </div>
+    <div class="main">
+
+      <!-- ═══ Dashboard ═══ -->
+      <div id="page-dashboard" class="page active">
+        <h2>📊 Dashboard</h2>
+        <div class="stat-grid" id="stats-grid"></div>
+        <h2>🏆 Top Players</h2>
+        <div class="table-wrap" id="top-players-table"></div>
+        <h2>📈 Extended Stats</h2>
+        <div class="stat-grid" id="extended-stats"></div>
+        <div class="table-wrap" id="weapon-pop-table"></div>
+      </div>
+
+      <!-- ═══ Config Pages ═══ -->
+      <div id="page-config-wave" class="page">
+        <h2>🌊 Wave Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Control zombie spawn rates, quantities, movement speeds, and concurrent limits per wave.</p>
+        <div id="config-wave-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('wave')">💾 Save Wave Config</button>
+        </div>
+      </div>
+
+      <div id="page-config-vehicles" class="page">
+        <h2>🚛 Vehicle Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Adjust truck, tank, and drone stats — HP, speed, spawn timing, and damage values.</p>
+        <div id="config-vehicles-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('vehicles')">💾 Save Vehicle Config</button>
+        </div>
+      </div>
+
+      <div id="page-config-economy" class="page">
+        <h2>💰 Economy Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Tune starting values, kill rewards, scoring, and ARC financial parameters.</p>
+        <div id="config-economy-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('economy')">💾 Save Economy Config</button>
+        </div>
+      </div>
+
+      <div id="page-config-strikes" class="page">
+        <h2>🎯 Call-in Strike Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Set costs and cooldowns for combat call-in abilities.</p>
+        <div id="config-strikes-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('strikes')">💾 Save Strike Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Battle Pass Config ═══ -->
+      <div id="page-config-battlepass" class="page">
+        <h2>🎖️ Battle Pass Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Control season settings, premium pricing, tier progression, and rewards distribution.</p>
+        <div id="config-battlepass-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('battlepass')">💾 Save Battle Pass Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Daily Missions Config ═══ -->
+      <div id="page-config-missions" class="page">
+        <h2>📋 Daily Missions Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Tune mission generation parameters, target ranges, and ARC reward amounts.</p>
+        <div id="config-missions-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('missions')">💾 Save Missions Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Skill Tree Config ═══ -->
+      <div id="page-config-skills" class="page">
+        <h2>🌳 Skill Tree Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Adjust XP requirements, scaling, and per-point effect magnitudes for all skill branches.</p>
+        <div id="config-skills-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('skills')">💾 Save Skill Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Prestige Config ═══ -->
+      <div id="page-config-prestige" class="page">
+        <h2>⬆️ Prestige Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Set prestige level caps, multiplier bounds, enemy scaling, and reset behavior.</p>
+        <div id="config-prestige-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('prestige')">💾 Save Prestige Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Endless Mode Config ═══ -->
+      <div id="page-config-endless" class="page">
+        <h2>♾️ Endless Mode Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Control wave 5+ scaling: zombie counts, speed decay, HP multipliers, and boss frequency.</p>
+        <div id="config-endless-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('endless')">💾 Save Endless Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Spin Wheel Config ═══ -->
+      <div id="page-config-spinwheel" class="page">
+        <h2>🎰 Spin Wheel Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Set spin cooldown, prize amounts per tier, and drop weight distribution.</p>
+        <div id="config-spinwheel-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('spinwheel')">💾 Save Spin Wheel Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Staking Config ═══ -->
+      <div id="page-config-staking" class="page">
+        <h2>📊 Staking Configuration</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Set APR rates for each staking tier and early withdrawal penalty.</p>
+        <div id="config-staking-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig('staking')">💾 Save Staking Config</button>
+        </div>
+      </div>
+
+      <!-- ═══ Economy Overview ═══ -->
+      <div id="page-economy-overview" class="page">
+        <h2>📊 Economy Overview</h2>
+        <div class="stat-grid" id="economy-stats"></div>
+      </div>
+
+      <!-- ═══ Cosmetics Manager ═══ -->
+      <div id="page-cosmetics" class="page">
+        <h2>🎨 Cosmetics Manager</h2>
+        <p style="color:var(--text2);margin-bottom:16px">View, add, and manage cosmetic items available in the shop.</p>
+        <div style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <input type="text" id="cosm-id" placeholder="ID (e.g. skin_gold_ak)" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+            <select id="cosm-type" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+              <option value="weapon_skin">Weapon Skin</option>
+              <option value="crosshair">Crosshair</option>
+              <option value="trail">Trail Effect</option>
+              <option value="avatar">Avatar</option>
+              <option value="title">Title</option>
+            </select>
+            <input type="number" id="cosm-price" placeholder="Price (ARC)" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+            <select id="cosm-rarity" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+              <option value="common">Common</option>
+              <option value="uncommon">Uncommon</option>
+              <option value="rare">Rare</option>
+              <option value="epic">Epic</option>
+              <option value="legendary">Legendary</option>
+            </select>
+          </div>
+          <input type="text" id="cosm-label" placeholder="Display Name" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);margin-bottom:8px;outline:none">
+          <button class="btn btn-primary btn-sm" onclick="addCosmetic()">+ Add Cosmetic</button>
+        </div>
+        <div class="table-wrap" id="cosmetics-table"></div>
+      </div>
+
+      <!-- ═══ Players ═══ -->
+      <div id="page-players" class="page">
+        <h2>👥 Player Management</h2>
+        <div class="search-bar">
+          <input type="text" id="player-search" placeholder="Search by username, email, or wallet..." onkeydown="if(event.key==='Enter')searchPlayers()">
+          <button class="btn btn-primary" onclick="searchPlayers()">Search</button>
+        </div>
+        <div class="table-wrap" id="players-table"></div>
+        <div class="pagination" id="players-pagination"></div>
+      </div>
+
+      <!-- ═══ Settings ═══ -->
+      <div id="page-settings" class="page">
+        <h2>⚙️ Global Settings</h2>
+        <div id="settings-editor"></div>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+      </div>
+
+      <!-- ═══ News ═══ -->
+      <div id="page-news" class="page">
+        <h2>📢 News & Announcements</h2>
+        <div style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+          <input type="text" id="news-title" placeholder="Title" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);margin-bottom:8px;outline:none">
+          <textarea id="news-body" placeholder="Body (optional)" rows="3" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);resize:vertical;outline:none"></textarea>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+            <label style="font-size:13px"><input type="checkbox" id="news-pinned"> Pinned</label>
+            <button class="btn btn-primary btn-sm" onclick="postNews()">Post</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="news-table"></div>
+      </div>
+
+      <!-- ═══ Leaderboard ═══ -->
+      <div id="page-leaderboard" class="page">
+        <h2>🏆 Leaderboard</h2>
+        <div style="margin-bottom:12px;display:flex;gap:8px">
+          <button class="btn btn-sm btn-primary" onclick="loadLeaderboard('kills')">By Kills</button>
+          <button class="btn btn-sm btn-outline" onclick="loadLeaderboard('wave')">By Wave</button>
+          <button class="btn btn-sm btn-outline" onclick="loadLeaderboard('arc')">By ARC</button>
+          <button class="btn btn-sm btn-outline" onclick="loadLeaderboard('prestige')">By Prestige</button>
+        </div>
+        <div class="table-wrap" id="leaderboard-table"></div>
+      </div>
+
+      <!-- ═══ Clans ═══ -->
+      <div id="page-clans" class="page">
+        <h2>⚔️ Clan Management</h2>
+        <div class="table-wrap" id="clans-table"></div>
+      </div>
+
+      <!-- ═══ Jokes Manager ═══ -->
+      <div id="page-jokes" class="page">
+        <h2>😂 Joke Ticker Manager</h2>
+        <p style="color:var(--text2);margin-bottom:16px">Approve or flag user-submitted jokes. Approved jokes appear in the in-game ticker.</p>
+        <div style="margin-bottom:12px;display:flex;gap:8px">
+          <button class="btn btn-sm btn-primary" onclick="loadJokes('pending')">Pending</button>
+          <button class="btn btn-sm btn-outline" onclick="loadJokes('approved')">Approved</button>
+          <button class="btn btn-sm btn-outline" onclick="loadJokes('flagged')">Flagged</button>
+          <button class="btn btn-sm btn-outline" onclick="loadJokes('all')">All</button>
+        </div>
+        <div class="table-wrap" id="jokes-table"></div>
+      </div>
+
+      <!-- ═══ Purchases ═══ -->
+      <div id="page-purchases" class="page">
+        <h2>💳 ARC Purchases</h2>
+        <p style="color:var(--text2);margin-bottom:16px">All crypto ARC purchase transactions with 10% Ukraine donation tracking.</p>
+        <div class="table-wrap" id="purchases-table"></div>
+      </div>
+
+      <!-- ═══ Staking ═══ -->
+      <div id="page-staking" class="page">
+        <h2>🔒 Active Stakes</h2>
+        <div class="stat-grid" id="staking-stats"></div>
+        <div class="table-wrap" id="staking-table"></div>
+      </div>
+
+      <!-- ═══ NFT Admin Controls ═══ -->
+      <div id="page-nfts" class="page">
+        <h2>🖼️ NFT Admin Controls</h2>
+
+        <!-- Contract Deployment Status -->
+        <div class="stat-grid" style="margin-bottom:20px">
+          <div class="stat-card">
+            <div class="label">Ukrainian Defenders NFT</div>
+            <div style="font-size:11px;color:var(--cyan);margin-top:4px;word-break:break-all">0x8FF4468c28fD4A1ad4EfbD82dD7F1c9eb8C1bACc</div>
+            <a href="https://polygonscan.com/address/0x8FF4468c28fD4A1ad4EfbD82dD7F1c9eb8C1bACc" target="_blank" style="font-size:11px">View on PolygonScan ↗</a>
+          </div>
+          <div class="stat-card">
+            <div class="label">ARC Kill Achievement NFT</div>
+            <div style="font-size:11px;color:var(--cyan);margin-top:4px;word-break:break-all">0xe78485271787d712179CCaA4a3A67f07C2Ed7800</div>
+            <a href="https://polygonscan.com/address/0xe78485271787d712179CCaA4a3A67f07C2Ed7800" target="_blank" style="font-size:11px">View on PolygonScan ↗</a>
+          </div>
+          <div class="stat-card">
+            <div class="label">ARC Token (ERC-20)</div>
+            <div style="font-size:11px;color:var(--cyan);margin-top:4px;word-break:break-all">0xD7D4F2DE20a11B344A44519583b177F26A6AEe76</div>
+            <a href="https://polygonscan.com/address/0xD7D4F2DE20a11B344A44519583b177F26A6AEe76" target="_blank" style="font-size:11px">View on PolygonScan ↗</a>
+          </div>
+          <div class="stat-card">
+            <div class="label">Network</div>
+            <div class="value green" style="font-size:18px">Polygon Mainnet</div>
+            <div style="font-size:11px;color:var(--text2)">Chain ID: 137</div>
+          </div>
+        </div>
+
+        <!-- MetaMask Connect -->
+        <div style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="nftConnectWallet()" id="nft-wallet-btn">🦊 Connect MetaMask</button>
+          <span id="nft-wallet-status" style="font-size:13px;color:var(--text2)">Not connected</span>
+          <span id="nft-wallet-balance" style="font-size:13px;color:var(--yellow);margin-left:auto"></span>
+        </div>
+
+        <!-- Mint + Check side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <!-- Mint UADEF NFT -->
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">🇺🇦 Mint Ukrainian Defenders NFT</h3>
+            <p style="color:var(--text2);font-size:12px;margin-bottom:12px">Mint a new UADEF NFT to any address. Requires owner wallet connected via MetaMask.</p>
+            <div style="margin-bottom:10px">
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Recipient Address</label>
+              <input type="text" id="nft-mint-to" placeholder="0x..." style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none">
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Hero Name</label>
+              <input type="text" id="nft-mint-name" placeholder="e.g. Steel Falcon" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div>
+                <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Rarity</label>
+                <select id="nft-mint-rarity" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+                  <option value="common">Common</option>
+                  <option value="uncommon">Uncommon</option>
+                  <option value="rare">Rare</option>
+                  <option value="epic">Epic</option>
+                  <option value="legendary">Legendary</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Wave Number</label>
+                <input type="number" id="nft-mint-wave" value="1" min="1" max="999" style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="nftMintUADEF()" id="nft-mint-btn">🇺🇦 Mint NFT</button>
+            <div id="nft-mint-result" style="margin-top:10px;font-size:13px"></div>
+          </div>
+
+          <!-- Check Balances -->
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">🔍 Check Wallet Holdings</h3>
+            <p style="color:var(--text2);font-size:12px;margin-bottom:12px">Query on-chain balances for any wallet address. No wallet connection required.</p>
+            <div style="margin-bottom:10px">
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Wallet Address</label>
+              <input type="text" id="nft-check-addr" placeholder="0x..." style="width:100%;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none">
+            </div>
+            <button class="btn btn-primary" onclick="nftCheckBalances()">🔍 Check Balances</button>
+            <div id="nft-check-result" style="margin-top:12px;font-size:13px;line-height:1.8">
+              <!-- results appear here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Contract Read: Total Supply + Owner -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
+          <div class="stat-card" id="nft-total-uadef"><div class="label">UADEF Total Supply</div><div class="value cyan" id="nft-uadef-supply">—</div></div>
+          <div class="stat-card" id="nft-total-killnft"><div class="label">KillNFT Total Minted</div><div class="value cyan" id="nft-killnft-supply">—</div></div>
+          <div class="stat-card" id="nft-total-arc"><div class="label">ARC Token Total Supply</div><div class="value cyan" id="nft-arc-supply">—</div></div>
+        </div>
+
+        <button class="btn btn-outline btn-sm" onclick="nftRefreshSupply()" style="margin-bottom:16px">🔄 Refresh On-Chain Data</button>
+
+        <!-- DB Minted NFTs -->
+        <h3>📋 Database — Minted NFTs</h3>
+        <div class="table-wrap" id="nfts-table"></div>
+      </div>
+
+      <!-- ═══ PvP Challenges ═══ -->
+      <div id="page-pvp" class="page">
+        <h2>⚔️ PvP Challenges</h2>
+        <div class="table-wrap" id="pvp-table"></div>
+      </div>
+
+      <!-- ═══ Streak Badges ═══ -->
+      <div id="page-streak-badges" class="page">
+        <h2>🔥 Login Streak Badges</h2>
+        <div class="table-wrap" id="streak-badges-table"></div>
+      </div>
+
+      <!-- ═══ Revenue Analytics ═══ -->
+      <div id="page-revenue" class="page">
+        <h2>💰 Revenue Analytics</h2>
+        <div class="stat-grid" id="revenue-stats"></div>
+        <h3 style="margin-top:20px">Recent Purchases</h3>
+        <div class="table-wrap" id="revenue-purchases"></div>
+        <h3 style="margin-top:20px">ARC Economy Flow</h3>
+        <div class="stat-grid" id="revenue-economy"></div>
+      </div>
+
+      <!-- ═══ Audit Log ═══ -->
+      <div id="page-logs" class="page">
+        <h2>📋 Audit Log</h2>
+        <div class="table-wrap" id="logs-table"></div>
+      </div>
+
+      <!-- ═══ Config History ═══ -->
+      <div id="page-config-history" class="page">
+        <h2>🕐 Config Change History</h2>
+        <div class="table-wrap" id="config-history-table"></div>
+      </div>
+
+      <!-- ═══ ML Dashboard ═══ -->
+      <div id="page-ml-dashboard" class="page">
+        <h2>🧠 ML & Intelligence Dashboard</h2>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button class="btn btn-primary" onclick="mlRunAnalysis()">▶️ Run Full Analysis</button>
+          <span id="ml-last-run" style="color:var(--text2);line-height:34px;font-size:13px"></span>
+        </div>
+        <div class="stat-grid" id="ml-overview-stats"></div>
+        <h3 style="margin-top:20px">🔴 Active Anomalies</h3>
+        <div class="table-wrap" id="ml-anomalies-preview"></div>
+        <h3 style="margin-top:20px">📊 Player Segments</h3>
+        <div class="stat-grid" id="ml-segments-preview"></div>
+      </div>
+
+      <!-- ═══ ML Bug Detector ═══ -->
+      <div id="page-ml-bugs" class="page">
+        <h2>🐛 Bug Detector — Error Intelligence</h2>
+        <div class="stat-grid" id="ml-error-stats"></div>
+        <h3 style="margin-top:20px">Error Frequency (14 days)</h3>
+        <div id="ml-error-chart" style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-family:monospace;font-size:12px;white-space:pre;overflow-x:auto"></div>
+        <h3>Top Errors</h3>
+        <div class="table-wrap" id="ml-errors-table"></div>
+      </div>
+
+      <!-- ═══ ML Economy Intel ═══ -->
+      <div id="page-ml-economy" class="page">
+        <h2>📊 Economy Intelligence</h2>
+        <div class="stat-grid" id="ml-econ-stats"></div>
+        <h3 style="margin-top:20px">Health Score Trend</h3>
+        <div id="ml-econ-chart" style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-family:monospace;font-size:12px;white-space:pre;overflow-x:auto"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <h3>💰 ARC Sources (7d)</h3>
+            <div class="table-wrap" id="ml-econ-sources"></div>
+          </div>
+          <div>
+            <h3>🔥 ARC Sinks (7d)</h3>
+            <div class="table-wrap" id="ml-econ-sinks"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ML Player Segments ═══ -->
+      <div id="page-ml-segments" class="page">
+        <h2>👥 Player Intelligence & Segmentation</h2>
+        <div class="stat-grid" id="ml-seg-cards"></div>
+        <h3 style="margin-top:20px">⭐ Top Engaged Players</h3>
+        <div class="table-wrap" id="ml-seg-engaged"></div>
+        <h3 style="margin-top:20px">⚠️ Churn Risk (likely to leave)</h3>
+        <div class="table-wrap" id="ml-seg-churning"></div>
+      </div>
+
+      <!-- ═══ ML Cheat Detection ═══ -->
+      <div id="page-ml-cheats" class="page">
+        <h2>🛡️ Cheat Detection & Anti-Fraud</h2>
+        <h3>Suspicious Players (by ML score)</h3>
+        <div class="table-wrap" id="ml-cheat-suspects"></div>
+        <h3 style="margin-top:20px">Cheat Anomalies</h3>
+        <div class="table-wrap" id="ml-cheat-anomalies"></div>
+      </div>
+
+      <!-- ═══ ML Game Balance ═══ -->
+      <div id="page-ml-balance" class="page">
+        <h2>⚖️ Game Balance Analysis</h2>
+        <div class="stat-grid" id="ml-balance-stats"></div>
+        <h3 style="margin-top:20px">Weapon Usage Distribution</h3>
+        <div id="ml-weapon-bars" style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <h3>Wave Distribution</h3>
+            <div class="table-wrap" id="ml-wave-dist"></div>
+          </div>
+          <div>
+            <h3>Death Causes</h3>
+            <div class="table-wrap" id="ml-death-causes"></div>
+          </div>
+        </div>
+        <h3 style="margin-top:20px">Skill Usage</h3>
+        <div class="table-wrap" id="ml-skill-usage"></div>
+      </div>
+
+      <!-- ═══ ML Telemetry ═══ -->
+      <div id="page-ml-telemetry" class="page">
+        <h2>📡 Telemetry Explorer</h2>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
+          <select id="ml-telem-type" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+            <option value="">All Events</option>
+          </select>
+          <input type="number" id="ml-telem-player" placeholder="Player ID" style="width:120px;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+          <button class="btn btn-primary btn-sm" onclick="loadMlTelemetry()">Filter</button>
+        </div>
+        <div class="stat-grid" id="ml-telem-stats"></div>
+        <div class="table-wrap" id="ml-telem-table"></div>
+      </div>
+
+      <!-- ═══ ML Control Panel ═══ -->
+      <div id="page-ml-control" class="page">
+        <h2>⚙️ ML Control Panel</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">▶️ Run Analysis</h3>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Execute the full ML pipeline: cheat detection, economy health, player segmentation, balance analysis, error patterns.</p>
+            <button class="btn btn-primary" onclick="mlRunAnalysis()">Run Full Analysis</button>
+            <div id="ml-run-result" style="margin-top:12px;font-size:13px;color:var(--text2)"></div>
+          </div>
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">🧹 Data Maintenance</h3>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Purge old telemetry data to keep the database lean. Anomalies and snapshots are preserved.</p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="number" id="ml-purge-days" value="7" min="1" max="90" style="width:80px;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+              <span style="color:var(--text2);font-size:13px">days to keep</span>
+              <button class="btn btn-danger btn-sm" onclick="mlPurgeTelemetry()">Purge</button>
+            </div>
+          </div>
+        </div>
+        <h3>Training Run History</h3>
+        <div class="table-wrap" id="ml-training-table"></div>
+      </div>
+
+      <!-- ═══ AI Robot (Prompt-Guided) ═══ -->
+      <div id="page-ai-robot" class="page">
+        <h2>🤖 AI Robot — Prompt-Guided Game Tuning</h2>
+        <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px">
+          <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Type a natural language command to adjust game parameters. The AI interprets your intent and applies changes to game config.</p>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="ai-prompt-input" placeholder='e.g. "Make the game 10% harder" or "Increase rewards by 20%"'
+              style="flex:1;padding:12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none"
+              onkeydown="if(event.key==='Enter')aiSendPrompt()">
+            <button class="btn btn-primary" onclick="aiSendPrompt()" style="white-space:nowrap">🤖 Execute</button>
+          </div>
+          <div id="ai-prompt-result" style="margin-top:12px;font-size:13px"></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='Make the game 10% harder';aiSendPrompt()">🔥 10% Harder</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='Make the game 10% easier';aiSendPrompt()">🌿 10% Easier</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='Speed up zombies by 15%';aiSendPrompt()">⚡ Faster Zombies</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='Increase rewards by 20%';aiSendPrompt()">💰 More Rewards</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='Decrease vehicle HP by 25%';aiSendPrompt()">🚛 Nerf Vehicles</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('ai-prompt-input').value='More zombie spawns by 15%';aiSendPrompt()">🧟 More Spawns</button>
+        </div>
+        <h3>Prompt History</h3>
+        <div class="table-wrap" id="ai-history-table"></div>
+      </div>
+
+      <!-- ═══ Asset Management ═══ -->
+      <div id="page-asset-mgmt" class="page">
+        <h2>🖼️ Asset Management</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">🖥️ Display Settings</h3>
+            <div class="config-row" style="grid-template-columns:1fr 1fr">
+              <div><div class="config-label">Canvas Width</div></div>
+              <div><input type="number" id="ds-canvas-width" value="1024" min="640" max="1920"></div>
+            </div>
+            <div class="config-row" style="grid-template-columns:1fr 1fr">
+              <div><div class="config-label">Canvas Height</div></div>
+              <div><input type="number" id="ds-canvas-height" value="550" min="360" max="1080"></div>
+            </div>
+            <div class="config-row" style="grid-template-columns:1fr 1fr">
+              <div><div class="config-label">Scale Mode</div></div>
+              <div><select id="ds-scale-mode" style="padding:6px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);width:100%">
+                <option value="fit">Fit to Screen</option>
+                <option value="fill">Fill Screen</option>
+                <option value="fixed">Fixed Size</option>
+              </select></div>
+            </div>
+            <div class="config-row" style="grid-template-columns:1fr 1fr">
+              <div><div class="config-label">Responsive Breakpoint (px)</div></div>
+              <div><input type="number" id="ds-breakpoint" value="700" min="320" max="1200"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveDisplaySettings()">Save Display Settings</button>
+          </div>
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">📐 Responsive Preview</h3>
+            <p style="color:var(--text2);font-size:13px">Current canvas: <strong id="ds-preview-size">1024×550</strong></p>
+            <div id="ds-preview-box" style="margin-top:8px;border:2px dashed var(--border);border-radius:4px;height:120px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:12px;position:relative;overflow:hidden;background:var(--bg)">
+              <span>Canvas Preview</span>
+            </div>
+          </div>
+        </div>
+        <h3>Game Asset Categories</h3>
+        <div id="asset-categories" class="stat-grid"></div>
+        <div id="asset-file-list" style="margin-top:16px"></div>
+
+        <!-- ── Background Upload Per Level ── -->
+        <h3 style="margin-top:24px">🌄 Level Backgrounds</h3>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Upload custom background images per wave/level. Any wave can have a raster background — if none is uploaded, the game generates a procedural vector background automatically.</p>
+        <div id="bg-upload-slots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:12px"></div>
+        <div style="margin-bottom:20px">
+          <label style="font-size:13px;color:var(--text2)">Add background for wave:
+            <input type="number" id="bg-add-wave" min="1" max="999" value="5" style="width:60px;margin:0 8px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+          </label>
+          <button class="btn btn-primary btn-sm" onclick="addBgSlot()">+ Add Wave Slot</button>
+        </div>
+
+        <!-- ── Vehicle Upload: Truck ── -->
+        <h3 style="margin-top:24px">🚛 Truck Image</h3>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Replace the enemy truck sprite. Image auto-resizes responsively in-game.</p>
+        <div style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+          <div style="width:140px;height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);border-radius:4px;background:var(--bg)">
+            <img id="truck-preview" src="images/vehicles/truck.png" style="max-width:100%;max-height:80px;object-fit:contain" onerror="this.alt='No truck image'">
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input type="file" id="truck-file" accept="image/*" style="margin-bottom:8px;font-size:13px">
+            <button class="btn btn-primary btn-sm" onclick="uploadAsset('vehicles','truck.png','truck-file','truck-preview')">⬆️ Upload Truck</button>
+          </div>
+        </div>
+
+        <!-- ── Vehicle Upload: Tank (Raster Override) ── -->
+        <h3 style="margin-top:24px">🪖 Tank Image (Raster Override)</h3>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Tanks use SVG by default. Upload a raster image and enable the override to replace the vector tank with a custom sprite.</p>
+        <div style="background:var(--surface);padding:16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+          <div style="width:180px;height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);border-radius:4px;background:var(--bg)">
+            <img id="tank-preview" src="images/vehicles/tank.png" style="max-width:100%;max-height:100px;object-fit:contain" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'SVG (no raster)',style:'color:var(--text2);font-size:12px'}))">
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div style="margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="tank-raster-toggle" onchange="toggleTankRaster(this.checked)">
+                <strong>Use Raster Image Override</strong>
+              </label>
+              <span style="font-size:11px;color:var(--text2)">(Disabling this reverts to the built-in SVG tank)</span>
+            </div>
+            <input type="file" id="tank-file" accept="image/*" style="margin-bottom:8px;font-size:13px">
+            <button class="btn btn-primary btn-sm" onclick="uploadAsset('vehicles','tank.png','tank-file','tank-preview')">⬆️ Upload Tank</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ Player Assets ═══ -->
+      <div id="page-player-assets" class="page">
+        <h2>💎 Player Assets & Crypto</h2>
+        <div class="search-bar">
+          <input type="number" id="pa-player-id" placeholder="Enter Player ID">
+          <button class="btn btn-primary btn-sm" onclick="loadPlayerAssets()">🔍 Load Assets</button>
+        </div>
+        <div id="pa-overview" style="display:none">
+          <div class="stat-grid" id="pa-stats"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <h3>🔫 Weapons</h3>
+              <div class="table-wrap" id="pa-weapons"></div>
+            </div>
+            <div>
+              <h3>🎨 Cosmetics</h3>
+              <div class="table-wrap" id="pa-cosmetics"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+            <div>
+              <h3>🌳 Skills</h3>
+              <div class="table-wrap" id="pa-skills"></div>
+            </div>
+            <div>
+              <h3>🏆 Achievements</h3>
+              <div class="table-wrap" id="pa-achievements"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+            <div>
+              <h3>🔒 Stakes</h3>
+              <div class="table-wrap" id="pa-stakes"></div>
+            </div>
+            <div>
+              <h3>💰 ARC Ledger (Last 50)</h3>
+              <div class="table-wrap" id="pa-ledger"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ Wire Money ═══ -->
+      <div id="page-wire-money" class="page">
+        <h2>💸 Wire Money to Player</h2>
+        <div style="background:var(--surface);padding:24px;border-radius:8px;border:1px solid var(--border);max-width:500px">
+          <div style="margin-bottom:16px">
+            <label style="font-size:13px;display:block;margin-bottom:4px;color:var(--text2)">Player ID</label>
+            <input type="number" id="wm-player-id" placeholder="Player ID" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:13px;display:block;margin-bottom:4px;color:var(--text2)">Amount (use negative to deduct)</label>
+            <input type="number" id="wm-amount" placeholder="Amount" step="0.1" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:13px;display:block;margin-bottom:4px;color:var(--text2)">Currency</label>
+            <select id="wm-currency" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+              <option value="arc">🪙 ARC (Arcoins)</option>
+              <option value="credits">₴ Credits</option>
+            </select>
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:13px;display:block;margin-bottom:4px;color:var(--text2)">Reason (audit trail)</label>
+            <input type="text" id="wm-reason" placeholder="e.g. Tournament prize, bug compensation..." style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none">
+          </div>
+          <button class="btn btn-primary" onclick="wireMoneyToPlayer()">💸 Wire Money</button>
+          <div id="wm-result" style="margin-top:12px;font-size:13px"></div>
+        </div>
+      </div>
+
+      <!-- ═══ Broadcasts ═══ -->
+      <div id="page-broadcasts" class="page">
+        <h2>📢 Broadcasts & Announcements</h2>
+        <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px;max-width:600px">
+          <h3 style="margin:0 0 12px">New Broadcast</h3>
+          <textarea id="bc-message" placeholder="Announcement message..." rows="3" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;resize:vertical;outline:none"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <select id="bc-type" style="padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+              <option value="info">ℹ️ Info</option>
+              <option value="success">✅ Success</option>
+              <option value="warning">⚠️ Warning</option>
+              <option value="urgent">🔴 Urgent</option>
+            </select>
+            <input type="number" id="bc-expires" placeholder="Hours to expire (empty=forever)" min="1" max="720" style="width:180px;padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text)">
+            <button class="btn btn-primary btn-sm" onclick="sendBroadcast()">📢 Send</button>
+          </div>
+        </div>
+        <h3>Active Broadcasts</h3>
+        <div class="table-wrap" id="bc-table"></div>
+      </div>
+
+      <!-- ═══ ML Auto-Regulation ═══ -->
+      <div id="page-ml-autoregulate" class="page">
+        <h2>🧬 ML Auto-Regulation — Self-Adjusting Game Balance</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">⚡ Auto-Regulation Engine</h3>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px">When enabled, the ML system monitors aggregate player metrics and automatically adjusts game difficulty and economy. Changes are capped at ±8% per run to prevent drastic swings.</p>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+              <button id="ml-ar-toggle" class="btn btn-primary" onclick="toggleAutoRegulate()">Loading...</button>
+              <span id="ml-ar-status" style="font-size:13px;color:var(--text2)"></span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="runAutoRegulate()">▶️ Run Analysis Now</button>
+            <div id="ml-ar-last-run" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
+          </div>
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">📊 Decision Logic</h3>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">
+              <div><strong>Skill &gt; 0.7 + improving trend →</strong> Make game harder (up to 8%)</div>
+              <div><strong>Skill &lt; 0.3 + struggling trend →</strong> Make game easier (up to 8%)</div>
+              <div><strong>Sink ratio &lt; 0.3 →</strong> Reduce rewards (economy inflation)</div>
+              <div><strong>Sink ratio &gt; 2.0 →</strong> Boost rewards (economy deflation)</div>
+              <div><strong>Otherwise →</strong> No adjustment (balanced)</div>
+              <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
+                <strong>Skill composite</strong> = Accuracy×0.35 + KillRate×0.35 + WaveProgress×0.30
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>🔍 Latest Analysis Insights</h3>
+        <div class="stat-grid" id="ml-ar-insights"></div>
+        <div id="ml-ar-decision" style="margin-top:16px;padding:16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:none">
+          <h4 style="margin:0 0 8px">🎯 Decision</h4>
+          <div id="ml-ar-decision-text" style="font-size:14px"></div>
+        </div>
+
+        <h3 style="margin-top:20px">📝 ML-Applied Changes</h3>
+        <div class="table-wrap" id="ml-ar-changes"></div>
+
+        <h3 style="margin-top:20px">📜 Auto-Regulation History</h3>
+        <div class="table-wrap" id="ml-ar-history"></div>
+      </div>
+
+      <!-- ═══ Smart Contract Management ═══ -->
+      <div id="page-smart-contracts" class="page">
+        <h2>📜 Smart Contract Management — ARC Token & NFTs</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">🪙 ARC Token</h3>
+            <div id="sc-token-info" style="font-size:13px;line-height:1.8;color:var(--text2)">Loading...</div>
+          </div>
+          <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border)">
+            <h3 style="margin:0 0 12px">💰 In-Game Economy Bridge</h3>
+            <div id="sc-economy-info" style="font-size:13px;line-height:1.8;color:var(--text2)">Loading...</div>
+          </div>
+        </div>
+
+        <h3>📊 Token Allocation</h3>
+        <div id="sc-allocation-bars" style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px"></div>
+
+        <h3>📄 Contract Files</h3>
+        <div class="table-wrap" id="sc-contracts-table"></div>
+
+        <h3 style="margin-top:20px">🇺🇦 Ukraine Donation Tracking</h3>
+        <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px">
+          <div id="sc-ukraine-info" style="font-size:13px;line-height:1.8"></div>
+          <div style="margin-top:12px;padding:12px;background:rgba(0,87,184,0.1);border:1px solid rgba(0,87,184,0.3);border-radius:6px;font-size:12px;color:var(--text2)">
+            ⚠️ The 10% Ukraine humanitarian donation split is <strong style="color:#FFD700">IMMUTABLE</strong> — hardcoded in the smart contract and cannot be modified by any admin or agent.
+          </div>
+        </div>
+
+        <h3>🚀 Deploy Contracts</h3>
+        <div style="background:var(--surface);padding:20px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px">
+          <!-- Network + Wallet -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Network</label>
+              <select id="deploy-network" onchange="deployNetworkChanged()" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px">
+                <option value="137">Polygon Mainnet (chain 137)</option>
+                <option value="80002">Polygon Amoy Testnet (chain 80002)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Deployer Wallet</label>
+              <button id="deploy-wallet-btn" onclick="deployConnectWallet()" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--accent);color:#fff;cursor:pointer;font-size:13px">🦊 Connect MetaMask</button>
+              <div id="deploy-wallet-info" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
+            </div>
+          </div>
+
+          <!-- Step 1: Compile -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <h4 style="margin:0;font-size:14px">Step 1 — Compile Contracts</h4>
+              <button onclick="deployCompileAll()" style="padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:12px">⚙️ Compile All</button>
+            </div>
+            <div id="deploy-compile-status" style="font-size:12px;color:var(--text2)">Click "Compile All" to compile contracts on the server, or skip if artifacts are already compiled.</div>
+          </div>
+
+          <!-- Step 2: Deploy each contract -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px">
+            <h4 style="margin:0 0 12px;font-size:14px">Step 2 — Deploy Contracts</h4>
+            <div id="deploy-contracts-list">Loading contract artifacts…</div>
+          </div>
+
+          <!-- Deployment Log -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px">
+            <h4 style="margin:0 0 8px;font-size:14px">📋 Deployment Log</h4>
+            <div id="deploy-log" style="font-family:monospace;font-size:11px;max-height:200px;overflow-y:auto;color:var(--text2);background:var(--bg);padding:8px;border-radius:4px;white-space:pre-wrap"></div>
+          </div>
+        </div>
+
+        <h3>📜 Deployment History</h3>
+        <div class="table-wrap" id="deploy-history-table" style="margin-bottom:20px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Player Detail Modal -->
+<div class="modal-overlay" id="player-modal">
+  <div class="modal">
+    <h3><span id="modal-player-name"></span><button class="close-btn" onclick="closePlayerModal()">&times;</button></h3>
+    <div id="modal-player-body"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Anti-Ruscist Admin Panel — Client JS
+   ══════════════════════════════════════════════════════════════ */
+
+let API = (function() {
+  // Check for a manually-saved backend URL first
+  var saved = localStorage.getItem('arc_admin_api_url');
+  if (saved) return saved;
+  if (location.port === '3001') return '/api';
+  var h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3001/api';
+  // Codespaces: replace the port number in the hostname (e.g. -8080. → -3001.)
+  if (h.includes('.app.github.dev')) return location.protocol + '//' + h.replace(/-\d+\.app\.github\.dev/, '-3001.app.github.dev') + '/api';
+  // GitHub Pages or other static hosting — no backend available by default
+  if (h.endsWith('.github.io') || h === 'www.photon-bounce.com' || h === 'photon-bounce.com') return '';
+  return location.protocol + '//' + h + ':3001/api';
+})();
+let token = localStorage.getItem('arc_admin_token');
+let currentPlayer = null;
+let configData = {};
+let playersPage = 0;
+
+// ── API Helper ────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  let res;
+  try {
+    res = await fetch(API + path, { ...opts, headers });
+  } catch (err) {
+    document.getElementById('server-status')?.classList.add('offline');
+    var ss = document.getElementById('server-status'); if (ss) ss.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#f85149;display:inline-block"></span> Server offline';
+    throw new Error('Server unavailable — start the backend on port 3001');
+  }
+  document.getElementById('server-status')?.classList.remove('offline');
+  var ss2 = document.getElementById('server-status'); if (ss2) ss2.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#3fb950;display:inline-block"></span> API connected';
+  if (res.status === 401) { doLogout(); throw new Error('Session expired'); }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ── Backend Connection (GitHub Pages) ─────────────────────────
+function showBackendSetup() {
+  document.getElementById('backend-setup').style.display = 'flex';
+  document.getElementById('login-form').style.display = 'none';
+}
+function hideBackendSetup() {
+  document.getElementById('backend-setup').style.display = 'none';
+  document.getElementById('login-form').style.display = 'flex';
+}
+async function connectBackend() {
+  const urlInput = document.getElementById('backend-url');
+  const statusEl = document.getElementById('backend-status');
+  let url = urlInput.value.trim().replace(/\/+$/, '');
+  if (!url) { statusEl.textContent = 'Please enter a URL'; statusEl.style.color = 'var(--red)'; return; }
+  if (!url.endsWith('/api')) url += '/api';
+  statusEl.textContent = 'Connecting…'; statusEl.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(url + '/health', { method: 'GET', signal: AbortSignal.timeout(8000) }).catch(e => { throw new Error('Network error: ' + (e.message || 'connection failed')); });
+    if (!res || !res.ok) {
+      // Even if /health doesn't exist, a 404 from the server means server is reachable
+      if (res && res.status < 500) {
+        statusEl.textContent = 'Connected ✓'; statusEl.style.color = 'var(--green)';
+      } else {
+        throw new Error('Server returned HTTP ' + (res ? res.status : '???'));
+      }
+    } else {
+      statusEl.textContent = 'Connected ✓'; statusEl.style.color = 'var(--green)';
+    }
+    API = url;
+    localStorage.setItem('arc_admin_api_url', url);
+    // Also save for the game client (split deployment: game reads arc_api_url)
+    var gameApiBase = url.replace(/\/api\/?$/, '');
+    localStorage.setItem('arc_api_url', gameApiBase);
+    setTimeout(function() { hideBackendSetup(); checkSetupNeeded(); }, 600);
+  } catch (err) {
+    statusEl.textContent = err.message || 'Cannot reach server — check URL and that port is public';
+    statusEl.style.color = 'var(--red)';
+  }
+}
+function disconnectBackend() {
+  localStorage.removeItem('arc_admin_api_url');
+  localStorage.removeItem('arc_api_url');
+  API = '';
+  showBackendSetup();
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+async function checkSetupNeeded() {
+  if (!API) return;
+  try {
+    const res = await fetch(API + '/setup/status', { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    if (data.needsSetup) {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('admin-setup').style.display = 'block';
+    }
+  } catch { /* server unreachable — login form will show the error */ }
+}
+
+async function doSetup(e) {
+  e.preventDefault();
+  if (!API) { showBackendSetup(); return false; }
+  const user = document.getElementById('setup-user').value.trim();
+  const pass = document.getElementById('setup-pass').value;
+  const errEl = document.getElementById('setup-error');
+  const successEl = document.getElementById('setup-success');
+  try {
+    errEl.style.display = 'none';
+    successEl.style.display = 'none';
+    const res = await fetch(API + '/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    // Setup succeeded — log in directly
+    token = data.token;
+    currentPlayer = data.player;
+    localStorage.setItem('arc_admin_token', token);
+    successEl.textContent = '✅ Admin account created! Logging in…';
+    successEl.style.display = 'block';
+    successEl.style.color = 'var(--green)';
+    setTimeout(showApp, 800);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+  return false;
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  if (!API) { showBackendSetup(); return false; }
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  try {
+    errEl.style.display = 'none';
+    let res;
+    try {
+      res = await fetch(API + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+      });
+    } catch (netErr) {
+      throw new Error('Cannot reach server at ' + API + ' — ' + (netErr.message || 'is the backend running?'));
+    }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.player.is_admin) throw new Error('Not an admin account');
+    token = data.token;
+    currentPlayer = data.player;
+    localStorage.setItem('arc_admin_token', token);
+    showApp();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+  return false;
+}
+
+function doLogout() {
+  token = null;
+  currentPlayer = null;
+  localStorage.removeItem('arc_admin_token');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('admin-name').textContent = currentPlayer ? currentPlayer.username : 'Admin';
+  loadDashboard();
+}
+
+// Check stored token on load
+(async function init() {
+  // No backend configured (e.g. GitHub Pages) — prompt user
+  if (!API) { showBackendSetup(); return; }
+  if (!token) { checkSetupNeeded(); return; }
+  try {
+    const data = await api('/player/profile');
+    if (!data.player.is_admin) { doLogout(); return; }
+    currentPlayer = data.player;
+    showApp();
+  } catch { doLogout(); }
+})();
+
+// ── Navigation ────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar button[data-page]').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) page.classList.add('active');
+  const btn = document.querySelector('.sidebar button[data-page="' + name + '"]');
+  if (btn) btn.classList.add('active');
+
+  // Load data for the page
+  if (name === 'dashboard') loadDashboard();
+  else if (name.startsWith('config-') && name !== 'config-history') loadConfig(name.replace('config-', ''));
+  else if (name === 'players') loadPlayers();
+  else if (name === 'settings') loadSettings();
+  else if (name === 'news') loadNews();
+  else if (name === 'logs') loadLogs();
+  else if (name === 'config-history') loadConfigHistory();
+  else if (name === 'economy-overview') loadEconomyOverview();
+  else if (name === 'cosmetics') loadCosmetics();
+  else if (name === 'leaderboard') loadLeaderboard('kills');
+  else if (name === 'clans') loadClans();
+  else if (name === 'jokes') loadJokes('pending');
+  else if (name === 'purchases') loadPurchases();
+  else if (name === 'staking') loadStaking();
+  else if (name === 'nfts') loadNfts();
+  else if (name === 'pvp') loadPvp();
+  else if (name === 'streak-badges') loadStreakBadges();
+  else if (name === 'revenue') loadRevenue();
+  else if (name === 'ml-dashboard') loadMlDashboard();
+  else if (name === 'ml-bugs') loadMlErrors();
+  else if (name === 'ml-economy') loadMlEconomy();
+  else if (name === 'ml-segments') loadMlSegments();
+  else if (name === 'ml-cheats') loadMlCheats();
+  else if (name === 'ml-balance') loadMlBalance();
+  else if (name === 'ml-telemetry') loadMlTelemetry();
+  else if (name === 'ml-control') loadMlControl();
+  else if (name === 'ai-robot') loadAiRobot();
+  else if (name === 'asset-mgmt') loadAssetMgmt();
+  else if (name === 'player-assets') {} // manual load via button
+  else if (name === 'wire-money') {} // manual form
+  else if (name === 'broadcasts') loadBroadcasts();
+  else if (name === 'ml-autoregulate') loadAutoRegulate();
+  else if (name === 'smart-contracts') loadSmartContracts();
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type || 'success') + ' show';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [stats, ext] = await Promise.all([api('/admin/stats'), api('/admin/stats/extended')]);
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="label">Total Players</div><div class="value cyan">${stats.total_players}</div></div>
+      <div class="stat-card"><div class="label">Sessions (24h)</div><div class="value green">${stats.sessions_24h}</div></div>
+      <div class="stat-card"><div class="label">Total Sessions</div><div class="value">${stats.total_sessions}</div></div>
+      <div class="stat-card"><div class="label">ARC Supply</div><div class="value yellow">${(stats.total_arc_supply||0).toFixed(1)} 🪙</div></div>
+      <div class="stat-card"><div class="label">ARC Staked</div><div class="value">${(stats.staking.locked||0).toFixed(1)} (${stats.staking.count})</div></div>
+      <div class="stat-card"><div class="label">Loans Outstanding</div><div class="value red">${stats.loans.outstanding||0} (${stats.loans.count})</div></div>
+      <div class="stat-card"><div class="label">Donations</div><div class="value green">$${(stats.donations.total||0).toFixed(2)} (${stats.donations.count})</div></div>
+      <div class="stat-card"><div class="label">Death Pool</div><div class="value">${stats.death_pool.pool||0}₴ (${stats.death_pool.bets} bets)</div></div>
+    `;
+
+    // Top players
+    let tpHTML = '<table><tr><th>Player</th><th>Kills</th><th>Wave</th><th>ARC</th><th>Prestige</th></tr>';
+    for (const p of ext.topPlayers) {
+      tpHTML += `<tr><td>${esc(p.username)}</td><td>${p.total_kills}</td><td>${p.max_wave}</td><td>${(p.arcoins||0).toFixed(1)}</td><td>${p.prestige_level}</td></tr>`;
+    }
+    tpHTML += '</table>';
+    document.getElementById('top-players-table').innerHTML = tpHTML;
+
+    // Extended stats
+    document.getElementById('extended-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Signups (24h)</div><div class="value green">${ext.recentSignups}</div></div>
+      <div class="stat-card"><div class="label">Avg Max Wave</div><div class="value">${(ext.avgWave.avg||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Record Wave</div><div class="value cyan">${ext.avgWave.max||0}</div></div>
+      <div class="stat-card"><div class="label">Total Shots</div><div class="value">${(ext.totalShots.fired||0).toLocaleString()}</div></div>
+      <div class="stat-card"><div class="label">Accuracy</div><div class="value">${ext.totalShots.fired ? ((ext.totalShots.hit/ext.totalShots.fired)*100).toFixed(1)+'%' : 'N/A'}</div></div>
+    `;
+
+    let wpHTML = '<table><tr><th>Weapon</th><th>Players Unlocked</th></tr>';
+    for (const w of ext.weaponPop) wpHTML += `<tr><td>${esc(w.weapon_id)}</td><td>${w.count}</td></tr>`;
+    wpHTML += '</table>';
+    document.getElementById('weapon-pop-table').innerHTML = wpHTML;
+  } catch (err) {
+    document.getElementById('stats-grid').innerHTML = '<div class="loading">Failed to load: ' + esc(err.message) + '</div>';
+  }
+}
+
+// ── Game Config ───────────────────────────────────────────────
+async function loadConfig(category) {
+  const container = document.getElementById('config-' + category + '-editor');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const rows = await api('/admin/game-config/' + category);
+    configData[category] = rows;
+    let html = '';
+    for (const row of rows) {
+      html += `<div class="config-row" data-cat="${esc(row.category)}" data-key="${esc(row.key)}">
+        <div>
+          <div class="config-label">${esc(row.label || row.key)}</div>
+          ${row.description ? '<div class="config-desc">' + esc(row.description) + '</div>' : ''}
+        </div>
+        <input type="${row.data_type === 'number' ? 'number' : 'text'}" value="${esc(row.value)}"
+          ${row.min_val !== null ? 'min="'+row.min_val+'"' : ''}
+          ${row.max_val !== null ? 'max="'+row.max_val+'"' : ''}
+          step="any" data-original="${esc(row.value)}">
+        <div class="range-hint">${row.min_val !== null ? row.min_val + ' – ' + row.max_val : ''}</div>
+      </div>`;
+    }
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>';
+  }
+}
+
+async function saveConfig(category) {
+  const rows = document.querySelectorAll('#config-' + category + '-editor .config-row');
+  const changes = [];
+  for (const row of rows) {
+    const input = row.querySelector('input');
+    if (input.value !== input.dataset.original) {
+      changes.push({ category: row.dataset.cat, key: row.dataset.key, value: input.value });
+    }
+  }
+  if (changes.length === 0) { toast('No changes to save', 'error'); return; }
+  try {
+    const result = await api('/admin/game-config/batch', { method: 'POST', body: JSON.stringify({ changes }) });
+    if (result.errors && result.errors.length) {
+      toast('Saved with errors: ' + result.errors.join(', '), 'error');
+    } else {
+      toast('✅ Saved ' + result.applied + ' changes');
+    }
+    // Update originals
+    for (const row of rows) {
+      const input = row.querySelector('input');
+      input.dataset.original = input.value;
+    }
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Players ───────────────────────────────────────────────────
+async function loadPlayers(search, offset) {
+  const container = document.getElementById('players-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const params = new URLSearchParams({ limit: 50, offset: offset || 0 });
+    if (search) params.set('search', search);
+    const data = await api('/admin/players?' + params);
+    let html = '<table><tr><th>ID</th><th>Username</th><th>Email</th><th>Kills</th><th>Wave</th><th>ARC</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>';
+    for (const p of data.players) {
+      const badges = [];
+      if (p.is_admin) badges.push('<span class="badge admin">Admin</span>');
+      if (p.is_banned) badges.push('<span class="badge banned">Banned</span>');
+      if (!p.is_banned && !p.is_admin) badges.push('<span class="badge active">Active</span>');
+      html += `<tr>
+        <td>${p.id}</td>
+        <td><a href="#" onclick="openPlayerDetail(${p.id});return false">${esc(p.username)}</a></td>
+        <td>${esc(p.email||'—')}</td>
+        <td>${p.total_kills||0}</td>
+        <td>${p.max_wave||0}</td>
+        <td>${(p.arcoins||0).toFixed(1)}</td>
+        <td>${badges.join(' ')}</td>
+        <td>${p.last_login ? new Date(p.last_login+'Z').toLocaleDateString() : '—'}</td>
+        <td>
+          ${!p.is_banned ? '<button class="btn btn-danger btn-sm" onclick="banPlayer('+p.id+',true)">Ban</button>' :
+            '<button class="btn btn-outline btn-sm" onclick="banPlayer('+p.id+',false)">Unban</button>'}
+        </td>
+      </tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+
+    // Pagination
+    const total = data.total;
+    const pages = Math.ceil(total / 50);
+    const current = Math.floor((offset || 0) / 50);
+    let pagHTML = '';
+    for (let i = 0; i < Math.min(pages, 10); i++) {
+      pagHTML += `<button class="btn btn-sm ${i===current?'btn-primary':'btn-outline'}"
+        onclick="loadPlayers('${search||''}',${i*50})">${i+1}</button>`;
+    }
+    document.getElementById('players-pagination').innerHTML = pagHTML;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+function searchPlayers() {
+  const q = document.getElementById('player-search').value.trim();
+  loadPlayers(q, 0);
+}
+
+async function banPlayer(id, ban) {
+  const reason = ban ? prompt('Ban reason:') : null;
+  if (ban && !reason) return;
+  try {
+    await api('/admin/ban', { method: 'POST', body: JSON.stringify({ player_id: id, ban, reason }) });
+    toast(ban ? 'Player banned' : 'Player unbanned');
+    loadPlayers();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function openPlayerDetail(id) {
+  try {
+    const data = await api('/admin/player/' + id);
+    document.getElementById('modal-player-name').textContent = data.player.username + ' (#' + data.player.id + ')';
+    const s = data.stats || {};
+    let html = '<div class="detail-grid">';
+    html += di('Credits', (s.credits||0) + '₴');
+    html += di('ARC', (s.arcoins||0).toFixed(2) + ' 🪙');
+    html += di('Total Kills', s.total_kills||0);
+    html += di('Max Wave', s.max_wave||0);
+    html += di('Wins', s.total_wins||0);
+    html += di('Prestige', s.prestige_level||0);
+    html += di('Streak', s.login_streak||0);
+    html += di('Shots', (s.shots_fired||0) + ' / ' + (s.shots_hit||0) + ' hits');
+    html += di('Wallet', data.player.wallet_addr || '—');
+    html += di('Created', data.player.created_at||'—');
+    html += di('Last Login', data.player.last_login||'—');
+    html += di('Email', data.player.email||'—');
+    html += '</div>';
+
+    // Weapons
+    if (data.weapons.length) {
+      html += '<h4 style="margin:8px 0">Weapons (' + data.weapons.length + ')</h4><p style="color:var(--text2);font-size:13px">';
+      html += data.weapons.map(w => esc(w.weapon_id)).join(', ') + '</p>';
+    }
+    // Cosmetics
+    if (data.cosmetics && data.cosmetics.length) {
+      html += '<h4 style="margin:8px 0">Cosmetics (' + data.cosmetics.length + ')</h4><p style="color:var(--text2);font-size:13px">';
+      html += data.cosmetics.map(c => esc(c.cosmetic_id) + (c.equipped ? ' ✅' : '')).join(', ') + '</p>';
+    }
+    // Skills
+    if (data.skills && data.skills.length) {
+      html += '<h4 style="margin:8px 0">Skills (' + data.skills.length + ')</h4><p style="color:var(--text2);font-size:13px">';
+      html += data.skills.map(s => esc(s.skill_id) + ' (Lv' + s.level + ')').join(', ') + '</p>';
+    }
+    // Battle Pass
+    if (data.battlePass && data.battlePass.length) {
+      html += '<h4 style="margin:8px 0">Battle Pass</h4>';
+      html += '<div class="table-wrap"><table><tr><th>Season</th><th>Tier</th><th>XP</th><th>Kills</th><th>Premium</th></tr>';
+      for (const bp of data.battlePass) {
+        html += '<tr><td>S' + bp.season + '</td><td>' + (bp.tier||0) + '</td><td>' + (bp.xp||0) + '</td><td>' + (bp.total_kills||0) + '</td><td>' + (bp.is_premium ? '⭐' : '—') + '</td></tr>';
+      }
+      html += '</table></div>';
+    }
+    // Missions
+    if (data.missions && data.missions.length) {
+      html += '<h4 style="margin:8px 0">Recent Missions (' + data.missions.length + ')</h4>';
+      html += '<div class="table-wrap"><table><tr><th>Date</th><th>Mission</th><th>Progress</th><th>Done</th><th>Claimed</th><th>Reward</th></tr>';
+      for (const m of data.missions.slice(0, 10)) {
+        html += '<tr><td>' + esc(m.mission_date) + '</td><td>' + esc(m.mission_id) + '</td><td>' + m.progress + '/' + m.target + '</td><td>' + (m.done?'✅':'❌') + '</td><td>' + (m.claimed?'✅':'—') + '</td><td>' + m.arc_reward + ' ARC</td></tr>';
+      }
+      html += '</table></div>';
+    }
+    // Recent Spins
+    if (data.spins && data.spins.length) {
+      html += '<h4 style="margin:8px 0">Recent Spins</h4><p style="color:var(--text2);font-size:13px">';
+      html += data.spins.map(s => s.prize + ' x' + s.amount + ' (' + (s.spun_at||'').slice(0,10) + ')').join(', ') + '</p>';
+    }
+    // Referrals
+    if (data.referrals && data.referrals.length) {
+      html += '<h4 style="margin:8px 0">Referrals (' + data.referrals.length + ')</h4><p style="color:var(--text2);font-size:13px">';
+      html += data.referrals.map(r => esc(r.referred_name)).join(', ') + '</p>';
+    }
+    // Sessions
+    if (data.sessions.length) {
+      html += '<h4 style="margin:8px 0">Recent Sessions (' + data.sessions.length + ')</h4>';
+      html += '<div class="table-wrap"><table><tr><th>Started</th><th>Wave</th><th>Score</th><th>Kills</th><th>Duration</th></tr>';
+      for (const ses of data.sessions.slice(0, 10)) {
+        html += `<tr><td>${ses.started_at||'—'}</td><td>${ses.wave_reached||0}</td><td>${ses.score||0}</td><td>${ses.kills||0}</td><td>${ses.duration_s||0}s</td></tr>`;
+      }
+      html += '</table></div>';
+    }
+
+    // Admin actions
+    html += '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="btn btn-primary btn-sm" onclick="giveArc(' + id + ')">Give ARC</button>';
+    if (!data.player.is_admin) html += '<button class="btn btn-outline btn-sm" onclick="grantAdmin(' + id + ')">Grant Admin</button>';
+    if (data.player.is_admin) html += '<button class="btn btn-danger btn-sm" onclick="revokeAdmin(' + id + ')">Revoke Admin</button>';
+    html += '<button class="btn btn-danger btn-sm" onclick="resetPlayer(' + id + ')">Reset Stats</button>';
+    html += '<button class="btn btn-danger btn-sm" onclick="deletePlayer(' + id + ')">Delete</button>';
+    html += '</div>';
+
+    document.getElementById('modal-player-body').innerHTML = html;
+    document.getElementById('player-modal').classList.add('show');
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+function di(label, value) {
+  return '<div class="detail-item"><div class="dlabel">' + esc(label) + '</div><div class="dvalue">' + esc(String(value)) + '</div></div>';
+}
+
+function closePlayerModal() { document.getElementById('player-modal').classList.remove('show'); }
+
+async function giveArc(id) {
+  const amount = prompt('ARC amount to give:');
+  if (!amount || isNaN(amount)) return;
+  try {
+    await api('/admin/give-arc', { method: 'POST', body: JSON.stringify({ player_id: id, amount: parseFloat(amount) }) });
+    toast('Gave ' + amount + ' ARC');
+    openPlayerDetail(id);
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function grantAdmin(id) {
+  if (!confirm('Grant admin access?')) return;
+  try {
+    await api('/admin/grant-admin', { method: 'POST', body: JSON.stringify({ player_id: id }) });
+    toast('Admin granted'); openPlayerDetail(id);
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function revokeAdmin(id) {
+  if (!confirm('Revoke admin access?')) return;
+  try {
+    await api('/admin/revoke-admin', { method: 'POST', body: JSON.stringify({ player_id: id }) });
+    toast('Admin revoked'); openPlayerDetail(id);
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function resetPlayer(id) {
+  if (!confirm('Reset all stats for this player? This cannot be undone.')) return;
+  try {
+    await api('/admin/reset-player', { method: 'POST', body: JSON.stringify({ player_id: id }) });
+    toast('Stats reset'); openPlayerDetail(id);
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function deletePlayer(id) {
+  if (!confirm('DELETE this player permanently? This cannot be undone.')) return;
+  if (!confirm('Are you REALLY sure?')) return;
+  try {
+    await api('/admin/delete-player', { method: 'POST', body: JSON.stringify({ player_id: id }) });
+    toast('Player deleted'); closePlayerModal(); loadPlayers();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Settings ──────────────────────────────────────────────────
+async function loadSettings() {
+  const container = document.getElementById('settings-editor');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const rows = await api('/admin/settings');
+    let html = '';
+    for (const row of rows) {
+      html += `<div class="config-row" data-key="${esc(row.key)}">
+        <div class="config-label">${esc(row.key)}</div>
+        <input type="text" value="${esc(row.value)}" data-original="${esc(row.value)}">
+        <div></div>
+      </div>`;
+    }
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function saveSettings() {
+  const rows = document.querySelectorAll('#settings-editor .config-row');
+  let saved = 0;
+  for (const row of rows) {
+    const input = row.querySelector('input');
+    if (input.value !== input.dataset.original) {
+      try {
+        await api('/admin/settings', { method: 'POST', body: JSON.stringify({ key: row.dataset.key, value: input.value }) });
+        input.dataset.original = input.value;
+        saved++;
+      } catch (err) { toast('Error saving ' + row.dataset.key + ': ' + err.message, 'error'); return; }
+    }
+  }
+  if (saved === 0) toast('No changes', 'error');
+  else toast('✅ Saved ' + saved + ' settings');
+}
+
+// ── News ──────────────────────────────────────────────────────
+async function loadNews() {
+  try {
+    const rows = await api('/news');
+    let html = '<table><tr><th>Title</th><th>Author</th><th>Pinned</th><th>Date</th></tr>';
+    for (const n of rows) {
+      html += `<tr><td>${esc(n.title)}</td><td>${esc(n.author||'—')}</td><td>${n.pinned?'📌':''}</td><td>${n.created_at||'—'}</td></tr>`;
+    }
+    html += '</table>';
+    document.getElementById('news-table').innerHTML = html;
+  } catch (err) { document.getElementById('news-table').innerHTML = 'Error: ' + esc(err.message); }
+}
+
+async function postNews() {
+  const title = document.getElementById('news-title').value.trim();
+  const body = document.getElementById('news-body').value.trim();
+  const pinned = document.getElementById('news-pinned').checked;
+  if (!title) { toast('Title required', 'error'); return; }
+  try {
+    await api('/admin/news', { method: 'POST', body: JSON.stringify({ title, body, pinned }) });
+    toast('✅ News posted');
+    document.getElementById('news-title').value = '';
+    document.getElementById('news-body').value = '';
+    loadNews();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Logs ──────────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const rows = await api('/admin/log');
+    let html = '<table><tr><th>Admin</th><th>Action</th><th>Target</th><th>Details</th><th>Time</th></tr>';
+    for (const l of rows) {
+      html += `<tr><td>${esc(l.admin_name||'—')}</td><td>${esc(l.action)}</td><td>${l.target_id||'—'}</td><td>${esc(l.details||'—')}</td><td>${l.created_at||'—'}</td></tr>`;
+    }
+    html += '</table>';
+    document.getElementById('logs-table').innerHTML = html;
+  } catch (err) { document.getElementById('logs-table').innerHTML = 'Error: ' + esc(err.message); }
+}
+
+// ── Config History ────────────────────────────────────────────
+async function loadConfigHistory() {
+  try {
+    const rows = await api('/admin/game-config-history');
+    let html = '<table><tr><th>Category</th><th>Key</th><th>Old</th><th>New</th><th>Changed By</th><th>Time</th></tr>';
+    for (const h of rows) {
+      html += `<tr><td>${esc(h.category)}</td><td>${esc(h.key)}</td><td>${esc(h.old_value||'—')}</td><td style="color:var(--green)">${esc(h.new_value)}</td><td>${esc(h.changed_by_name||'—')}</td><td>${h.changed_at||'—'}</td></tr>`;
+    }
+    html += '</table>';
+    document.getElementById('config-history-table').innerHTML = html;
+  } catch (err) { document.getElementById('config-history-table').innerHTML = 'Error: ' + esc(err.message); }
+}
+
+// ── Leaderboard ──────────────────────────────────────────────
+async function loadLeaderboard(sortBy) {
+  const container = document.getElementById('leaderboard-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await api('/admin/leaderboard?sort=' + (sortBy || 'kills'));
+    let html = '<table><tr><th>#</th><th>Player</th><th>Kills</th><th>Max Wave</th><th>ARC</th><th>Prestige</th><th>Wins</th></tr>';
+    data.forEach((p, i) => {
+      html += `<tr><td>${i+1}</td><td><a href="#" onclick="openPlayerDetail(${p.id});return false">${esc(p.username)}</a></td>
+        <td>${p.total_kills||0}</td><td>${p.max_wave||0}</td><td>${(p.arcoins||0).toFixed(1)}</td>
+        <td>${p.prestige_level||0}</td><td>${p.total_wins||0}</td></tr>`;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── Clans ────────────────────────────────────────────────────
+async function loadClans() {
+  const container = document.getElementById('clans-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await api('/admin/clans');
+    let html = '<table><tr><th>ID</th><th>Name</th><th>Tag</th><th>Leader</th><th>Members</th><th>Level</th><th>Created</th></tr>';
+    for (const c of data) {
+      html += `<tr><td>${c.id}</td><td>${esc(c.name)}</td><td>[${esc(c.tag)}]</td>
+        <td>${esc(c.leader_name||'—')}</td><td>${c.member_count||0}</td>
+        <td>${c.clan_level||1}</td><td>${(c.created_at||'').slice(0,10)}</td></tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── Jokes Manager ────────────────────────────────────────────
+async function loadJokes(filter) {
+  const container = document.getElementById('jokes-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await api('/admin/jokes?filter=' + (filter || 'pending'));
+    let html = '<table><tr><th>ID</th><th>Joke</th><th>By</th><th>Status</th><th>Date</th><th>Actions</th></tr>';
+    for (const j of data) {
+      const status = j.flagged ? '<span class="badge banned">Flagged</span>' :
+                     j.approved ? '<span class="badge active">Approved</span>' :
+                     '<span style="color:var(--yellow)">Pending</span>';
+      html += `<tr><td>${j.id}</td><td style="max-width:300px">${esc(j.text)}</td>
+        <td>${esc(j.username)}</td><td>${status}</td><td>${(j.created_at||'').slice(0,10)}</td>
+        <td style="white-space:nowrap">
+          ${!j.approved ? '<button class="btn btn-sm btn-primary" onclick="jokeAction('+j.id+',\'approve\')">✅</button> ' : ''}
+          ${!j.flagged ? '<button class="btn btn-sm btn-danger" onclick="jokeAction('+j.id+',\'flag\')">🚩</button> ' : ''}
+          <button class="btn btn-sm btn-outline" onclick="jokeAction(${j.id},'delete')">🗑️</button>
+        </td></tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function jokeAction(id, action) {
+  try {
+    await api('/admin/jokes/' + id + '/' + action, { method: 'POST' });
+    toast(action === 'approve' ? '✅ Approved' : action === 'flag' ? '🚩 Flagged' : '🗑️ Deleted');
+    loadJokes('pending');
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Purchases ────────────────────────────────────────────────
+async function loadPurchases() {
+  const container = document.getElementById('purchases-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await api('/admin/purchases');
+    let html = '<table><tr><th>ID</th><th>Player</th><th>POL</th><th>ARC</th><th>TX Hash</th><th>Label</th><th>UA Donation</th><th>Date</th></tr>';
+    for (const p of data) {
+      html += `<tr><td>${p.id}</td><td>${esc(p.username||'#'+p.player_id)}</td>
+        <td>${(p.pol_amount||0).toFixed(3)}</td><td>${(p.arc_amount||0).toFixed(1)}</td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${esc(p.tx_hash||'—')}</td>
+        <td>${esc(p.label||'—')}</td>
+        <td style="color:var(--green)">${(p.pol_amount * 0.10).toFixed(3)} POL 🇺🇦</td>
+        <td>${(p.created_at||'').slice(0,16)}</td></tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── Staking ──────────────────────────────────────────────────
+async function loadStaking() {
+  const statsEl = document.getElementById('staking-stats');
+  const tableEl = document.getElementById('staking-table');
+  statsEl.innerHTML = tableEl.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await api('/admin/staking');
+    statsEl.innerHTML = `
+      <div class="stat-card"><div class="label">Active Stakes</div><div class="value cyan">${data.summary.active_count}</div></div>
+      <div class="stat-card"><div class="label">Total Locked</div><div class="value yellow">${(data.summary.total_locked||0).toFixed(1)} ARC</div></div>
+      <div class="stat-card"><div class="label">Total Rewarded</div><div class="value green">${(data.summary.total_rewarded||0).toFixed(1)} ARC</div></div>
+      <div class="stat-card"><div class="label">Avg Stake</div><div class="value">${data.summary.active_count ? ((data.summary.total_locked||0)/data.summary.active_count).toFixed(1) : 0} ARC</div></div>
+    `;
+    let html = '<table><tr><th>Player</th><th>Amount</th><th>APY</th><th>Status</th><th>Started</th><th>Matures</th></tr>';
+    for (const s of data.stakes) {
+      const badge = s.status === 'active' ? '<span class="badge active">Active</span>' :
+                    s.status === 'completed' ? '<span class="badge admin">Done</span>' : esc(s.status);
+      html += `<tr><td>${esc(s.username||'#'+s.player_id)}</td><td>${(s.amount||0).toFixed(1)} ARC</td>
+        <td>${s.apy||12}%</td><td>${badge}</td>
+        <td>${(s.started_at||'').slice(0,10)}</td><td>${(s.matures_at||'').slice(0,10)}</td></tr>`;
+    }
+    html += '</table>';
+    tableEl.innerHTML = html;
+  } catch (err) { statsEl.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; tableEl.innerHTML = ''; }
+}
+
+// ── Economy Overview ──────────────────────────────────────────
+async function loadEconomyOverview() {
+  const container = document.getElementById('economy-stats');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const d = await api('/admin/economy-overview');
+    container.innerHTML = `
+      <div class="stat-card"><div class="label">ARC Circulating</div><div class="value yellow">${(d.arc_circulating||0).toFixed(1)} 🪙</div></div>
+      <div class="stat-card"><div class="label">ARC Total Earned</div><div class="value">${(d.arc_total_earned||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Spins Played</div><div class="value cyan">${d.spins.count} (${(d.spins.arc_paid||0).toFixed(1)} ARC)</div></div>
+      <div class="stat-card"><div class="label">BP Premium Sales</div><div class="value green">${d.battle_pass.premium_count}</div></div>
+      <div class="stat-card"><div class="label">Missions Claimed</div><div class="value">${d.missions.claimed} (${(d.missions.arc_paid||0).toFixed(1)} ARC)</div></div>
+      <div class="stat-card"><div class="label">Referral Bonuses</div><div class="value">${d.referrals.count} (${(d.referrals.bonuses_paid||0).toFixed(1)} ARC)</div></div>
+      <div class="stat-card"><div class="label">Cosmetics Purchased</div><div class="value">${d.cosmetics_purchased}</div></div>
+      <div class="stat-card"><div class="label">Active Stakes</div><div class="value">${d.staking.active} (${(d.staking.locked||0).toFixed(1)} ARC)</div></div>
+    `;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── Cosmetics Manager ────────────────────────────────────────
+async function loadCosmetics() {
+  const container = document.getElementById('cosmetics-table');
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const rows = await api('/admin/cosmetics');
+    let html = '<table><tr><th>ID</th><th>Type</th><th>Label</th><th>Price</th><th>Rarity</th><th>Owners</th><th>Actions</th></tr>';
+    for (const c of rows) {
+      html += `<tr>
+        <td>${esc(c.cosmetic_id)}</td>
+        <td>${esc(c.type||'—')}</td>
+        <td>${esc(c.label||c.cosmetic_id)}</td>
+        <td>${c.price||0} ARC</td>
+        <td>${esc(c.rarity||'common')}</td>
+        <td>${c.owner_count||0}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteCosmetic('${esc(c.cosmetic_id)}')">Delete</button></td>
+      </tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function addCosmetic() {
+  const id = document.getElementById('cosm-id').value.trim();
+  const type = document.getElementById('cosm-type').value;
+  const price = parseFloat(document.getElementById('cosm-price').value) || 0;
+  const rarity = document.getElementById('cosm-rarity').value;
+  const label = document.getElementById('cosm-label').value.trim();
+  if (!id) { toast('Cosmetic ID required', 'error'); return; }
+  try {
+    await api('/admin/cosmetics', { method: 'POST', body: JSON.stringify({ cosmetic_id: id, type, price, rarity, label }) });
+    toast('✅ Cosmetic added');
+    document.getElementById('cosm-id').value = '';
+    document.getElementById('cosm-label').value = '';
+    document.getElementById('cosm-price').value = '';
+    loadCosmetics();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function deleteCosmetic(id) {
+  if (!confirm('Delete cosmetic "' + id + '"?')) return;
+  try {
+    await api('/admin/cosmetics/' + encodeURIComponent(id), { method: 'DELETE' });
+    toast('Cosmetic deleted');
+    loadCosmetics();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ── NFT On-Chain Controls ────────────────────────────────────
+const NFT_CONTRACTS = {
+  UADEF:   '0x8FF4468c28fD4A1ad4EfbD82dD7F1c9eb8C1bACc',
+  KILLNFT: '0xe78485271787d712179CCaA4a3A67f07C2Ed7800',
+  ARC:     '0xD7D4F2DE20a11B344A44519583b177F26A6AEe76'
+};
+const POLYGON_RPC = 'https://polygon-rpc.com';
+let _nftSigner = null;
+let _nftProvider = null;
+
+// Minimal ABIs for read/write
+const UADEF_ABI = [
+  'function safeMintWithMeta(address to, string heroName, string rarity, uint256 seed, uint256 waveNum) external returns (uint256)',
+  'function safeMint(address to) external returns (uint256)',
+  'function balanceOf(address owner) view returns (uint256)',
+  'function totalSupply() view returns (uint256)',
+  'function owner() view returns (address)',
+  'function tokenName(uint256) view returns (string)',
+  'function tokenRarity(uint256) view returns (string)'
+];
+const KILLNFT_ABI = [
+  'function totalMinted() view returns (uint256)',
+  'function owner() view returns (address)'
+];
+const ARC_ABI = [
+  'function totalSupply() view returns (uint256)',
+  'function balanceOf(address) view returns (uint256)',
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
+  'function name() view returns (string)'
+];
+
+function getReadProvider() {
+  if (!_nftProvider) _nftProvider = new ethers.JsonRpcProvider(POLYGON_RPC);
+  return _nftProvider;
+}
+
+async function nftConnectWallet() {
+  try {
+    if (!window.ethereum) { toast('MetaMask not detected', 'error'); return; }
+    const prov = new ethers.BrowserProvider(window.ethereum);
+    await prov.send('eth_requestAccounts', []);
+    const net = await prov.getNetwork();
+    if (Number(net.chainId) !== 137) {
+      toast('Switch MetaMask to Polygon Mainnet (chain 137)', 'error');
+      try {
+        await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x89'}]});
+      } catch(e) { /* user may reject */ }
+      return;
+    }
+    _nftSigner = await prov.getSigner();
+    const addr = await _nftSigner.getAddress();
+    const bal = await prov.getBalance(addr);
+    document.getElementById('nft-wallet-btn').textContent = '🟢 ' + addr.slice(0,6) + '…' + addr.slice(-4);
+    document.getElementById('nft-wallet-status').textContent = 'Connected';
+    document.getElementById('nft-wallet-status').style.color = 'var(--green)';
+    document.getElementById('nft-wallet-balance').textContent = parseFloat(ethers.formatEther(bal)).toFixed(3) + ' POL';
+    toast('Wallet connected: ' + addr.slice(0,8) + '…', 'success');
+    nftRefreshSupply();
+  } catch (e) { toast('Wallet error: ' + e.message, 'error'); }
+}
+
+async function nftMintUADEF() {
+  if (!_nftSigner) { toast('Connect MetaMask first', 'error'); return; }
+  const to = document.getElementById('nft-mint-to').value.trim();
+  if (!ethers.isAddress(to)) { toast('Invalid recipient address', 'error'); return; }
+  const heroName = document.getElementById('nft-mint-name').value.trim() || 'Unnamed Hero';
+  const rarity = document.getElementById('nft-mint-rarity').value;
+  const waveNum = parseInt(document.getElementById('nft-mint-wave').value) || 1;
+  const seed = Math.floor(Math.random() * 1e10);
+
+  const resultEl = document.getElementById('nft-mint-result');
+  resultEl.innerHTML = '<span style="color:var(--yellow)">⏳ Sending transaction…</span>';
+  document.getElementById('nft-mint-btn').disabled = true;
+  try {
+    const contract = new ethers.Contract(NFT_CONTRACTS.UADEF, UADEF_ABI, _nftSigner);
+    const tx = await contract.safeMintWithMeta(to, heroName, rarity, seed, waveNum);
+    resultEl.innerHTML = '<span style="color:var(--yellow)">⏳ Tx sent: <a href="https://polygonscan.com/tx/' + tx.hash + '" target="_blank">' + tx.hash.slice(0,14) + '…</a> — waiting for confirmation…</span>';
+    const receipt = await tx.wait();
+    resultEl.innerHTML = '<span style="color:var(--green)">✅ Minted! Tx: <a href="https://polygonscan.com/tx/' + receipt.hash + '" target="_blank">' + receipt.hash.slice(0,14) + '…</a> (block ' + receipt.blockNumber + ')</span>';
+    toast('NFT minted successfully!', 'success');
+    nftRefreshSupply();
+  } catch (e) {
+    resultEl.innerHTML = '<span style="color:var(--red)">❌ ' + esc(e.reason || e.message) + '</span>';
+  }
+  document.getElementById('nft-mint-btn').disabled = false;
+}
+
+async function nftCheckBalances() {
+  const addr = document.getElementById('nft-check-addr').value.trim();
+  if (!ethers.isAddress(addr)) { toast('Invalid address', 'error'); return; }
+  const resultEl = document.getElementById('nft-check-result');
+  resultEl.innerHTML = '<span style="color:var(--yellow)">⏳ Querying blockchain…</span>';
+  try {
+    const prov = getReadProvider();
+    const uadef = new ethers.Contract(NFT_CONTRACTS.UADEF, UADEF_ABI, prov);
+    const arc = new ethers.Contract(NFT_CONTRACTS.ARC, ARC_ABI, prov);
+    const [uadefBal, arcBal, polBal, decimals] = await Promise.all([
+      uadef.balanceOf(addr),
+      arc.balanceOf(addr),
+      prov.getBalance(addr),
+      arc.decimals()
+    ]);
+    resultEl.innerHTML =
+      '<div><strong>🇺🇦 UADEF NFTs:</strong> <span style="color:var(--cyan)">' + uadefBal.toString() + '</span></div>' +
+      '<div><strong>🪙 ARC Balance:</strong> <span style="color:var(--yellow)">' + parseFloat(ethers.formatUnits(arcBal, decimals)).toFixed(2) + ' ARC</span></div>' +
+      '<div><strong>💎 POL Balance:</strong> <span style="color:var(--green)">' + parseFloat(ethers.formatEther(polBal)).toFixed(4) + ' POL</span></div>' +
+      '<div style="margin-top:8px"><a href="https://polygonscan.com/address/' + addr + '" target="_blank" style="font-size:12px">View on PolygonScan ↗</a></div>';
+  } catch (e) {
+    resultEl.innerHTML = '<span style="color:var(--red)">❌ ' + esc(e.reason || e.message) + '</span>';
+  }
+}
+
+async function nftRefreshSupply() {
+  try {
+    const prov = getReadProvider();
+    const uadef = new ethers.Contract(NFT_CONTRACTS.UADEF, UADEF_ABI, prov);
+    const killnft = new ethers.Contract(NFT_CONTRACTS.KILLNFT, KILLNFT_ABI, prov);
+    const arc = new ethers.Contract(NFT_CONTRACTS.ARC, ARC_ABI, prov);
+    const [uadefSup, killMinted, arcSup, arcDec] = await Promise.all([
+      uadef.totalSupply().catch(() => '?'),
+      killnft.totalMinted().catch(() => '?'),
+      arc.totalSupply().catch(() => '?'),
+      arc.decimals().catch(() => 18)
+    ]);
+    document.getElementById('nft-uadef-supply').textContent = uadefSup.toString();
+    document.getElementById('nft-killnft-supply').textContent = killMinted.toString();
+    document.getElementById('nft-arc-supply').textContent = typeof arcSup === 'string' ? arcSup : parseFloat(ethers.formatUnits(arcSup, arcDec)).toLocaleString() + ' ARC';
+  } catch (e) { console.error('Supply refresh error:', e); }
+}
+
+// ── NFTs (DB table) ──────────────────────────────────────────
+async function loadNfts() {
+  nftRefreshSupply(); // also refresh on-chain data when page loads
+  const rows = await api('/admin/nfts');
+  if (!rows.length) { document.getElementById('nfts-table').innerHTML = '<p>No minted NFTs yet.</p>'; return; }
+  let h = '<table><tr><th>ID</th><th>Player</th><th>Token</th><th>Contract</th><th>Tier</th><th>Name</th><th>Minted</th></tr>';
+  rows.forEach(r => h += `<tr><td>${r.id}</td><td>${esc(r.username||'?')}</td><td>${esc(r.token_id)}</td><td style="font-size:.75em">${esc(r.contract)}</td><td>${esc(r.tier)}</td><td>${esc(r.name)}</td><td>${r.minted_at}</td></tr>`);
+  document.getElementById('nfts-table').innerHTML = h + '</table>';
+}
+
+// ── PvP ──────────────────────────────────────────────────────
+async function loadPvp() {
+  const rows = await api('/admin/pvp');
+  if (!rows.length) { document.getElementById('pvp-table').innerHTML = '<p>No PvP challenges yet.</p>'; return; }
+  let h = '<table><tr><th>ID</th><th>Challenger</th><th>Opponent</th><th>Wager</th><th>Status</th><th>Winner</th><th>Created</th></tr>';
+  rows.forEach(r => h += `<tr><td>${r.id}</td><td>${esc(r.challenger_name||'?')}</td><td>${esc(r.opponent_name||'?')}</td><td>${r.wager}</td><td>${r.status}</td><td>${esc(r.winner_name||'-')}</td><td>${r.created_at}</td></tr>`);
+  document.getElementById('pvp-table').innerHTML = h + '</table>';
+}
+
+// ── Revenue Analytics ──────────────────────────────────────────────
+async function loadRevenue() {
+  const data = await api('/admin/revenue');
+  if (!data) return;
+  const s = data.summary || {};
+  document.getElementById('revenue-stats').innerHTML = [
+    ['Total POL Revenue', (s.total_pol || 0).toFixed(2) + ' POL'],
+    ['Ukraine Donations (10%)', (s.total_donation || 0).toFixed(2) + ' POL'],
+    ['Total ARC Purchased', s.total_arc_purchased || 0],
+    ['Unique Buyers', s.unique_buyers || 0],
+    ['Total Transactions', s.total_txns || 0],
+    ['Avg Transaction', (s.avg_pol || 0).toFixed(3) + ' POL'],
+  ].map(([l,v]) => `<div class="stat-card"><div class="stat-val">${v}</div><div class="stat-lbl">${l}</div></div>`).join('');
+
+  const eco = data.economy || {};
+  document.getElementById('revenue-economy').innerHTML = [
+    ['Total ARC Earned (all players)', eco.total_earned || 0],
+    ['Total ARC Spent (sinks)', eco.total_spent || 0],
+    ['Net ARC Flow', (eco.total_earned||0) - (eco.total_spent||0)],
+    ['Active Stakers', eco.active_stakers || 0],
+    ['ARC Staked (locked)', eco.total_staked || 0],
+    ['Battle Passes Sold', eco.bp_sold || 0],
+  ].map(([l,v]) => `<div class="stat-card"><div class="stat-val">${v}</div><div class="stat-lbl">${l}</div></div>`).join('');
+
+  const rows = data.recent || [];
+  if (!rows.length) { document.getElementById('revenue-purchases').innerHTML = '<p>No purchases yet.</p>'; return; }
+  let h = '<table><tr><th>Date</th><th>Player</th><th>POL</th><th>ARC</th><th>Label</th><th>TX</th></tr>';
+  rows.forEach(r => h += `<tr><td>${r.created_at||''}</td><td>${esc(r.username||'?')}</td><td>${r.pol_amount}</td><td>${r.arc_amount}</td><td>${esc(r.label||'')}</td><td style="font-size:.7em">${esc((r.tx_hash||'').slice(0,16))}...</td></tr>`);
+  document.getElementById('revenue-purchases').innerHTML = h + '</table>';
+}
+
+// ── Streak Badges ────────────────────────────────────────────
+async function loadStreakBadges() {
+  const rows = await api('/admin/streak-badges');
+  if (!rows.length) { document.getElementById('streak-badges-table').innerHTML = '<p>No streak badges earned yet.</p>'; return; }
+  let h = '<table><tr><th>ID</th><th>Player</th><th>Badge</th><th>Earned</th></tr>';
+  rows.forEach(r => h += `<tr><td>${r.id}</td><td>${esc(r.username||'?')}</td><td>${r.badge_id}</td><td>${r.earned_at}</td></tr>`);
+  document.getElementById('streak-badges-table').innerHTML = h + '</table>';
+}
+
+// Close modal with ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePlayerModal();
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// ML & INTELLIGENCE — Admin Dashboard Functions
+// ══════════════════════════════════════════════════════════════════════
+
+function sevBadge(s) {
+  const colors = { critical: '#f85149', high: '#d29922', medium: '#58a6ff', low: '#8b949e' };
+  return '<span style="background:' + (colors[s]||'#8b949e') + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + (s||'?').toUpperCase() + '</span>';
+}
+
+function segBadge(s) {
+  const colors = { hardcore: '#f85149', spender: '#d29922', engaged: '#3fb950', casual: '#58a6ff', newbie: '#8b949e', unknown: '#484f58' };
+  return '<span style="background:' + (colors[s]||'#484f58') + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px">' + esc(s||'?') + '</span>';
+}
+
+function healthGauge(score) {
+  const color = score >= 70 ? '#3fb950' : score >= 40 ? '#d29922' : '#f85149';
+  const label = score >= 70 ? 'HEALTHY' : score >= 40 ? 'WARNING' : 'CRITICAL';
+  return '<div style="text-align:center"><div style="font-size:48px;font-weight:700;color:' + color + '">' + Math.round(score) + '</div>'
+    + '<div style="font-size:12px;color:' + color + ';font-weight:600">' + label + '</div>'
+    + '<div style="height:6px;background:var(--surface2);border-radius:3px;margin-top:8px"><div style="height:6px;border-radius:3px;background:' + color + ';width:' + Math.min(100, score) + '%"></div></div></div>';
+}
+
+function barChart(data, maxVal) {
+  if (!data.length) return '<div style="color:var(--text2)">No data</div>';
+  const max = maxVal || Math.max(...data.map(d => d.value));
+  return data.map(d => {
+    const pct = max > 0 ? (d.value / max * 100) : 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+      + '<div style="width:140px;font-size:12px;text-align:right;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(d.label) + '">' + esc(d.label) + '</div>'
+      + '<div style="flex:1;height:18px;background:var(--surface2);border-radius:3px;overflow:hidden"><div style="height:18px;background:var(--accent);border-radius:3px;width:' + pct.toFixed(1) + '%;min-width:1px"></div></div>'
+      + '<div style="width:60px;font-size:12px;color:var(--text)">' + d.value + (d.suffix || '') + '</div></div>';
+  }).join('');
+}
+
+// ── ML Dashboard ──────────────────────────────────────────────
+async function loadMlDashboard() {
+  try {
+    const d = await api('/admin/ml/dashboard');
+    document.getElementById('ml-overview-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Telemetry Events</div><div class="value cyan">${(d.telemetry.total||0).toLocaleString()}</div></div>
+      <div class="stat-card"><div class="label">Events (24h)</div><div class="value green">${d.telemetry.last_24h}</div></div>
+      <div class="stat-card"><div class="label">Unique Errors</div><div class="value red">${d.errors.unique}</div></div>
+      <div class="stat-card"><div class="label">Error Occurrences</div><div class="value">${d.errors.total_occurrences}</div></div>
+      <div class="stat-card"><div class="label">Open Anomalies</div><div class="value ${d.anomalies.critical > 0 ? 'red' : 'yellow'}">${d.anomalies.open} (${d.anomalies.critical} critical)</div></div>
+      <div class="stat-card"><div class="label">Economy Health</div><div class="value">${d.economy ? healthGauge(d.economy.health_score) : 'No data'}</div></div>
+    `;
+    // Last run
+    if (d.last_run) {
+      document.getElementById('ml-last-run').textContent = 'Last analysis: ' + (d.last_run.finished_at || d.last_run.started_at) + ' (' + d.last_run.duration_ms + 'ms, ' + d.last_run.anomalies_found + ' anomalies)';
+    }
+    // Anomalies table
+    if (d.anomalies.recent.length) {
+      let h = '<table><tr><th>Severity</th><th>Category</th><th>Title</th><th>Description</th><th>Time</th><th>Action</th></tr>';
+      for (const a of d.anomalies.recent) {
+        h += '<tr><td>' + sevBadge(a.severity) + '</td><td>' + esc(a.category) + '</td><td>' + esc(a.title) + '</td>'
+          + '<td style="max-width:300px;font-size:12px;color:var(--text2)">' + esc(a.description||'') + '</td>'
+          + '<td style="font-size:12px">' + (a.created_at||'').slice(0,16) + '</td>'
+          + '<td><button class="btn btn-sm btn-outline" onclick="mlResolveAnomaly('+a.id+')">Resolve</button></td></tr>';
+      }
+      document.getElementById('ml-anomalies-preview').innerHTML = h + '</table>';
+    } else {
+      document.getElementById('ml-anomalies-preview').innerHTML = '<p style="color:var(--text2)">No open anomalies — run analysis to detect issues.</p>';
+    }
+    // Segments
+    if (d.segments.length) {
+      document.getElementById('ml-segments-preview').innerHTML = d.segments.map(s =>
+        '<div class="stat-card"><div class="label">' + segBadge(s.segment) + '</div><div class="value">' + s.c + ' players</div></div>'
+      ).join('');
+    }
+  } catch (err) { document.getElementById('ml-overview-stats').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function mlRunAnalysis() {
+  const btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Running...'; }
+  try {
+    const r = await api('/admin/ml/analyze', { method: 'POST' });
+    toast('✅ Analysis complete: ' + r.recordsAnalyzed + ' records, ' + r.anomaliesFound + ' anomalies, ' + r.duration + 'ms');
+    const resEl = document.getElementById('ml-run-result');
+    if (resEl) resEl.innerHTML = '✅ ' + r.recordsAnalyzed + ' records analyzed, ' + r.anomaliesFound + ' anomalies found, ' + r.duration + 'ms — Health: ' + r.healthScore + '/100';
+    // Refresh current page
+    const activePage = document.querySelector('.page.active');
+    if (activePage) {
+      const id = activePage.id.replace('page-', '');
+      showPage(id);
+    }
+  } catch (err) { toast('Analysis failed: ' + err.message, 'error'); }
+  if (btn) { btn.disabled = false; btn.textContent = '▶️ Run Full Analysis'; }
+}
+
+async function mlResolveAnomaly(id) {
+  try {
+    await api('/admin/ml/anomalies/' + id + '/resolve', { method: 'POST' });
+    toast('Anomaly resolved');
+    const activePage = document.querySelector('.page.active');
+    if (activePage) showPage(activePage.id.replace('page-', ''));
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── ML Bug Detector ──────────────────────────────────────────
+async function loadMlErrors() {
+  try {
+    const d = await api('/admin/ml/errors');
+    document.getElementById('ml-error-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Unique Errors</div><div class="value red">${d.total_unique}</div></div>
+      <div class="stat-card"><div class="label">Total Occurrences</div><div class="value">${d.total_occurrences}</div></div>
+    `;
+    // ASCII bar chart for daily errors
+    if (d.by_day.length) {
+      const maxDay = Math.max(...d.by_day.map(r => r.total));
+      let chart = '';
+      for (const r of d.by_day.reverse()) {
+        const bars = maxDay > 0 ? Math.round((r.total / maxDay) * 40) : 0;
+        chart += r.day + ' │' + '█'.repeat(bars) + ' ' + r.total + '\n';
+      }
+      document.getElementById('ml-error-chart').textContent = chart;
+    } else {
+      document.getElementById('ml-error-chart').textContent = 'No error data yet.';
+    }
+    // Error table
+    let h = '<table><tr><th>ID</th><th>Error</th><th>Player</th><th>Count</th><th>First Seen</th><th>Last Seen</th><th>Action</th></tr>';
+    for (const e of d.errors) {
+      h += '<tr><td>' + e.id + '</td><td style="max-width:400px;font-size:12px;word-break:break-all">' + esc(e.error_msg) + '</td>'
+        + '<td>' + esc(e.username||'—') + '</td><td style="font-weight:600;color:var(--red)">' + e.count + '</td>'
+        + '<td style="font-size:12px">' + (e.first_seen||'').slice(0,16) + '</td>'
+        + '<td style="font-size:12px">' + (e.last_seen||'').slice(0,16) + '</td>'
+        + '<td><button class="btn btn-sm btn-danger" onclick="mlDeleteError(' + e.id + ')">🗑️</button></td></tr>';
+    }
+    document.getElementById('ml-errors-table').innerHTML = h + '</table>';
+  } catch (err) { document.getElementById('ml-error-stats').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function mlDeleteError(id) {
+  try {
+    await api('/admin/ml/errors/' + id, { method: 'DELETE' });
+    toast('Error entry deleted');
+    loadMlErrors();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── ML Economy Intel ──────────────────────────────────────────
+async function loadMlEconomy() {
+  try {
+    const d = await api('/admin/ml/economy');
+    const l = d.latest;
+    const trendIcon = d.trend === 'improving' ? '📈' : d.trend === 'declining' ? '📉' : '➡️';
+    document.getElementById('ml-econ-stats').innerHTML = l ? `
+      <div class="stat-card"><div class="label">Health Score</div><div class="value">${healthGauge(l.health_score)}</div></div>
+      <div class="stat-card"><div class="label">Trend</div><div class="value">${trendIcon} ${d.trend.toUpperCase()}</div></div>
+      <div class="stat-card"><div class="label">ARC Supply</div><div class="value yellow">${(l.total_arc||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Earned (24h)</div><div class="value green">+${(l.arc_earned_24h||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Spent (24h)</div><div class="value red">-${(l.arc_spent_24h||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Staked</div><div class="value cyan">${(l.arc_staked||0).toFixed(1)}</div></div>
+      <div class="stat-card"><div class="label">Inflation Rate</div><div class="value ${l.inflation_rate > 0.1 ? 'red' : ''}">${(l.inflation_rate*100).toFixed(2)}%</div></div>
+      <div class="stat-card"><div class="label">Velocity</div><div class="value">${(l.velocity||0).toFixed(4)}</div></div>
+      <div class="stat-card"><div class="label">Active Players (24h)</div><div class="value">${l.active_players}</div></div>
+      <div class="stat-card"><div class="label">Avg Session</div><div class="value">${Math.round(l.avg_session_s||0)}s</div></div>
+    ` : '<div class="loading">No economy data — run analysis first.</div>';
+
+    // Health score chart
+    if (d.snapshots.length > 1) {
+      const maxScore = 100;
+      let chart = '';
+      for (const s of [...d.snapshots].reverse().slice(-20)) {
+        const bars = Math.round((s.health_score / maxScore) * 40);
+        const color = s.health_score >= 70 ? '🟢' : s.health_score >= 40 ? '🟡' : '🔴';
+        chart += (s.snapshot_at||'').slice(5,16) + ' │' + '█'.repeat(bars) + ' ' + Math.round(s.health_score) + ' ' + color + '\n';
+      }
+      document.getElementById('ml-econ-chart').textContent = chart;
+    } else {
+      document.getElementById('ml-econ-chart').textContent = 'Need more snapshots for trend chart. Run analysis multiple times.';
+    }
+
+    // Sources
+    let sh = '<table><tr><th>Source</th><th>ARC</th><th>Txns</th></tr>';
+    for (const s of d.earn_sources) sh += '<tr><td>' + esc(s.reason||'Unknown') + '</td><td style="color:var(--green)">+' + (s.total||0).toFixed(1) + '</td><td>' + s.txns + '</td></tr>';
+    document.getElementById('ml-econ-sources').innerHTML = sh + '</table>';
+
+    // Sinks
+    let kh = '<table><tr><th>Sink</th><th>ARC</th><th>Txns</th></tr>';
+    for (const s of d.spend_sinks) kh += '<tr><td>' + esc(s.reason||'Unknown') + '</td><td style="color:var(--red)">-' + (s.total||0).toFixed(1) + '</td><td>' + s.txns + '</td></tr>';
+    document.getElementById('ml-econ-sinks').innerHTML = kh + '</table>';
+  } catch (err) { document.getElementById('ml-econ-stats').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── ML Player Segments ────────────────────────────────────────
+async function loadMlSegments() {
+  try {
+    const d = await api('/admin/ml/segments');
+    if (d.segments.length) {
+      document.getElementById('ml-seg-cards').innerHTML = d.segments.map(s => `
+        <div class="stat-card">
+          <div class="label">${segBadge(s.segment)}</div>
+          <div class="value">${s.count} players</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">
+            Eng: ${(s.avg_engagement||0).toFixed(0)} | Churn: ${(s.avg_churn||0).toFixed(0)}% | Kills: ${Math.round(s.avg_kills||0)} | Wave: ${(s.avg_wave||0).toFixed(1)}
+          </div>
+        </div>`).join('');
+    } else {
+      document.getElementById('ml-seg-cards').innerHTML = '<div class="loading">No segmentation data — run analysis first.</div>';
+    }
+
+    // Top engaged
+    let eh = '<table><tr><th>Player</th><th>Segment</th><th>Engagement</th><th>Kills</th><th>Wave</th><th>Churn Risk</th></tr>';
+    for (const p of d.top_engaged) {
+      eh += '<tr><td>' + esc(p.username) + '</td><td>' + segBadge(p.segment) + '</td>'
+        + '<td style="font-weight:600;color:var(--green)">' + (p.engagement_score||0).toFixed(0) + '</td>'
+        + '<td>' + (p.total_kills||0) + '</td><td>' + (p.max_wave||0) + '</td>'
+        + '<td>' + (p.churn_risk||0).toFixed(0) + '%</td></tr>';
+    }
+    document.getElementById('ml-seg-engaged').innerHTML = eh + '</table>';
+
+    // Churning
+    let ch = '<table><tr><th>Player</th><th>Segment</th><th>Churn Risk</th><th>Engagement</th><th>Kills</th><th>ARC</th></tr>';
+    for (const p of d.churning) {
+      ch += '<tr><td>' + esc(p.username) + '</td><td>' + segBadge(p.segment) + '</td>'
+        + '<td style="font-weight:600;color:var(--red)">' + (p.churn_risk||0).toFixed(0) + '%</td>'
+        + '<td>' + (p.engagement_score||0).toFixed(0) + '</td>'
+        + '<td>' + (p.total_kills||0) + '</td><td>' + (p.arcoins||0).toFixed(1) + '</td></tr>';
+    }
+    document.getElementById('ml-seg-churning').innerHTML = ch + '</table>';
+  } catch (err) { document.getElementById('ml-seg-cards').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── ML Cheat Detection ────────────────────────────────────────
+async function loadMlCheats() {
+  try {
+    const d = await api('/admin/ml/cheat-detection');
+    let sh = '<table><tr><th>Player</th><th>Cheat Score</th><th>Kills</th><th>Wave</th><th>Accuracy</th><th>ARC</th><th>Banned</th><th>Action</th></tr>';
+    for (const p of d.suspects) {
+      const acc = (p.shots_fired > 0) ? ((p.shots_hit / p.shots_fired) * 100).toFixed(1) + '%' : 'N/A';
+      const scoreColor = p.cheat_score >= 70 ? 'red' : p.cheat_score >= 40 ? 'yellow' : '';
+      sh += '<tr><td><a href="#" onclick="openPlayerDetail('+p.player_id+');return false">' + esc(p.username) + '</a></td>'
+        + '<td style="font-weight:700" class="' + scoreColor + '">' + (p.cheat_score||0).toFixed(0) + '/100</td>'
+        + '<td>' + (p.total_kills||0) + '</td><td>' + (p.max_wave||0) + '</td>'
+        + '<td>' + acc + '</td><td>' + (p.arcoins||0).toFixed(1) + '</td>'
+        + '<td>' + (p.is_banned ? '<span class="badge banned">Yes</span>' : '—') + '</td>'
+        + '<td>' + (!p.is_banned ? '<button class="btn btn-danger btn-sm" onclick="banPlayer('+p.player_id+',true)">Ban</button>' : '') + '</td></tr>';
+    }
+    document.getElementById('ml-cheat-suspects').innerHTML = sh + '</table>';
+
+    // Anomalies
+    let ah = '<table><tr><th>Severity</th><th>Player</th><th>Title</th><th>Z-Score</th><th>Value</th><th>Expected</th><th>Time</th><th>Action</th></tr>';
+    for (const a of d.anomalies) {
+      ah += '<tr><td>' + sevBadge(a.severity) + '</td><td>' + esc(a.username||'—') + '</td>'
+        + '<td>' + esc(a.title) + '</td>'
+        + '<td style="font-weight:600">' + (a.z_score||0).toFixed(2) + '</td>'
+        + '<td>' + (a.metric_value||0).toFixed(2) + '</td>'
+        + '<td>' + (a.expected_value||0).toFixed(2) + '</td>'
+        + '<td style="font-size:12px">' + (a.created_at||'').slice(0,16) + '</td>'
+        + '<td><button class="btn btn-sm btn-outline" onclick="mlResolveAnomaly('+a.id+')">✅</button></td></tr>';
+    }
+    document.getElementById('ml-cheat-anomalies').innerHTML = ah + '</table>';
+  } catch (err) { document.getElementById('ml-cheat-suspects').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── ML Game Balance ───────────────────────────────────────────
+async function loadMlBalance() {
+  try {
+    const d = await api('/admin/ml/balance');
+    document.getElementById('ml-balance-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Total Players</div><div class="value cyan">${d.total_players}</div></div>
+      <div class="stat-card"><div class="label">Weapons Tracked</div><div class="value">${d.weapons.length}</div></div>
+      <div class="stat-card"><div class="label">Skills Tracked</div><div class="value">${d.skills.length}</div></div>
+      <div class="stat-card"><div class="label">Death Causes</div><div class="value">${d.death_causes.length}</div></div>
+    `;
+
+    // Weapon bars
+    document.getElementById('ml-weapon-bars').innerHTML = barChart(
+      d.weapons.map(w => ({ label: w.weapon_id, value: w.count, suffix: ' (' + w.usage_pct + '%)' }))
+    );
+
+    // Wave distribution
+    let wh = '<table><tr><th>Wave</th><th>Players</th></tr>';
+    for (const w of d.wave_distribution) wh += '<tr><td>Wave ' + w.wave + '</td><td>' + w.players + '</td></tr>';
+    document.getElementById('ml-wave-dist').innerHTML = wh + '</table>';
+
+    // Death causes
+    let dh = '<table><tr><th>Cause</th><th>Count</th></tr>';
+    for (const c of d.death_causes) dh += '<tr><td>' + esc(c.death_cause) + '</td><td>' + c.count + '</td></tr>';
+    document.getElementById('ml-death-causes').innerHTML = dh + '</table>';
+
+    // Skill usage
+    let skh = '<table><tr><th>Skill</th><th>Players</th></tr>';
+    for (const s of d.skills) skh += '<tr><td>' + esc(s.skill_id) + '</td><td>' + s.count + '</td></tr>';
+    document.getElementById('ml-skill-usage').innerHTML = skh + '</table>';
+  } catch (err) { document.getElementById('ml-balance-stats').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── ML Telemetry Explorer ─────────────────────────────────────
+async function loadMlTelemetry() {
+  try {
+    const typeFilter = document.getElementById('ml-telem-type').value;
+    const playerFilter = document.getElementById('ml-telem-player').value;
+    const params = new URLSearchParams({ limit: 100 });
+    if (typeFilter) params.set('type', typeFilter);
+    if (playerFilter) params.set('player_id', playerFilter);
+    const d = await api('/admin/ml/telemetry?' + params);
+
+    // Populate event type filter
+    const sel = document.getElementById('ml-telem-type');
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="">All Events</option>';
+    for (const t of d.event_types) {
+      sel.innerHTML += '<option value="' + esc(t.event_type) + '"' + (curVal === t.event_type ? ' selected' : '') + '>' + esc(t.event_type) + ' (' + t.c + ')</option>';
+    }
+
+    document.getElementById('ml-telem-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Event Types</div><div class="value cyan">${d.event_types.length}</div></div>
+      <div class="stat-card"><div class="label">Events Shown</div><div class="value">${d.events.length}</div></div>
+    `;
+
+    let h = '<table><tr><th>ID</th><th>Type</th><th>Player</th><th>Session</th><th>Data</th><th>Time</th></tr>';
+    for (const e of d.events) {
+      h += '<tr><td>' + e.id + '</td><td style="color:var(--accent)">' + esc(e.event_type) + '</td>'
+        + '<td>' + esc(e.username||'anon') + '</td>'
+        + '<td style="font-size:11px">' + esc((e.session_id||'').slice(0,8)) + '</td>'
+        + '<td style="max-width:300px;font-size:11px;word-break:break-all;color:var(--text2)">' + esc((e.event_data||'').slice(0,200)) + '</td>'
+        + '<td style="font-size:12px">' + (e.created_at||'').slice(0,19) + '</td></tr>';
+    }
+    document.getElementById('ml-telem-table').innerHTML = h + '</table>';
+  } catch (err) { document.getElementById('ml-telem-stats').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+// ── ML Control Panel ──────────────────────────────────────────
+async function loadMlControl() {
+  try {
+    const runs = await api('/admin/ml/training-runs');
+    let h = '<table><tr><th>ID</th><th>Model</th><th>Status</th><th>Records</th><th>Anomalies</th><th>Duration</th><th>Started</th><th>Finished</th></tr>';
+    for (const r of runs) {
+      const statusBadge = r.status === 'completed' ? '<span class="badge active">Done</span>' : '<span class="badge banned">' + esc(r.status) + '</span>';
+      h += '<tr><td>' + r.id + '</td><td>' + esc(r.model_name) + '</td><td>' + statusBadge + '</td>'
+        + '<td>' + (r.records_in||0) + '</td><td>' + (r.anomalies_found||0) + '</td>'
+        + '<td>' + (r.duration_ms||0) + 'ms</td>'
+        + '<td style="font-size:12px">' + (r.started_at||'').slice(0,19) + '</td>'
+        + '<td style="font-size:12px">' + (r.finished_at||'').slice(0,19) + '</td></tr>';
+    }
+    document.getElementById('ml-training-table').innerHTML = h + '</table>';
+  } catch (err) { document.getElementById('ml-training-table').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function mlPurgeTelemetry() {
+  const days = parseInt(document.getElementById('ml-purge-days').value) || 7;
+  if (!confirm('Purge telemetry older than ' + days + ' days?')) return;
+  try {
+    const r = await api('/admin/ml/purge', { method: 'POST', body: JSON.stringify({ days }) });
+    toast('Purged ' + (r.deleted||0) + ' telemetry records');
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// AI ROBOT — PROMPT-GUIDED GAME TUNING
+// ══════════════════════════════════════════════════════════════════════
+async function loadAiRobot() {
+  try {
+    const rows = await api('/admin/ai-prompt/history');
+    let h = '<table><tr><th>Time</th><th>Admin</th><th>Prompt</th><th>Intent</th><th>Changes</th><th>Status</th></tr>';
+    for (const r of rows) {
+      const ch = r.changes ? JSON.parse(r.changes) : [];
+      const statusBadge = r.status === 'applied' ? '<span class="badge active">' + r.status + '</span>'
+        : r.status === 'failed' ? '<span class="badge banned">' + r.status + '</span>'
+        : '<span class="badge">' + r.status + '</span>';
+      h += '<tr><td style="white-space:nowrap">' + (r.created_at||'').slice(0,16) + '</td><td>' + esc(r.admin_name||'?') + '</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">' + esc(r.prompt) + '</td><td>' + esc(r.intent||'-') + '</td><td>' + ch.length + '</td><td>' + statusBadge + '</td></tr>';
+    }
+    document.getElementById('ai-history-table').innerHTML = h + '</table>';
+  } catch (err) { document.getElementById('ai-history-table').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function aiSendPrompt() {
+  const input = document.getElementById('ai-prompt-input');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  const resultEl = document.getElementById('ai-prompt-result');
+  resultEl.innerHTML = '<span style="color:var(--yellow)">🤖 Processing...</span>';
+  try {
+    const r = await api('/admin/ai-prompt', { method: 'POST', body: JSON.stringify({ prompt }) });
+    if (r.ok && r.changesCount > 0) {
+      let html = '<div style="color:var(--green);font-weight:600;margin-bottom:8px">✅ ' + r.changesCount + ' config values changed — Intent: ' + esc(r.intent) + '</div>';
+      html += '<table style="width:100%;font-size:12px;border-collapse:collapse"><tr style="color:var(--text2)"><th style="text-align:left;padding:4px 8px">Category</th><th style="text-align:left;padding:4px 8px">Key</th><th style="text-align:right;padding:4px 8px">Old</th><th style="text-align:right;padding:4px 8px">New</th></tr>';
+      for (const c of r.changes) {
+        const color = c.new > c.old ? 'var(--green)' : 'var(--red)';
+        html += '<tr><td style="padding:4px 8px">' + esc(c.category) + '</td><td style="padding:4px 8px">' + esc(c.label||c.key) + '</td><td style="padding:4px 8px;text-align:right">' + c.old + '</td><td style="padding:4px 8px;text-align:right;color:' + color + ';font-weight:600">' + c.new + '</td></tr>';
+      }
+      html += '</table>';
+      resultEl.innerHTML = html;
+      toast(r.changesCount + ' game config values updated by AI');
+    } else if (r.ok && r.changesCount === 0) {
+      resultEl.innerHTML = '<span style="color:var(--yellow)">⚠️ Understood intent (' + esc(r.intent) + ') but no values needed changing.</span>';
+    } else {
+      let html = '<span style="color:var(--red)">❌ ' + esc(r.error||'Unknown error') + '</span>';
+      if (r.suggestions) html += '<div style="margin-top:8px;color:var(--text2)">Try: ' + r.suggestions.map(s => '<code style="background:var(--surface2);padding:2px 6px;border-radius:3px;margin:0 4px">' + esc(s) + '</code>').join('') + '</div>';
+      resultEl.innerHTML = html;
+    }
+    input.value = '';
+    loadAiRobot(); // refresh history
+  } catch (err) {
+    resultEl.innerHTML = '<span style="color:var(--red)">Error: ' + esc(err.message) + '</span>';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ASSET MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════
+async function loadAssetMgmt() {
+  // Load display settings
+  try {
+    const ds = await api('/admin/display-settings');
+    document.getElementById('ds-canvas-width').value = ds.canvas_width || 1024;
+    document.getElementById('ds-canvas-height').value = ds.canvas_height || 550;
+    document.getElementById('ds-scale-mode').value = ds.canvas_scale_mode || 'fit';
+    document.getElementById('ds-breakpoint').value = ds.responsive_breakpoint || 700;
+    document.getElementById('ds-preview-size').textContent = (ds.canvas_width||1024) + '×' + (ds.canvas_height||550);
+  } catch(e) {}
+  // Load asset categories
+  try {
+    const cats = await api('/admin/assets/list');
+    let html = '';
+    for (const cat of cats) {
+      html += '<div class="stat-card" style="cursor:pointer" onclick="showAssetFiles(\'' + esc(cat.id) + '\',\'' + esc(cat.path) + '\')">'
+        + '<div class="label">' + esc(cat.label) + '</div>'
+        + '<div class="value cyan">' + cat.count + ' files</div>'
+        + '<div style="font-size:11px;color:var(--text2);margin-top:4px">' + esc(cat.path) + '</div>'
+        + '</div>';
+    }
+    document.getElementById('asset-categories').innerHTML = html;
+  } catch(e) { document.getElementById('asset-categories').innerHTML = '<div class="loading">Error loading assets</div>'; }
+  // Build per-level background upload slots + tank raster state
+  buildBgSlots();
+  loadTankRasterState();
+}
+
+function showAssetFiles(catId, catPath) {
+  // Show file list for category (uses previously loaded data)
+  const el = document.getElementById('asset-file-list');
+  el.innerHTML = '<div class="loading">Loading ' + esc(catId) + ' assets...</div>';
+  api('/admin/assets/list').then(cats => {
+    const cat = cats.find(c => c.id === catId);
+    if (!cat || !cat.files.length) { el.innerHTML = '<p style="color:var(--text2)">No files in ' + esc(catPath) + '</p>'; return; }
+    let html = '<h3>' + esc(cat.label) + ' (' + cat.count + ' files)</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">';
+    for (const f of cat.files) {
+      html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center">'
+        + '<div style="height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:6px">'
+        + '<img src="' + esc(cat.path + '/' + f) + '" style="max-width:100%;max-height:80px;image-rendering:pixelated" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><text x=%2210%22 y=%2228%22 font-size=%2224%22>🖼️</text></svg>\'">'
+        + '</div><div style="font-size:11px;color:var(--text2);word-break:break-all">' + esc(f) + '</div></div>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  }).catch(() => { el.innerHTML = '<div class="loading">Error</div>'; });
+}
+
+async function saveDisplaySettings() {
+  try {
+    const body = {
+      canvas_width: document.getElementById('ds-canvas-width').value,
+      canvas_height: document.getElementById('ds-canvas-height').value,
+      canvas_scale_mode: document.getElementById('ds-scale-mode').value,
+      responsive_breakpoint: document.getElementById('ds-breakpoint').value,
+    };
+    await api('/admin/display-settings', { method: 'POST', body: JSON.stringify(body) });
+    toast('Display settings saved');
+    document.getElementById('ds-preview-size').textContent = body.canvas_width + '×' + body.canvas_height;
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ── Background upload slots builder ───────────────────────────────────
+// Tracks which wave slots are shown (starts with 1-4, expandable)
+var _bgSlotWaves = [1, 2, 3, 4];
+
+function buildBgSlots() {
+  const container = document.getElementById('bg-upload-slots');
+  if (!container) return;
+  let html = '';
+  for (const lvl of _bgSlotWaves) {
+    html += _buildOneBgSlot(lvl);
+  }
+  container.innerHTML = html;
+}
+
+function _buildOneBgSlot(lvl) {
+  return '<div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--border);text-align:center">'
+    + '<div style="font-weight:bold;margin-bottom:8px">Wave ' + lvl + '</div>'
+    + '<div style="height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;border:1px solid var(--border);border-radius:4px;background:var(--bg)">'
+    + '<img id="bg-preview-' + lvl + '" src="images/background/bg-' + lvl + '.png?t=' + Date.now() + '" style="max-width:100%;max-height:80px;object-fit:contain" onerror="this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'<span style=color:var(--text2);font-size:11px>No image — procedural bg</span>\')">'
+    + '</div>'
+    + '<input type="file" id="bg-file-' + lvl + '" accept="image/*" style="font-size:11px;margin-bottom:6px;max-width:100%">'
+    + '<button class="btn btn-primary btn-sm" onclick="uploadBgForWave(' + lvl + ')">⬆️ Upload</button>'
+    + '<button class="btn btn-sm" style="margin-left:4px;font-size:11px" onclick="deleteBgForWave(' + lvl + ')" title="Remove raster — revert to procedural">🗑️</button>'
+    + '</div>';
+}
+
+function addBgSlot() {
+  const inp = document.getElementById('bg-add-wave');
+  const w = parseInt(inp.value, 10);
+  if (!w || w < 1) { toast('Enter a valid wave number', 'error'); return; }
+  if (_bgSlotWaves.includes(w)) { toast('Wave ' + w + ' slot already exists', 'error'); return; }
+  _bgSlotWaves.push(w);
+  _bgSlotWaves.sort(function(a,b){ return a - b; });
+  buildBgSlots();
+  inp.value = w + 1;
+  toast('Added upload slot for wave ' + w);
+}
+
+function uploadBgForWave(lvl) {
+  uploadAsset('background', 'bg-' + lvl + '.png', 'bg-file-' + lvl, 'bg-preview-' + lvl);
+  // Invalidate game-side cache so it picks up the new bg without reload
+  try { if (window.opener && window.opener._bgInvalidate) window.opener._bgInvalidate(lvl); } catch(e){}
+}
+
+async function deleteBgForWave(lvl) {
+  if (!confirm('Remove background for wave ' + lvl + '? The game will use procedural generation for this wave.')) return;
+  try {
+    const resp = await fetch(API_BASE + '/admin/assets/delete', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('admin_token'), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: 'background', filename: 'bg-' + lvl + '.png' })
+    });
+    if (!resp.ok) { const d = await resp.json(); throw new Error(d.error || 'Delete failed'); }
+    toast('Removed bg-' + lvl + '.png — wave ' + lvl + ' will now use procedural background');
+    try { if (window.opener && window.opener._bgInvalidate) window.opener._bgInvalidate(lvl); } catch(e){}
+    buildBgSlots();
+  } catch (err) { toast('Delete error: ' + err.message, 'error'); }
+}
+
+// ── Generic asset upload ──────────────────────────────────────────────
+async function uploadAsset(category, targetName, fileInputId, previewId) {
+  const inp = document.getElementById(fileInputId);
+  if (!inp || !inp.files || !inp.files[0]) { toast('Select a file first', 'error'); return; }
+  const file = inp.files[0];
+  if (file.size > 10 * 1024 * 1024) { toast('File too large (max 10MB)', 'error'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('category', category);
+  fd.append('targetName', targetName);
+  try {
+    const resp = await fetch(API_BASE + '/admin/assets/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') },
+      body: fd
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Upload failed');
+    toast('Uploaded ' + data.filename + ' (' + (data.size/1024).toFixed(1) + ' KB)');
+    // Refresh preview with cache-bust
+    const preview = document.getElementById(previewId);
+    if (preview && preview.tagName === 'IMG') {
+      preview.src = (category === 'background' ? 'images/background/' : 'images/vehicles/') + targetName + '?t=' + Date.now();
+    }
+    // Refresh asset category list
+    loadAssetMgmt();
+  } catch (err) { toast('Upload error: ' + err.message, 'error'); }
+}
+
+// ── Tank raster override toggle ───────────────────────────────────────
+async function toggleTankRaster(enabled) {
+  try {
+    await api('/admin/tank-raster', { method: 'POST', body: JSON.stringify({ enabled }) });
+    toast(enabled ? 'Tank raster override ENABLED — game will use uploaded image' : 'Tank raster override DISABLED — game uses SVG');
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function loadTankRasterState() {
+  try {
+    const d = await api('/admin/tank-raster');
+    const cb = document.getElementById('tank-raster-toggle');
+    if (cb) cb.checked = !!d.enabled;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PLAYER ASSETS
+// ══════════════════════════════════════════════════════════════════════
+async function loadPlayerAssets() {
+  const pid = parseInt(document.getElementById('pa-player-id').value);
+  if (!pid) { toast('Enter a Player ID', 'error'); return; }
+  try {
+    const d = await api('/admin/player/' + pid + '/assets');
+    document.getElementById('pa-overview').style.display = 'block';
+
+    // Stats overview
+    document.getElementById('pa-stats').innerHTML = `
+      <div class="stat-card"><div class="label">Player</div><div class="value cyan">${esc(d.player.username)}</div><div style="font-size:11px;color:var(--text2)">ID: ${d.player.id} | Created: ${(d.player.created_at||'').slice(0,10)}</div></div>
+      <div class="stat-card"><div class="label">ARC Balance</div><div class="value yellow">${(d.stats?.arcoins||0).toFixed(2)} 🪙</div></div>
+      <div class="stat-card"><div class="label">Credits</div><div class="value green">₴${d.stats?.credits||0}</div></div>
+      <div class="stat-card"><div class="label">Total Earned</div><div class="value">${(d.stats?.total_earned||0).toFixed(2)} ARC</div></div>
+      <div class="stat-card"><div class="label">Wallet</div><div class="value" style="font-size:12px;word-break:break-all">${d.player.wallet_address||'Not connected'}</div></div>
+      <div class="stat-card"><div class="label">Prestige</div><div class="value cyan">Lv ${d.stats?.prestige_level||0}</div></div>
+    `;
+
+    // Weapons
+    let wh = '<table><tr><th>Weapon</th><th>Unlocked</th></tr>';
+    for (const w of d.weapons) wh += '<tr><td>' + esc(w.weapon_id) + '</td><td>' + (w.unlocked_at||'').slice(0,16) + '</td></tr>';
+    document.getElementById('pa-weapons').innerHTML = wh + '</table>';
+
+    // Cosmetics
+    let ch = '<table><tr><th>Type</th><th>Item</th><th>Equipped</th></tr>';
+    for (const c of d.cosmetics) ch += '<tr><td>' + esc(c.item_type) + '</td><td>' + esc(c.item_id) + '</td><td>' + (c.equipped ? '✅' : '') + '</td></tr>';
+    document.getElementById('pa-cosmetics').innerHTML = ch + '</table>';
+
+    // Skills
+    let sh = '<table><tr><th>Skill</th><th>Level</th></tr>';
+    for (const s of d.skills) sh += '<tr><td>' + esc(s.skill_id) + '</td><td>' + s.level + '</td></tr>';
+    document.getElementById('pa-skills').innerHTML = sh + '</table>';
+
+    // Achievements
+    let ah = '<table><tr><th>Achievement</th><th>Earned</th></tr>';
+    for (const a of d.achievements) ah += '<tr><td>' + esc(a.achievement_id) + '</td><td>' + (a.earned_at||'').slice(0,16) + '</td></tr>';
+    document.getElementById('pa-achievements').innerHTML = ah + '</table>';
+
+    // Stakes
+    let sth = '<table><tr><th>Amount</th><th>APY</th><th>Locked</th><th>Unlocks</th><th>Claimed</th></tr>';
+    for (const s of d.stakes) sth += '<tr><td>' + s.amount + '</td><td>' + s.apy + '%</td><td>' + (s.locked_at||'').slice(0,10) + '</td><td>' + (s.unlock_at||'').slice(0,10) + '</td><td>' + (s.claimed ? '✅' : '') + '</td></tr>';
+    document.getElementById('pa-stakes').innerHTML = sth + '</table>';
+
+    // ARC Ledger
+    let lh = '<table><tr><th>Amount</th><th>Reason</th><th>Date</th></tr>';
+    for (const l of d.arcLedger) {
+      const color = l.amount >= 0 ? 'var(--green)' : 'var(--red)';
+      lh += '<tr><td style="color:' + color + '">' + (l.amount>=0?'+':'') + l.amount.toFixed(2) + '</td><td>' + esc(l.reason||'') + '</td><td>' + (l.created_at||'').slice(0,16) + '</td></tr>';
+    }
+    document.getElementById('pa-ledger').innerHTML = lh + '</table>';
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+    document.getElementById('pa-overview').style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// WIRE MONEY
+// ══════════════════════════════════════════════════════════════════════
+async function wireMoneyToPlayer() {
+  const pid = parseInt(document.getElementById('wm-player-id').value);
+  const amount = parseFloat(document.getElementById('wm-amount').value);
+  const currency = document.getElementById('wm-currency').value;
+  const reason = document.getElementById('wm-reason').value;
+  if (!pid) { toast('Enter Player ID', 'error'); return; }
+  if (isNaN(amount) || amount === 0) { toast('Enter a valid amount', 'error'); return; }
+  if (!confirm('Wire ' + amount + ' ' + currency.toUpperCase() + ' to player #' + pid + '?')) return;
+  try {
+    await api('/admin/wire-money', { method: 'POST', body: JSON.stringify({ player_id: pid, amount, currency, reason }) });
+    const el = document.getElementById('wm-result');
+    el.innerHTML = '<span style="color:var(--green)">✅ Sent ' + amount + ' ' + currency.toUpperCase() + ' to player #' + pid + '</span>';
+    toast('Money wired successfully');
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// BROADCASTS
+// ══════════════════════════════════════════════════════════════════════
+async function loadBroadcasts() {
+  try {
+    const rows = await api('/admin/broadcasts');
+    let h = '<table><tr><th>Status</th><th>Type</th><th>Message</th><th>Admin</th><th>Created</th><th>Expires</th><th>Action</th></tr>';
+    for (const r of rows) {
+      const typeBadge = r.type === 'urgent' ? '<span class="badge banned">URGENT</span>'
+        : r.type === 'warning' ? '<span style="padding:2px 8px;border-radius:10px;font-size:11px;background:rgba(210,153,34,.15);color:var(--yellow)">WARNING</span>'
+        : r.type === 'success' ? '<span class="badge active">SUCCESS</span>'
+        : '<span class="badge admin">INFO</span>';
+      const statusDot = r.active ? '🟢' : '🔴';
+      h += '<tr><td>' + statusDot + '</td><td>' + typeBadge + '</td><td style="max-width:300px">' + esc(r.message) + '</td><td>' + esc(r.admin_name||'?') + '</td><td>' + (r.created_at||'').slice(0,16) + '</td><td>' + (r.expires_at||'Never').slice(0,16) + '</td><td><button class="btn btn-outline btn-sm" onclick="toggleBroadcast(' + r.id + ')">' + (r.active ? 'Disable' : 'Enable') + '</button></td></tr>';
+    }
+    document.getElementById('bc-table').innerHTML = h + '</table>';
+  } catch (err) { document.getElementById('bc-table').innerHTML = '<div class="loading">Error: ' + esc(err.message) + '</div>'; }
+}
+
+async function sendBroadcast() {
+  const message = document.getElementById('bc-message').value.trim();
+  if (!message) { toast('Enter a message', 'error'); return; }
+  const type = document.getElementById('bc-type').value;
+  const expiresHours = document.getElementById('bc-expires').value;
+  try {
+    await api('/admin/broadcast', { method: 'POST', body: JSON.stringify({ message, type, expires_hours: expiresHours || null }) });
+    toast('Broadcast sent');
+    document.getElementById('bc-message').value = '';
+    loadBroadcasts();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function toggleBroadcast(id) {
+  try {
+    await api('/admin/broadcast/' + id + '/toggle', { method: 'POST' });
+    toast('Broadcast toggled');
+    loadBroadcasts();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ML AUTO-REGULATION
+// ══════════════════════════════════════════════════════════════════════
+async function loadAutoRegulate() {
+  try {
+    const data = await api('/admin/ml/auto-regulate');
+    // Toggle button
+    const btn = document.getElementById('ml-ar-toggle');
+    btn.textContent = data.enabled ? '🟢 Enabled — Click to Disable' : '🔴 Disabled — Click to Enable';
+    btn.className = data.enabled ? 'btn btn-primary' : 'btn btn-danger';
+    document.getElementById('ml-ar-status').textContent = data.enabled ? 'ML auto-regulation is active' : 'Auto-regulation is paused';
+    document.getElementById('ml-ar-last-run').textContent = data.lastRun ? 'Last run: ' + data.lastRun.slice(0,19).replace('T',' ') : 'Never run';
+
+    // Show last analysis insights
+    if (data.lastChanges && data.lastChanges.insights) {
+      let ih = '';
+      for (const i of data.lastChanges.insights) {
+        ih += '<div class="stat-card"><div class="label">' + esc(i.label) + '</div><div class="value">' + i.value + '</div></div>';
+      }
+      document.getElementById('ml-ar-insights').innerHTML = ih;
+    } else {
+      document.getElementById('ml-ar-insights').innerHTML = '<div class="loading">No analysis data yet. Click "Run Analysis Now".</div>';
+    }
+
+    // Show decision
+    if (data.lastChanges && data.lastChanges.decision) {
+      const dec = document.getElementById('ml-ar-decision');
+      dec.style.display = 'block';
+      const colors = { harder:'var(--red)', easier:'var(--green)', deflate_rewards:'var(--yellow)', inflate_rewards:'var(--cyan)', balanced:'var(--green)', insufficient_data:'var(--text2)', disabled:'var(--text2)' };
+      document.getElementById('ml-ar-decision-text').innerHTML = '<span style="color:' + (colors[data.lastChanges.decision]||'var(--text)') + ';font-weight:bold">' + data.lastChanges.decision.toUpperCase().replace(/_/g,' ') + '</span><br><span style="font-size:12px;color:var(--text2)">' + esc(data.lastChanges.reason || '') + '</span>';
+    }
+
+    // Show applied changes
+    if (data.lastChanges && data.lastChanges.changes && data.lastChanges.changes.length) {
+      let ch = '<table><tr><th>Category</th><th>Key</th><th>Old</th><th>New</th><th>Delta</th></tr>';
+      for (const c of data.lastChanges.changes) {
+        const delta = c.new - c.old;
+        const color = delta > 0 ? 'var(--green)' : 'var(--red)';
+        ch += '<tr><td>' + esc(c.category) + '</td><td>' + esc(c.key) + '</td><td>' + c.old + '</td><td style="color:' + color + ';font-weight:bold">' + c.new + '</td><td style="color:' + color + '">' + (delta > 0 ? '+' : '') + delta.toFixed(2) + '</td></tr>';
+      }
+      document.getElementById('ml-ar-changes').innerHTML = ch + '</table>';
+    } else {
+      document.getElementById('ml-ar-changes').innerHTML = '<div class="loading">No changes applied yet.</div>';
+    }
+
+    // History
+    if (data.history && data.history.length) {
+      let hh = '<table><tr><th>Time</th><th>Category</th><th>Key</th><th>Old</th><th>New</th></tr>';
+      for (const h of data.history.slice(0,30)) {
+        hh += '<tr><td>' + (h.changed_at||'').slice(0,19).replace('T',' ') + '</td><td>' + esc(h.category) + '</td><td>' + esc(h.key) + '</td><td>' + h.old_value + '</td><td>' + h.new_value + '</td></tr>';
+      }
+      document.getElementById('ml-ar-history').innerHTML = hh + '</table>';
+    } else {
+      document.getElementById('ml-ar-history').innerHTML = '<div class="loading">No auto-regulation history yet.</div>';
+    }
+  } catch (err) { toast('Error loading auto-regulate: ' + err.message, 'error'); }
+}
+
+async function toggleAutoRegulate() {
+  try {
+    const data = await api('/admin/ml/auto-regulate/toggle', { method: 'POST' });
+    toast(data.enabled ? 'Auto-regulation ENABLED' : 'Auto-regulation DISABLED');
+    loadAutoRegulate();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+async function runAutoRegulate() {
+  try {
+    toast('Running ML analysis...');
+    const data = await api('/admin/ml/auto-regulate/run', { method: 'POST' });
+    toast('Analysis complete: ' + data.decision + ' (' + data.changes.length + ' changes)');
+    loadAutoRegulate();
+  } catch (err) { toast('Error: ' + err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SMART CONTRACTS
+// ══════════════════════════════════════════════════════════════════════
+async function loadSmartContracts() {
+  try {
+    const data = await api('/admin/contract/info');
+    // Token info
+    const t = data.token;
+    document.getElementById('sc-token-info').innerHTML =
+      '<div><strong>Name:</strong> ' + esc(t.name) + ' (' + esc(t.symbol) + ')</div>' +
+      '<div><strong>Standard:</strong> ' + esc(t.standard) + '</div>' +
+      '<div><strong>Decimals:</strong> ' + t.decimals + '</div>' +
+      '<div><strong>Total Supply:</strong> ' + esc(t.totalSupply) + ' ARC</div>' +
+      '<div><strong>Network:</strong> ' + esc(t.network) + ' (Chain ' + t.chainId + ')</div>';
+
+    // Economy bridge
+    const e = data.inGameEconomy;
+    document.getElementById('sc-economy-info').innerHTML =
+      '<div><strong>Circulating In-Game:</strong> <span style="color:var(--yellow)">' + (e.totalArcCirculating||0).toFixed(1) + ' ARC</span></div>' +
+      '<div><strong>Staked:</strong> <span style="color:var(--cyan)">' + (e.totalArcStaked||0).toFixed(1) + ' ARC</span></div>' +
+      '<div><strong>Earned All-Time:</strong> <span style="color:var(--green)">' + (e.totalArcEarnedAllTime||0).toFixed(1) + ' ARC</span></div>' +
+      '<div><strong>Spent All-Time:</strong> <span style="color:var(--red)">' + (e.totalArcSpentAllTime||0).toFixed(1) + ' ARC</span></div>' +
+      '<div><strong>Ukraine Donations:</strong> <span style="color:#FFD700">$' + (e.ukraineDonations||0).toFixed(2) + '</span></div>' +
+      '<div><strong>Total Purchases:</strong> ' + (e.totalPurchases||0) + '</div>';
+
+    // Allocation bars
+    let ab = '';
+    const colors = ['#4ade80','#06b6d4','#a78bfa','#f59e0b','#fb923c','#0057B8'];
+    for (let i = 0; i < data.allocations.length; i++) {
+      const a = data.allocations[i];
+      ab += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>' + esc(a.name) + '</span><span>' + a.pct + '%</span></div>' +
+        '<div style="background:var(--surface2);border-radius:4px;height:22px;overflow:hidden"><div style="width:' + a.pct + '%;height:100%;background:' + colors[i] + ';border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:10px;color:#000;font-weight:bold">' + a.pct + '%</div></div>' +
+        '<div style="font-size:11px;color:var(--text2);margin-top:2px">' + esc(a.vesting) + '</div></div>';
+    }
+    document.getElementById('sc-allocation-bars').innerHTML = ab;
+
+    // Contracts table
+    let ct = '<table><tr><th>Contract</th><th>File</th><th>Status</th></tr>';
+    for (const c of data.contracts) {
+      const statusColor = c.status.includes('Ready') ? 'var(--green)' : c.status.includes('Deployed') ? 'var(--cyan)' : 'var(--text2)';
+      ct += '<tr><td>' + esc(c.name) + '</td><td><code>' + esc(c.file) + '</code></td><td style="color:' + statusColor + '">' + esc(c.status) + '</td></tr>';
+    }
+    document.getElementById('sc-contracts-table').innerHTML = ct + '</table>';
+
+    // Ukraine info
+    document.getElementById('sc-ukraine-info').innerHTML =
+      '<div style="color:var(--text)"><strong>🇺🇦 Donation Wallet:</strong> <code style="font-size:11px">0x165CD37b4C644C2921454429E7F9358d18A45e14</code></div>' +
+      '<div><strong>Total Donated:</strong> <span style="color:#FFD700;font-size:16px;font-weight:bold">$' + (e.ukraineDonations||0).toFixed(2) + '</span></div>' +
+      '<div><strong>Split:</strong> 10% of every crypto purchase goes to Ukraine humanitarian fund</div>' +
+      '<div><strong>Token Allocation:</strong> 5% of total supply (50M ARC) reserved for Ukraine</div>';
+
+    // Load deploy wizard artifacts + history
+    loadDeployWizard();
+    loadDeployHistory();
+  } catch (err) { toast('Error loading contracts: ' + err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DEPLOY WIZARD — compile & deploy contracts from admin panel
+// ══════════════════════════════════════════════════════════════════════
+let _deploySigner = null;
+let _deployProvider = null;
+let _deployArtifacts = null;
+
+const NETWORK_INFO = {
+  137:   { name: 'Polygon Mainnet', rpc: 'https://polygon-rpc.com',                       explorer: 'https://polygonscan.com',              chainHex: '0x89' },
+  80002: { name: 'Polygon Amoy Testnet', rpc: 'https://rpc-amoy.polygon.technology',      explorer: 'https://amoy.polygonscan.com',         chainHex: '0x13882' }
+};
+
+function deployLog(msg, color) {
+  const el = document.getElementById('deploy-log');
+  const ts = new Date().toLocaleTimeString();
+  const validColors = ['var(--text2)','var(--green)','var(--yellow)','var(--red)','var(--cyan)'];
+  const c = validColors.includes(color) ? color : 'var(--text2)';
+  el.innerHTML += '<span style="color:' + c + '">[' + ts + '] ' + esc(msg) + '</span>\n';
+  el.scrollTop = el.scrollHeight;
+}
+
+function getSelectedChainId() {
+  return parseInt(document.getElementById('deploy-network').value);
+}
+
+function deployNetworkChanged() {
+  const chainId = getSelectedChainId();
+  const net = NETWORK_INFO[chainId];
+  deployLog('Network switched to ' + net.name + ' (chain ' + chainId + ')');
+  // Reset wallet connection if network changed
+  if (_deploySigner) {
+    _deploySigner = null;
+    _deployProvider = null;
+    document.getElementById('deploy-wallet-btn').textContent = '🦊 Connect MetaMask';
+    document.getElementById('deploy-wallet-info').textContent = 'Reconnect wallet for new network';
+  }
+}
+
+async function deployConnectWallet() {
+  try {
+    if (!window.ethereum) { toast('MetaMask not detected — install MetaMask to deploy contracts', 'error'); return; }
+
+    const chainId = getSelectedChainId();
+    const net = NETWORK_INFO[chainId];
+
+    const prov = new ethers.BrowserProvider(window.ethereum);
+    await prov.send('eth_requestAccounts', []);
+
+    // Switch to selected network
+    const currentNet = await prov.getNetwork();
+    if (Number(currentNet.chainId) !== chainId) {
+      deployLog('Requesting network switch to ' + net.name + '…');
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: net.chainHex }] });
+      } catch (switchErr) {
+        if (switchErr.code === 4902) {
+          toast('Network not found in MetaMask — add ' + net.name + ' manually', 'error');
+        } else {
+          toast('Network switch rejected', 'error');
+        }
+        return;
+      }
+      // Re-create provider after switch
+      const newProv = new ethers.BrowserProvider(window.ethereum);
+      _deploySigner = await newProv.getSigner();
+      _deployProvider = newProv;
+    } else {
+      _deploySigner = await prov.getSigner();
+      _deployProvider = prov;
+    }
+
+    const addr = await _deploySigner.getAddress();
+    const bal = await _deployProvider.getBalance(addr);
+    const balFormatted = parseFloat(ethers.formatEther(bal)).toFixed(4);
+
+    document.getElementById('deploy-wallet-btn').textContent = '🟢 ' + addr.slice(0,6) + '…' + addr.slice(-4);
+    document.getElementById('deploy-wallet-info').innerHTML =
+      '<span style="color:var(--green)">' + net.name + '</span> — ' + balFormatted + ' POL';
+
+    deployLog('Wallet connected: ' + addr + ' (' + balFormatted + ' POL on ' + net.name + ')', 'var(--green)');
+
+    // Fill in DEPLOYER defaults in constructor args
+    document.querySelectorAll('.deploy-arg-input[data-default="DEPLOYER"]').forEach(el => {
+      if (!el.value || el.value === 'DEPLOYER') el.value = addr;
+    });
+
+    toast('Deploy wallet connected', 'success');
+  } catch (e) {
+    toast('Wallet error: ' + e.message, 'error');
+    deployLog('Wallet error: ' + e.message, 'var(--red)');
+  }
+}
+
+async function loadDeployWizard() {
+  try {
+    const data = await api('/admin/contract/artifacts');
+    _deployArtifacts = data;
+
+    let html = '';
+    for (const [name, info] of Object.entries(data)) {
+      const statusBadge = info.compiled
+        ? '<span style="color:var(--green);font-size:11px">✅ Compiled</span>'
+        : '<span style="color:var(--yellow);font-size:11px">⚠️ Not compiled</span>';
+
+      html += '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:10px" id="deploy-card-' + esc(name) + '">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+      html += '<div><strong>' + esc(info.label) + '</strong> ' + statusBadge + '</div>';
+      html += '<button onclick="deployContract(\'' + esc(name) + '\')" ' + (info.compiled ? '' : 'disabled') + ' id="deploy-btn-' + esc(name) + '" style="padding:6px 16px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:12px;font-weight:bold">🚀 Deploy</button>';
+      html += '</div>';
+
+      // Constructor args form
+      if (info.constructorArgs && info.constructorArgs.length > 0) {
+        html += '<div style="font-size:12px;color:var(--text2);margin-bottom:6px">Constructor arguments:</div>';
+        html += '<div style="display:grid;gap:6px">';
+        for (const arg of info.constructorArgs) {
+          const inputId = 'deploy-arg-' + name + '-' + arg.name;
+          const defaultVal = arg.default === 'DEPLOYER' ? '' : (arg.default || '');
+          const placeholder = arg.default === 'DEPLOYER' ? 'Deployer wallet (connect MetaMask)' : (arg.default || arg.type);
+          html += '<div style="display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:center">';
+          html += '<label style="font-size:11px;color:var(--text2)" for="' + inputId + '">' + esc(arg.label) + '</label>';
+          html += '<input id="' + inputId + '" class="deploy-arg-input" data-default="' + esc(arg.default || '') + '" type="text" value="' + esc(defaultVal) + '" placeholder="' + esc(placeholder) + '" style="padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-family:monospace">';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      // Status line
+      html += '<div id="deploy-status-' + esc(name) + '" style="margin-top:8px;font-size:12px"></div>';
+      html += '</div>';
+    }
+
+    document.getElementById('deploy-contracts-list').innerHTML = html || '<div style="color:var(--text2)">No contract artifacts found.</div>';
+  } catch (err) {
+    document.getElementById('deploy-contracts-list').innerHTML =
+      '<div style="color:var(--yellow)">⚠️ Could not load artifacts — backend may be offline. You can still deploy using MetaMask if artifacts are embedded.</div>';
+  }
+}
+
+async function deployCompileAll() {
+  const statusEl = document.getElementById('deploy-compile-status');
+  statusEl.innerHTML = '<span style="color:var(--yellow)">⏳ Compiling contracts on server…</span>';
+  deployLog('Starting compilation…');
+
+  try {
+    const data = await api('/admin/contract/compile', { method: 'POST', body: JSON.stringify({}) });
+    let html = '';
+    for (const r of (data.results || [])) {
+      const color = r.status === 'ok' ? 'var(--green)' : r.status === 'skip' ? 'var(--yellow)' : 'var(--red)';
+      html += '<div style="color:' + color + ';margin-bottom:4px">' + (r.status === 'ok' ? '✅' : r.status === 'skip' ? '⚠️' : '❌') + ' ' + esc(r.contract) + ': ' + esc(r.message) + '</div>';
+      deployLog(r.contract + ': ' + r.message, color);
+    }
+    statusEl.innerHTML = html;
+
+    // Reload artifacts
+    await loadDeployWizard();
+    toast('Compilation complete', 'success');
+  } catch (err) {
+    statusEl.innerHTML = '<span style="color:var(--red)">❌ Compile failed: ' + esc(err.message) + '</span>';
+    deployLog('Compile error: ' + err.message, 'var(--red)');
+  }
+}
+
+async function deployContract(contractName) {
+  if (!_deploySigner) {
+    toast('Connect MetaMask wallet first', 'error');
+    return;
+  }
+  if (!_deployArtifacts || !_deployArtifacts[contractName]) {
+    toast('Contract artifacts not loaded', 'error');
+    return;
+  }
+
+  const info = _deployArtifacts[contractName];
+  if (!info.compiled || !info.abi || !info.bytecode) {
+    toast('Contract not compiled — click "Compile All" first', 'error');
+    return;
+  }
+
+  const statusEl = document.getElementById('deploy-status-' + contractName);
+  const btn = document.getElementById('deploy-btn-' + contractName);
+  btn.disabled = true;
+
+  try {
+    // Gather constructor args
+    const args = [];
+    const deployerAddr = await _deploySigner.getAddress();
+    for (const argMeta of (info.constructorArgs || [])) {
+      const inputEl = document.getElementById('deploy-arg-' + contractName + '-' + argMeta.name);
+      let val = inputEl ? inputEl.value.trim() : '';
+
+      // Default DEPLOYER args to deployer address
+      if (!val && argMeta.default === 'DEPLOYER') {
+        val = deployerAddr;
+      }
+
+      if (!val) {
+        toast('Missing constructor argument: ' + argMeta.label, 'error');
+        btn.disabled = false;
+        return;
+      }
+
+      // Validate address types
+      if (argMeta.type === 'address' && !ethers.isAddress(val)) {
+        toast('Invalid address for ' + argMeta.label + ': ' + val, 'error');
+        btn.disabled = false;
+        return;
+      }
+
+      args.push(val);
+    }
+
+    // Verify network
+    const chainId = getSelectedChainId();
+    const net = NETWORK_INFO[chainId];
+    const currentNet = await _deployProvider.getNetwork();
+    if (Number(currentNet.chainId) !== chainId) {
+      toast('MetaMask is on wrong network — switch to ' + net.name, 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    // Check balance
+    const balance = await _deployProvider.getBalance(deployerAddr);
+    if (balance === 0n) {
+      toast('Zero balance — wallet needs POL for gas fees', 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    statusEl.innerHTML = '<span style="color:var(--yellow)">⏳ Deploying ' + esc(info.label) + '…</span>';
+    deployLog('Deploying ' + contractName + ' with args: [' + args.join(', ') + ']');
+    deployLog('Deployer: ' + deployerAddr + ' | Network: ' + net.name);
+
+    // Deploy using ethers.js ContractFactory
+    const factory = new ethers.ContractFactory(info.abi, info.bytecode, _deploySigner);
+    const contract = await factory.deploy(...args);
+    const deployTx = contract.deploymentTransaction();
+    if (!deployTx) throw new Error('Deployment transaction not created');
+    const txHash = deployTx.hash;
+
+    statusEl.innerHTML = '<span style="color:var(--yellow)">⏳ Tx sent: <a href="' + net.explorer + '/tx/' + txHash + '" target="_blank" style="color:var(--cyan)">' + txHash.slice(0,16) + '…</a> — waiting for confirmation…</span>';
+    deployLog('TX sent: ' + txHash, 'var(--yellow)');
+
+    await contract.waitForDeployment();
+    const address = await contract.getAddress();
+    const receipt = await _deployProvider.getTransactionReceipt(txHash);
+    const blockNumber = receipt ? receipt.blockNumber : null;
+
+    statusEl.innerHTML =
+      '<span style="color:var(--green)">✅ Deployed at: <a href="' + net.explorer + '/address/' + address + '" target="_blank" style="color:var(--cyan);font-weight:bold">' + address + '</a></span>' +
+      '<br><span style="font-size:11px;color:var(--text2)">Tx: <a href="' + net.explorer + '/tx/' + txHash + '" target="_blank" style="color:var(--text2)">' + txHash.slice(0,20) + '…</a> | Block: ' + (blockNumber || '?') + '</span>';
+    deployLog('✅ ' + contractName + ' deployed at ' + address + ' (block ' + blockNumber + ')', 'var(--green)');
+    toast(contractName + ' deployed!', 'success');
+
+    // Save deployment record to server
+    try {
+      await api('/admin/contract/save-deployment', {
+        method: 'POST',
+        body: JSON.stringify({
+          contractName,
+          network: net.name,
+          chainId,
+          address,
+          deployer: deployerAddr,
+          txHash,
+          blockNumber,
+          constructorArgs: args
+        })
+      });
+      deployLog('Deployment record saved to server', 'var(--green)');
+    } catch (saveErr) {
+      deployLog('Warning: Could not save deployment record — ' + saveErr.message, 'var(--yellow)');
+    }
+
+    // Update live contract addresses if on mainnet
+    if (chainId === 137) {
+      const addrMap = { 'UkrainianDefendersNFT': 'UADEF', 'ARC_KillNFT': 'KILLNFT', 'ARC_Token': 'ARC' };
+      const key = addrMap[contractName];
+      if (key && typeof NFT_CONTRACTS !== 'undefined') {
+        NFT_CONTRACTS[key] = address;
+        deployLog('Updated NFT_CONTRACTS.' + key + ' = ' + address, 'var(--cyan)');
+      }
+    }
+
+    // Reload history
+    loadDeployHistory();
+
+  } catch (err) {
+    const errMsg = err.reason || err.message || String(err);
+    statusEl.innerHTML = '<span style="color:var(--red)">❌ Deploy failed: ' + esc(errMsg) + '</span>';
+    deployLog('DEPLOY FAILED: ' + errMsg, 'var(--red)');
+    toast('Deploy failed: ' + errMsg, 'error');
+  }
+
+  btn.disabled = false;
+}
+
+async function loadDeployHistory() {
+  try {
+    const rows = await api('/admin/contract/deployments');
+    if (!rows || rows.length === 0) {
+      document.getElementById('deploy-history-table').innerHTML =
+        '<div style="font-size:13px;color:var(--text2);padding:12px">No deployments recorded yet.</div>';
+      return;
+    }
+
+    let html = '<table><tr><th>Contract</th><th>Network</th><th>Address</th><th>Deployer</th><th>Tx Hash</th><th>Block</th><th>Date</th></tr>';
+    for (const r of rows) {
+      const explorer = (NETWORK_INFO[r.chain_id] || {}).explorer || 'https://polygonscan.com';
+      html += '<tr>';
+      html += '<td>' + esc(r.contract_name) + '</td>';
+      html += '<td style="font-size:11px">' + esc(r.network) + '</td>';
+      html += '<td><a href="' + explorer + '/address/' + esc(r.address) + '" target="_blank" style="font-size:11px;font-family:monospace;color:var(--cyan)">' + esc(r.address.slice(0,8)) + '…' + esc(r.address.slice(-4)) + '</a></td>';
+      html += '<td style="font-size:11px;font-family:monospace">' + esc(r.deployer.slice(0,8)) + '…</td>';
+      html += '<td><a href="' + explorer + '/tx/' + esc(r.tx_hash) + '" target="_blank" style="font-size:11px;font-family:monospace;color:var(--text2)">' + esc(r.tx_hash.slice(0,10)) + '…</a></td>';
+      html += '<td style="font-size:11px">' + (r.block_number || '?') + '</td>';
+      html += '<td style="font-size:11px">' + esc(r.deployed_at) + '</td>';
+      html += '</tr>';
+    }
+    document.getElementById('deploy-history-table').innerHTML = html + '</table>';
+  } catch (err) {
+    document.getElementById('deploy-history-table').innerHTML =
+      '<div style="font-size:13px;color:var(--text2);padding:12px">Could not load deployment history.</div>';
+  }
+}
+</script>
+</body>
+</html>
