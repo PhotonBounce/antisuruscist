@@ -60,3 +60,7 @@ dist/
 
 # Agent worktrees (Claude Code)
 .claude/
+
+# Playwright test artifacts
+test-results/
+playwright-report/
