@@ -6878,6 +6878,12 @@ $(document).ready(function () {
       $('#revolver-cylinder').hide();
       $ammoTitle.find('.ammo-visual').show();
       renderClayAmmoVisual();
+    } else {
+      // All other weapons (stugna, drone_bomb, panzerfaust, pkm, ak12, matador,
+      // nlaw, laser, sniper, ftdrone, tank_cannon, bradley) get a generic pip-bar.
+      $('#revolver-cylinder').hide();
+      $ammoTitle.find('.ammo-visual').show();
+      renderPipBarAmmoVisual();
     }
   }
 
@@ -6948,6 +6954,48 @@ $(document).ready(function () {
     $ammoTitle.find('.ammo-visual').html(
       `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shells.join('')}</svg>`
     );
+  }
+
+  // ── Generic pip-bar ammo visual for non-bespoke weapons ───────
+  // Tracks previous ammo count so we can trigger the eject micro-animation.
+  var _pipbarPrevAmmo = -1;
+
+  function renderPipBarAmmoVisual() {
+    const max = getAmmoMax();
+    const PIP_CAP = 30; // above this threshold switch to segmented bar
+    const $vis = $ammoTitle.find('.ammo-visual');
+
+    if (max > PIP_CAP) {
+      // Segmented progress bar for high-capacity weapons (LMG belt, PKM, Bradley…)
+      const pct    = max > 0 ? ammo / max : 0;
+      const pctLo  = pct <= 0.20;
+      const pctMd  = pct <= 0.50 && !pctLo;
+      const barCol = pctLo ? '#FF3300' : pctMd ? '#FFA500' : '#FFD700';
+      const barW   = Math.round(pct * 76);
+      $vis.html(
+        '<div class="ammo-pipbar ammo-pipbar--seg" aria-label="' + ammo + ' / ' + max + ' rounds">' +
+          '<div class="ammo-pipbar__track"><div class="ammo-pipbar__fill" style="width:' + barW + 'px;background:' + barCol + ';"></div></div>' +
+          '<span class="ammo-pipbar__count">' + ammo + '</span>' +
+        '</div>'
+      );
+    } else {
+      // Individual pips — one pip per round in the magazine
+      var pipsHtml = '';
+      for (var i = 0; i < max; i++) {
+        var cls = i < ammo ? 'ammo-pip ammo-pip--loaded' : 'ammo-pip ammo-pip--spent';
+        pipsHtml += '<span class="' + cls + '" aria-hidden="true"></span>';
+      }
+      // Ejected-case micro-flash: light up when ammo just decremented by 1.
+      // Respects window._reducedMotion.
+      var justFired = (_pipbarPrevAmmo > 0 && ammo === _pipbarPrevAmmo - 1);
+      var ejectCls  = (justFired && !window._reducedMotion) ? ' ammo-pipbar--eject' : '';
+      $vis.html('<div class="ammo-pipbar' + ejectCls + '" aria-label="' + ammo + ' / ' + max + ' rounds">' + pipsHtml + '</div>');
+      if (justFired && !window._reducedMotion) {
+        // Remove eject class after animation (300 ms) so next shot can retrigger
+        setTimeout(function () { $vis.find('.ammo-pipbar').removeClass('ammo-pipbar--eject'); }, 320);
+      }
+    }
+    _pipbarPrevAmmo = ammo;
   }
   // ── Clay Ball Thrower — equip, sound, visuals ─────────────────
 
