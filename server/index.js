@@ -629,12 +629,82 @@ app.post('/api/market/buy', authMiddleware, (req, res) => {
 });
 
 // ── Leaderboard ───────────────────────────────────────────────────────
+
+// GET /api/leaderboard/:period[?limit=20]
+// Returns { entries: [...top N...], myRank: number|null, total: number }
+// Auth is optional — when an anon_id header is present the caller's rank is included.
 app.get('/api/leaderboard/:period', (req, res) => {
-  const period = req.params.period || 'weekly';
-  const rows = db.prepare(`SELECT l.*, p.username FROM leaderboard l
-    JOIN players p ON l.player_id = p.id WHERE l.period = ?
-    ORDER BY l.rank ASC LIMIT 100`).all(period);
-  res.json(rows);
+  const VALID_PERIODS = /^[a-z0-9_-]{1,32}$/;
+  const period = (req.params.period || 'weekly').toLowerCase();
+  if (!VALID_PERIODS.test(period)) return res.status(400).json({ error: 'Invalid period' });
+  const limit = Math.min(Math.max(1, parseInt(req.query.limit, 10) || 20), 100);
+
+  // Recompute ranks on the fly so they stay accurate even without a separate job.
+  // We store the best score per (player, period) and order descending.
+  const entries = db.prepare(`
+    SELECT l.score, l.kills, l.wave, l.snapshot_at,
+           p.username,
+           ROW_NUMBER() OVER (ORDER BY l.score DESC) AS rank
+    FROM leaderboard l
+    JOIN players p ON l.player_id = p.id
+    WHERE l.period = ?
+    ORDER BY l.score DESC
+    LIMIT ?
+  `).all(period, limit);
+
+  // Caller's rank (optional auth via x-anon-id header)
+  let myRank = null;
+  const anonId = req.headers['x-anon-id'];
+  if (anonId) {
+    const caller = db.prepare('SELECT id FROM players WHERE anon_id = ?').get(anonId);
+    if (caller) {
+      const rankRow = db.prepare(`
+        SELECT COUNT(*) + 1 AS rank
+        FROM leaderboard
+        WHERE period = ? AND score > (
+          SELECT COALESCE(score, -1) FROM leaderboard WHERE player_id = ? AND period = ?
+        )
+      `).get(period, caller.id, period);
+      const ownRow = db.prepare('SELECT id FROM leaderboard WHERE player_id = ? AND period = ?').get(caller.id, period);
+      myRank = ownRow ? rankRow.rank : null;
+    }
+  }
+
+  const totalRow = db.prepare('SELECT COUNT(*) AS c FROM leaderboard WHERE period = ?').get(period);
+  res.json({ entries, myRank, total: totalRow.c });
+});
+
+// POST /api/leaderboard/:period
+// Body: { score, kills, wave }
+// Upserts the caller's best score for this period (keeps highest score only).
+// Returns { ok:true, rank, myScore }
+app.post('/api/leaderboard/:period', authMiddleware, (req, res) => {
+  const VALID_PERIODS = /^[a-z0-9_-]{1,32}$/;
+  const period = (req.params.period || 'weekly').toLowerCase();
+  if (!VALID_PERIODS.test(period)) return res.status(400).json({ error: 'Invalid period' });
+
+  const pid   = req.player.id;
+  const score = Math.min(Math.max(0, parseInt(req.body.score, 10) || 0), 10_000_000);
+  const kills = Math.min(Math.max(0, parseInt(req.body.kills, 10) || 0), 100_000);
+  const wave  = Math.min(Math.max(0, parseInt(req.body.wave,  10) || 0), 1_000);
+
+  // Upsert: only update if new score is better
+  const existing = db.prepare('SELECT score FROM leaderboard WHERE player_id = ? AND period = ?').get(pid, period);
+  if (!existing) {
+    db.prepare(`INSERT INTO leaderboard (player_id, period, score, kills, wave, snapshot_at)
+                VALUES (?, ?, ?, ?, ?, datetime('now'))`).run(pid, period, score, kills, wave);
+  } else if (score > existing.score) {
+    db.prepare(`UPDATE leaderboard SET score = ?, kills = ?, wave = ?, snapshot_at = datetime('now')
+                WHERE player_id = ? AND period = ?`).run(score, kills, wave, pid, period);
+  }
+
+  // Return caller's current rank
+  const finalScore = Math.max(existing ? existing.score : 0, score);
+  const rankRow = db.prepare(`
+    SELECT COUNT(*) + 1 AS rank FROM leaderboard WHERE period = ? AND score > ?
+  `).get(period, finalScore);
+
+  res.json({ ok: true, rank: rankRow.rank, myScore: finalScore });
 });
 
 // ── Donations ─────────────────────────────────────────────────────────
