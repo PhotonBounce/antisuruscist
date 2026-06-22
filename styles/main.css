@@ -11130,3 +11130,6 @@ body.xh-supreme .chx-svg { filter: drop-shadow(0 0 8px #b9f2ff) drop-shadow(0 0 
   .dmg-number{ animation:dmgFloatRM .6s ease-out forwards; }
 }
 @keyframes dmgFloatRM{ 0%{opacity:0} 20%{opacity:1} 100%{opacity:0} }
+
+/* ── Wave background cross-fade (juice) — outgoing image sits above, fades out ── */
+#parallax-far-prev { z-index:3; pointer-events:none; }

@@ -1406,12 +1406,38 @@ $(document).ready(function () {
   // Expose for admin panel to invalidate after upload
   window._bgInvalidate = function(w) { _bgProbed[w] = false; _bgAvail[w] = false; };
 
+  // Cross-fade the far parallax layer between wave backgrounds (juice — showcases
+  // the per-wave art instead of an instant swap). Instant fallback on reduced motion.
+  var _curFarBg = null, _curFarOpacity = 0.92;
+  function _crossfadeFarTo(newBg, op) {
+    var $far = $('#parallax-far');
+    if (!$far.length) return;
+    op = (op == null) ? 0.92 : op;
+    if (window._reducedMotion || _curFarBg === null) {
+      $far.css({ background: newBg, opacity: op });
+      _curFarBg = newBg; _curFarOpacity = op; return;
+    }
+    if (newBg === _curFarBg) { $far.css({ opacity: op }); _curFarOpacity = op; return; }
+    var $prev = $('#parallax-far-prev');
+    if (!$prev.length) {
+      $prev = $('<div class="parallax-layer" id="parallax-far-prev" aria-hidden="true"></div>');
+      $far.after($prev); // sits above #parallax-far (also via z-index)
+    }
+    // Outgoing image goes ON TOP at full, then fades out to reveal the new far bg
+    // beneath. Transition is set inline so the parallax mouse handler can't strip it.
+    $prev.css({ background: _curFarBg, opacity: _curFarOpacity, display: 'block', transition: 'none' });
+    void $prev[0].offsetWidth;                          // commit the start state
+    $far.css({ background: newBg, opacity: op });       // new bg instantly underneath
+    $prev.css({ transition: 'opacity 1.1s ease', opacity: 0 });
+    _curFarBg = newBg; _curFarOpacity = op;
+  }
+
   // Sync parallax bg images with wave
   function updateParallaxBg(wave) {
     // Check if a raster bg exists for this wave (any wave, not just 1-4)
     function _applyRaster() {
       var bgUrl = 'url("images/background/bg-' + wave + '.png")';
-      $('#parallax-far').css({ background: bgUrl + ' center/cover no-repeat', opacity: 0.92 });
+      _crossfadeFarTo(bgUrl + ' center/cover no-repeat', 0.92);
       $('#parallax-mid').css({ background: 'none', opacity: 0.10 });
       $('#parallax-near').css({ background: 'none', opacity: 0.04 });
       spawnDistantBg(wave);
@@ -1463,7 +1489,7 @@ $(document).ready(function () {
       // Aurora shimmer
       midBg = 'linear-gradient(180deg, rgba(40,200,150,0.05) 0%, rgba(80,60,200,0.04) 50%, transparent 100%)';
     }
-    $('#parallax-far').css({ background: far, opacity: 0.92 });
+    _crossfadeFarTo(far, 0.92);
     $('#parallax-mid').css({ background: midBg, opacity: midBg === 'none' ? 0 : 0.08 });
     $('#parallax-near').css({ background: 'none', opacity: 0 });
     spawnDistantBg(wave);
