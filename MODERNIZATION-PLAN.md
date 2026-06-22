@@ -92,3 +92,24 @@ get an explicit baseline reset in that PR.
 Risk front-loaded: data-loss (backend DB) and the conflicting Pages deploy first; the big mechanical
 `main.js` split only after the build harness + tests exist to catch regressions. Each phase is
 independently shippable and revertable (one PR per phase / sub-step).
+
+---
+
+## Progress Log (PR #1 — `claude/stoic-davinci-o63qlb`)
+
+**Modernization**
+- ✅ Phase 0 — CI gate (guardian regression + `node --check` + backend tests), removed conflicting Pages/Codespaces workflows, portable scripts, lockfiles.
+- ✅ Phase 1 — backend hardened (prod-required JWT, JWT-only admin, CORS fail-closed, `/api/setup` rate-limit, password 6→10, HSTS, env `DB_PATH`) + telemetry pruning + 9-test `node:test` suite.
+- ✅ Phase 4a/4b — removed ~65KB dead agent JS + ~81MB unused art/SCSS/duplicate audio.
+- 🅿️ Phase 2 (Vite build) — **verified & parked** on branch `claude/phase2-vite`; land together with Phase 7 deploy (avoids cache-bust regression on raw deploy).
+- ⏳ Phase 3 (PWA hashing), Phase 5 (e2e — in progress), Phase 6 (main.js→modules), Phase 7 (CI/CD deploy — **needs cPanel FTP creds + Render deploy hook**).
+
+**Beast-game (screenshot-driven backlog)**
+- ✅ Mobile i18n rotate-prompt bug fixed; mobile rotate screen redesigned (`screencaptures/23`).
+- ✅ Floating damage numbers + hit-stop (`22`); zombie kill-flash.
+- ✅ Wave background cross-fade (`25/26`).
+- ✅ Wave-clear cinematic stat card (`27`).
+- ✅ Enemy elite callouts — Brute/Tank/Titan badges + spawn callout (`28`).
+- ⏳ Ammo-HUD pip-bars (#10, in progress); global leaderboard (#4); onboarding (#7, product-sensitive — flagged for owner).
+
+All screenshot proofs in [`screencaptures/`](./screencaptures/). CI green throughout.
