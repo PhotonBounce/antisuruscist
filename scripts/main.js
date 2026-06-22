@@ -376,6 +376,11 @@ $(document).ready(function () {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
       var key = el.getAttribute('data-i18n');
       var val = t(key);
+      // Key not present in this script's tables (e.g. mobile-only keys like
+      // rotateLandscape) — t() returns the bare key. Leave the element's existing
+      // fallback/text so the owning script (mobile.js) can localize it instead of
+      // overwriting it with the raw key string.
+      if (val === key) return;
       if (val.indexOf('<div>') !== -1 || val.indexOf('<br') !== -1) {
         // Sanitize: allow only <div>, </div>, <span>, </span>, <br>, <br/>
         el.innerHTML = val.replace(/<(?!\/?(?:div|span|br)\s*\/?>)[^>]*>/gi, '');
