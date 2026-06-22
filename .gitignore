@@ -5,7 +5,7 @@ nft-deploy/.env
 
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json is tracked so CI `npm ci` is reproducible
 
 # Large binary assets (prevent git push failures)
 *.psd

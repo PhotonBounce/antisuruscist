@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so the guardian gate can diff against base
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install deps
+        run: npm ci || npm install
+
+      - name: JS syntax check (node --check)
+        run: |
+          shopt -s nullglob
+          status=0
+          for f in scripts/*.js scripts/modules/*.js server/*.js mobile/scripts/*.js *.js; do
+            echo "checking $f"
+            node --check "$f" || status=1
+          done
+          exit $status
+
+      - name: Guardian regression gate
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          # Fall back to previous commit if base is unset/empty (e.g. first push)
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
+          fi
+          bash scripts/guardian-check.sh "$BASE"
