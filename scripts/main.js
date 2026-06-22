@@ -3247,6 +3247,8 @@ $(document).ready(function () {
     if (comboCount >= 3) { $canves.removeClass('combo-shake'); void $canves[0].offsetWidth; $canves.addClass('combo-shake'); }
     comboTimer = setTimeout(() => { comboCount = 0; }, 3000);
     $z.css('pointer-events', 'none').find('.strength-bar').addClass('hide');
+    // Brief brightness pop on the sprite at the kill frame (juice)
+    if (!window._reducedMotion) { $z.addClass('z-killflash'); setTimeout(function () { $z.removeClass('z-killflash'); }, 90); }
     // Blood splatter particles on kill
     _spawnBloodSplatter(cx || 0, cy || 0, isHead);
     // Hitstop freeze frame — punchy on headshots, a subtle single-frame beat on every kill

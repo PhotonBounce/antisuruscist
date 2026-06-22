@@ -11227,3 +11227,6 @@ body.xh-supreme .chx-svg { filter: drop-shadow(0 0 8px #b9f2ff) drop-shadow(0 0 
 
 /* ── Wave background cross-fade (juice) — outgoing image sits above, fades out ── */
 #parallax-far-prev { z-index:3; pointer-events:none; }
+
+/* ── Zombie kill-flash (juice) — brief brightness pop at the kill frame ──── */
+.z-killflash{ filter: brightness(2.6) contrast(1.15) drop-shadow(0 0 7px rgba(255,255,255,.9)) !important; }
