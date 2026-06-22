@@ -1,0 +1,17 @@
+  10-desktop-signup.png
+reg-guest-btn clicked: true
+  11-desktop-lobby.png
+god-mode clicked: true
+start-game-btn clicked: true
+  12-desktop-gameplay.png
+wave3 jump clicked: true
+  13-desktop-wave3.png
+pause/menu clicked: true
+  14-desktop-armory.png
+settings clicked: true
+  15-desktop-settings.png
+DESKTOP pageerrors: 23 :: [console] Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID | [console] Failed to load resource: net::ERR_CONNECTION_REFUSED | [console] Failed to load resource: net::ERR_CONNECTION_REFUSED
+  16-mobile-cover.png
+  17-mobile-lobby.png
+  18-mobile-gameplay.png
+MOBILE pageerrors: 0
