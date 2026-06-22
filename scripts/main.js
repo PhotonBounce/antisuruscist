@@ -1614,6 +1614,21 @@ $(document).ready(function () {
     const $hm   = $('<div></div>').addClass(cls).text(label).css({ left: ex + 'px', top: ey + 'px' });
     $canves.append($hm);
     setTimeout(() => $hm.remove(), 700);
+    doDamageNumber(ex, ey, isHeadshot);
+  }
+
+  // \u2500\u2500 Floating damage number (juice) \u2014 pops the per-weapon damage at the hit \u2500\u2500
+  function doDamageNumber(ex, ey, isHeadshot) {
+    var w = WEAPONS[currentWeapon];
+    var base = (w && w.dmg) ? w.dmg : 1;
+    var dmg  = isHeadshot ? base * 3 : base;
+    var jx   = Math.random() * 22 - 11; // horizontal jitter so stacked hits fan out
+    var $n = $('<div></div>')
+      .addClass('dmg-number' + (isHeadshot ? ' dmg-number--crit' : ''))
+      .text(isHeadshot ? ('\u2620' + dmg) : dmg)
+      .css({ left: (ex + jx) + 'px', top: ey + 'px' });
+    $canves.append($n);
+    setTimeout(function () { $n.remove(); }, 750);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -3208,8 +3223,8 @@ $(document).ready(function () {
     $z.css('pointer-events', 'none').find('.strength-bar').addClass('hide');
     // Blood splatter particles on kill
     _spawnBloodSplatter(cx || 0, cy || 0, isHead);
-    // Hitstop freeze frame on headshots
-    if (isHead) hitStop(25);
+    // Hitstop freeze frame — punchy on headshots, a subtle single-frame beat on every kill
+    hitStop(isHead ? 55 : 18);
     setTimeout(() => {
       // Death animation variant
       var _deathVar = isHead ? 'killed--explode' : ['killed--back','killed--collapse','killed--dissolve'][Math.floor(Math.random()*3)];

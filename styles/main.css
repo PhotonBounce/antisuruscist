@@ -11109,3 +11109,24 @@ body.xh-supreme .chx-svg { filter: drop-shadow(0 0 8px #b9f2ff) drop-shadow(0 0 
 }
 @keyframes su-toast-in { from { opacity:0; transform: translateX(-50%) translateY(20px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
 @keyframes su-toast-out { to { opacity:0; transform: translateX(-50%) translateY(-10px); } }
+
+/* ── Floating damage numbers (combat juice) ─────────────────────────────── */
+.dmg-number{
+  position:absolute; z-index:62; pointer-events:none;
+  font-family:'Oswald','Russo One',Impact,sans-serif; font-weight:700;
+  font-size:18px; line-height:1; color:#fff;
+  text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.85);
+  transform:translate(-50%,-50%);
+  animation:dmgFloat .75s ease-out forwards;
+}
+.dmg-number--crit{ color:#ffd23f; font-size:27px;
+  text-shadow:0 2px 4px #000, 0 0 12px rgba(255,170,0,.9); }
+@keyframes dmgFloat{
+  0%{   opacity:0; transform:translate(-50%,-50%) scale(.6); }
+  18%{  opacity:1; transform:translate(-50%,-95%) scale(1.18); }
+  100%{ opacity:0; transform:translate(-50%,-185%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce){
+  .dmg-number{ animation:dmgFloatRM .6s ease-out forwards; }
+}
+@keyframes dmgFloatRM{ 0%{opacity:0} 20%{opacity:1} 100%{opacity:0} }
