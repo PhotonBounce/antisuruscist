@@ -760,6 +760,17 @@
     }
   });
 
+  // Attempt landscape lock on very first touch anywhere (before start-game-btn),
+  // so the rotate-prompt can self-dismiss once the user rotates.
+  document.addEventListener('touchstart', function _firstTouchLock() {
+    document.removeEventListener('touchstart', _firstTouchLock, true);
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function () {});
+      }
+    } catch (e) { /* unsupported — silently ignore */ }
+  }, { capture: true, passive: true, once: true });
+
   /* ════════════════════════════════════════════════════════════════════════
      SECTION 9 — Mobile fitCanvas Override
      ════════════════════════════════════════════════════════════════════════ */
