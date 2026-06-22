@@ -2522,6 +2522,90 @@ const { initContractDeploy } = require('./contract-deploy');
 initContractDeploy(app, db, adminAuth, adminOnly);
 
 // ══════════════════════════════════════════════════════════════════════
+// LOG / TELEMETRY PRUNING  (prevents free-tier DB from filling up)
+// ══════════════════════════════════════════════════════════════════════
+//
+// Retention windows (configurable via env):
+//   TELEMETRY_RETENTION_DAYS  — ml_telemetry, ml_error_logs, ml_anomalies,
+//                               game_sessions, ml_training_runs,
+//                               ml_economy_snapshots, ml_balance_snapshots,
+//                               ai_prompt_history            (default: 30 days)
+//   ADMIN_LOG_RETENTION_DAYS  — admin_log                   (default: 365 days)
+//
+// Runs once on boot, then every 6 hours.
+
+const TELEMETRY_RETENTION_DAYS = Math.max(1, parseInt(process.env.TELEMETRY_RETENTION_DAYS) || 30);
+const ADMIN_LOG_RETENTION_DAYS  = Math.max(1, parseInt(process.env.ADMIN_LOG_RETENTION_DAYS)  || 365);
+
+// Tables pruned by TELEMETRY_RETENTION_DAYS (table → timestamp column)
+const PRUNE_TELEMETRY_TABLES = [
+  { table: 'ml_telemetry',          col: 'created_at' },
+  { table: 'ml_error_logs',         col: 'last_seen'  },
+  { table: 'ml_anomalies',          col: 'created_at' },
+  { table: 'game_sessions',         col: 'started_at' },
+  { table: 'ml_training_runs',      col: 'started_at' },
+  { table: 'ml_economy_snapshots',  col: 'snapshot_at' },
+  { table: 'ml_balance_snapshots',  col: 'snapshot_at' },
+  { table: 'ai_prompt_history',     col: 'created_at' },
+];
+
+function pruneOldLogs() {
+  let totalDeleted = 0;
+  const details = [];
+
+  // Guard: check which tables exist before pruning
+  const tableExists = (name) => {
+    try {
+      return !!db.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?"
+      ).get(name);
+    } catch { return false; }
+  };
+
+  for (const { table, col } of PRUNE_TELEMETRY_TABLES) {
+    if (!tableExists(table)) continue;
+    try {
+      const result = db.prepare(
+        `DELETE FROM ${table} WHERE ${col} < datetime('now', '-' || ? || ' days')`
+      ).run(TELEMETRY_RETENTION_DAYS);
+      if (result.changes > 0) {
+        details.push(`${table}:${result.changes}`);
+        totalDeleted += result.changes;
+      }
+    } catch (e) {
+      console.error(`[prune] Failed to prune ${table}: ${e.message}`);
+    }
+  }
+
+  // admin_log — longer retention
+  if (tableExists('admin_log')) {
+    try {
+      const result = db.prepare(
+        `DELETE FROM admin_log WHERE created_at < datetime('now', '-' || ? || ' days')`
+      ).run(ADMIN_LOG_RETENTION_DAYS);
+      if (result.changes > 0) {
+        details.push(`admin_log:${result.changes}`);
+        totalDeleted += result.changes;
+      }
+    } catch (e) {
+      console.error(`[prune] Failed to prune admin_log: ${e.message}`);
+    }
+  }
+
+  if (totalDeleted > 0) {
+    console.log(`[prune] Deleted ${totalDeleted} old rows (${details.join(', ')})`);
+  } else {
+    console.log('[prune] No stale rows to delete');
+  }
+}
+
+// Run on boot, then every 6 hours
+pruneOldLogs();
+const PRUNE_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const pruneTimer = setInterval(pruneOldLogs, PRUNE_INTERVAL_MS);
+pruneTimer.unref(); // don't keep the process alive just for pruning
+
+// ══════════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {
