@@ -9050,6 +9050,35 @@ $(document).ready(function () {
       '</div>');
     }
     $canves.append($z);
+    // ── Elite enemy callout (backlog #6) ───────────────────────────────────────
+    // Heuristic: rank.hp >= 7 (captain/commander) OR zombieType >= 5 (Titan/Commander)
+    // → tiered: captain+type3-4 = "tank", commander+type5-6 = "titan", fallback = "brute"
+    (function _eliteCallout() {
+      var _isTitan  = rank.hp >= 10 || zombieType >= 5;
+      var _isTank   = !_isTitan && (rank.hp >= 7  || zombieType === 4);
+      var _isBrute  = !_isTitan && !_isTank && (rank.hp >= 5 || zombieType === 3);
+      if (!_isTitan && !_isTank && !_isBrute) return;  // not elite — skip
+      var _tier = _isTitan ? 'titan' : _isTank ? 'tank' : 'brute';
+      var _label = _isTitan ? '☠ TITAN' : _isTank ? '⚠ TANK' : '⚠ BRUTE';
+      // 1. Persistent aura class on the zombie element
+      $z.addClass('z-elite-' + _tier);
+      // 2. Small badge pinned inside the element
+      $z.append('<div class="z-elite-badge">' + _label + '</div>');
+      // 3. Floating callout above the spawn point — respects _reducedMotion
+      if (!window._reducedMotion) {
+        // Compute a position roughly above where the zombie will appear
+        var _cx = parseFloat($z.css('left') || 0);
+        var _cy = parseFloat(botVar) + 20;
+        var $callout = $('<div class="elite-callout elite-callout-' + _tier + '">' + _label + '</div>')
+          .css({ left: ($canves.width() * 0.5 + (Math.random() - 0.5) * 200) + 'px', top: (_cy - 30) + 'px' });
+        $canves.append($callout);
+        requestAnimationFrame(function () { $callout.addClass('elite-callout--in'); });
+        setTimeout(function () {
+          $callout.addClass('elite-callout--out');
+          setTimeout(function () { $callout.remove(); }, 450);
+        }, 1100);
+      }
+    }());
     _liveZ.push($z[0]);
     _waveSpawned++;
     return true;
