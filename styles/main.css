@@ -3408,6 +3408,100 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════
+   Wave-clear cinematic overlay (.wcc-*)
+   Shown for ~2 s after a wave ends, before inventory opens.
+   ══════════════════════════════════════════════════════ */
+.wcc-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 19000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  /* Dark translucent scrim — lets the battlefield show through */
+  background: rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.wcc-overlay--in {
+  opacity: 1;
+}
+/* Skip fade animation in reduced-motion mode */
+.wcc-overlay--static {
+  transition: none;
+}
+.wcc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 36px 48px 28px;
+  background: linear-gradient(160deg, rgba(20,20,30,0.97) 0%, rgba(10,10,18,0.99) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.55);
+  border-radius: 12px;
+  box-shadow: 0 0 48px rgba(255, 215, 0, 0.22), 0 8px 32px rgba(0,0,0,0.7);
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  /* Card entrance: slide up from slight offset */
+  transform: translateY(14px) scale(0.96);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wcc-overlay--in .wcc-card {
+  transform: translateY(0) scale(1);
+}
+.wcc-overlay--static .wcc-card {
+  transition: none;
+  transform: none;
+}
+.wcc-title {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #FFD700;
+  text-shadow: 0 0 24px rgba(255, 215, 0, 0.7), 0 2px 0 #000;
+  line-height: 1.1;
+}
+.wcc-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 32px;
+}
+.wcc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.wcc-stat-val {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  line-height: 1.1;
+}
+.wcc-stat-lbl {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 215, 0, 0.7);
+}
+.wcc-continue {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
    SPACE·ARMORY shortcut hint (top-right, below pause btn)
    ══════════════════════════════════════════════════════ */
 #inv-shortcut-label {
