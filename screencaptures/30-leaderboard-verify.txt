@@ -1,0 +1,19 @@
+GLOBAL LEADERBOARD (#4) — VERIFICATION
+======================================
+
+Backend (node:test, server/test/api.test.js): 13/13 pass (incl. 4 leaderboard tests).
+
+LIVE round-trip through window.ARC_API against a running backend (localhost:3001):
+  submitLeaderboard('e2e-test', {score:5000,kills:12,wave:3}) -> { ok:true, rank:1, myScore:5000 }
+  submitLeaderboard('e2e-test', {score:8000,kills:20,wave:4}) -> { ok:true, rank:1, myScore:8000 }  (upsert kept best)
+  fetchLeaderboard('e2e-test') -> {
+    entries:[ { score:8000, kills:20, wave:4, username:"Fighter", rank:1 } ],
+    myRank:1, total:1 }
+
+Frontend leaders section (#inv-sec-leaders) rendered content:
+  "🏆 LEADERBOARD — Top fighters this week — ranked by score. Yours is highlighted. Resets every Monday.
+   📅 WEEK 25 — Resets in 7 days — 🎯 Your rank: Not ranked yet"
+  (server-fetch attempted for the current week period; graceful localStorage fallback when empty/offline)
+
+node --check: scripts/main.js, scripts/api-client.js, server/index.js, server/db.js — all OK.
+guardian: PASS (inv-sec-leaders + all inv-nav-btn/inv-sec markers preserved).
