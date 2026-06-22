@@ -3713,6 +3713,8 @@ $(document).ready(function () {
   // Wave-clear cinematic trackers
   let _waveKillsAtStart = 0;   // zombieKilled count at the start of each wave
   let _waveArcAtStart   = 0;   // _sessionArcEarned at start of each wave
+  let _waveShotsFiredAtStart = 0; // shotsFired at start of each wave (for per-wave accuracy)
+  let _waveShotsHitAtStart   = 0; // shotsHit at start of each wave
   // Whale-farming velocity guard — ring buffer of recent earn timestamps
   let _arcEarnTimestamps = [];
   const _ARC_VELOCITY_WINDOW_MS  = 30000; // 30-second rolling window
@@ -5308,11 +5310,14 @@ $(document).ready(function () {
         + '</tr>';
     }).join('');
 
-    var myRankStr = data.myRank != null ? ('#' + data.myRank + ' of ' + data.total) : 'Not ranked yet';
+    // Coerce server-provided rank/total to integers (defense-in-depth: never inject raw server strings via .html())
+    var _lbMyRank = (data.myRank != null) ? parseInt(data.myRank, 10) : null;
+    var _lbTotal  = parseInt(data.total, 10) || 0;
+    var myRankStr = (_lbMyRank != null && !isNaN(_lbMyRank)) ? ('#' + _lbMyRank + ' of ' + _lbTotal) : 'Not ranked yet';
     var tableHtml = '<table class="lb-table"><thead><tr>'
       + '<th>#</th><th>Player</th><th>Wave</th><th>Kills</th><th>Score</th><th>ARC</th>'
       + '</tr></thead><tbody>' + rows + '</tbody></table>';
-    var footerHtml = '<div class="lb-footer-note lb-source-badge">🌐 Global leaderboard — top ' + data.entries.length + ' of ' + data.total + ' players.</div>';
+    var footerHtml = '<div class="lb-footer-note lb-source-badge">🌐 Global leaderboard — top ' + data.entries.length + ' of ' + _lbTotal + ' players.</div>';
 
     var $body = $sec.find('.lb-server-body');
     $body.find('.lb-myrank').html('🎯 Your rank: <b>' + myRankStr + '</b>');
@@ -7031,6 +7036,7 @@ $(document).ready(function () {
   // ── Generic pip-bar ammo visual for non-bespoke weapons ───────
   // Tracks previous ammo count so we can trigger the eject micro-animation.
   var _pipbarPrevAmmo = -1;
+  var _pipbarPrevWeapon = null;
 
   function renderPipBarAmmoVisual() {
     const max = getAmmoMax();
@@ -7059,7 +7065,7 @@ $(document).ready(function () {
       }
       // Ejected-case micro-flash: light up when ammo just decremented by 1.
       // Respects window._reducedMotion.
-      var justFired = (_pipbarPrevAmmo > 0 && ammo === _pipbarPrevAmmo - 1);
+      var justFired = (_pipbarPrevWeapon === currentWeapon && _pipbarPrevAmmo > 0 && ammo === _pipbarPrevAmmo - 1);
       var ejectCls  = (justFired && !window._reducedMotion) ? ' ammo-pipbar--eject' : '';
       $vis.html('<div class="ammo-pipbar' + ejectCls + '" aria-label="' + ammo + ' / ' + max + ' rounds">' + pipsHtml + '</div>');
       if (justFired && !window._reducedMotion) {
@@ -7068,6 +7074,7 @@ $(document).ready(function () {
       }
     }
     _pipbarPrevAmmo = ammo;
+    _pipbarPrevWeapon = currentWeapon;
   }
   // ── Clay Ball Thrower — equip, sound, visuals ─────────────────
 
@@ -9264,6 +9271,8 @@ $(document).ready(function () {
     _waveStartMs = Date.now();
     _waveKillsAtStart = zombieKilled;
     _waveArcAtStart   = _sessionArcEarned;
+    _waveShotsFiredAtStart = shotsFired;
+    _waveShotsHitAtStart   = shotsHit;
     _ambushShotsLeft = hasSkill('ambush') ? 3 : 0;
     _berserkShotCounter = 0;
     $('body').off('keydown.game');
@@ -9850,10 +9859,12 @@ $(document).ready(function () {
     }
 
     // ── Wave-clear cinematic overlay (~2 s) — shown BEFORE inventory opens ──────
+    var _wccRM = !!window._reducedMotion; // capture once so cinematic + inventory-open timers can't diverge
     (function _showWaveCinematic() {
       var _wccKills    = zombieKilled - _waveKillsAtStart;
       var _wccArc      = _sessionArcEarned - _waveArcAtStart;
-      var _wccAcc      = shotsFired > 0 ? Math.round(shotsHit / shotsFired * 100) : null;
+      var _wccShots    = shotsFired - _waveShotsFiredAtStart; // per-wave, not cumulative session
+      var _wccAcc      = _wccShots > 0 ? Math.round((shotsHit - _waveShotsHitAtStart) / _wccShots * 100) : null;
       var _wccElapsed  = _waveStartMs ? Date.now() - _waveStartMs : 0;
       var _wccM = Math.floor(_wccElapsed / 60000);
       var _wccS = Math.floor((_wccElapsed % 60000) / 1000);
@@ -9886,14 +9897,14 @@ $(document).ready(function () {
       }
 
       // Auto-dismiss after 2 s; player click also dismisses early
-      var _wccDuration = window._reducedMotion ? 800 : 2000;
+      var _wccDuration = _wccRM ? 800 : 2000;
       var _wccTid = setTimeout(function() { $wcc.remove(); }, _wccDuration);
       $wcc.on('click', function() { clearTimeout(_wccTid); $wcc.remove(); });
     })();
 
     // ── Build & reveal inventory ~660 ms later (lets flash + fanfare breathe) ─
     // Offset by cinematic duration so inventory opens after cinematic completes
-    var _wccOffset = window._reducedMotion ? 800 : 2000;
+    var _wccOffset = _wccRM ? 800 : 2000;
     setTimeout(() => {
       buildInventory();
 
@@ -11185,7 +11196,7 @@ $(document).ready(function () {
     shooterXP = 0; shooterShotsFired = 0; shooterShotsHit = 0;
     consecutiveMisses = 0; _skillUnlocks = [];
     _bestCombo = 0; _headshots = 0; _hsStreak = 0; _bestHsStreak = 0; _gameStartMs = 0; _bpLastToast = 0;
-    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {}; _waveKillsAtStart = 0; _waveArcAtStart = 0;
+    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {}; _waveKillsAtStart = 0; _waveArcAtStart = 0; _waveShotsFiredAtStart = 0; _waveShotsHitAtStart = 0;
     _comboKills = 0; _comboMultiLive = 1.0; if (_comboTimer) { clearTimeout(_comboTimer); _comboTimer = null; }
     _bossAlive = false;
     $('#kill-feed').remove();
