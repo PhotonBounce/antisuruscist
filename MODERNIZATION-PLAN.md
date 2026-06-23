@@ -112,4 +112,11 @@ independently shippable and revertable (one PR per phase / sub-step).
 - ✅ Enemy elite callouts — Brute/Tank/Titan badges + spawn callout (`28`).
 - ⏳ Ammo-HUD pip-bars (#10, in progress); global leaderboard (#4); onboarding (#7, product-sensitive — flagged for owner).
 
+**Stability & QA pass (resource-leak hardening)**
+- ✅ Boot-time 404 storm fixed (`ae0c551`) — background auto-probe eager-fetched `bg-1..bg-20` at startup (16 red 404s per load; only `bg-1..4` exist). Now probes wave 1 + one-wave lookahead and prefetches the next wave's bg as waves advance; admin auto-discovery preserved. Verified `qa-errors.js`: boot 404s 16→0.
+- ✅ Spawn-timer leak fixed (`b5e6176`) — `interval()` retry branch couldn't distinguish transient "screen full" `false` from terminal game-over `false`, so any game ending mid-wave left a `setTimeout` chain busy-rescheduling forever (one leaked loop per game; worst on mobile). Now only reschedules while `gameActive`.
+- ✅ Timer-leak audit — all 28 `setInterval` sites reviewed; `endGame` clears every gameplay timer; remainder are bounded/self-clearing or design-persistent. Only the spawn chain leaked (now fixed).
+- ✅ DOM-leak test — 3× play→die→restart cycles; DOM node count stable (~940–985, no unbounded growth). Restart hygiene clean.
+- ✅ ~10 game states QA'd (signup, lobby, gameplay, wave-3, armory, settings, profile, game-over, mobile) — 0 JS exceptions; backend 13/13; guardian PASS.
+
 All screenshot proofs in [`screencaptures/`](./screencaptures/). CI green throughout.
