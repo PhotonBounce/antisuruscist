@@ -9258,10 +9258,14 @@ $(document).ready(function () {
         if (typeof t === 'undefined' || t-- > 0) {
           try {
             var result = func.call(null);
-            // If spawn failed (screen full), give back the ticket and retry after delay
+            // If spawn failed (screen full / paused), give back the ticket and
+            // retry after delay — BUT only while the game is still running.
+            // createZombies() also returns false on game-over (!gameActive); in
+            // that case we must terminate the chain instead of rescheduling it
+            // forever, otherwise every game that ends mid-wave leaks a setTimeout
+            // loop that busy-reschedules ~every spawn interval (B190).
             if (result === false && typeof t !== 'undefined') {
-              t++;
-              setTimeout(interv, w);
+              if (gameActive) { t++; setTimeout(interv, w); }
               return;
             }
           } catch (e) { t = 0; throw e.toString(); }
