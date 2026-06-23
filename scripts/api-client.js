@@ -14,6 +14,8 @@
 
     var h = location.hostname;
     if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3001';
+    // GitHub Pages staging (*.github.io): no backend — run offline (localStorage), like production
+    if (/\.github\.io$/.test(h)) return '';
     // Shared hosting — no Node.js backend; use localStorage fallback unless external API URL is configured
     if (h === 'www.photon-bounce.com' || h === 'photon-bounce.com') return '';
     return location.origin.replace(/-\d+\.app\.github\.dev/, '-3001.app.github.dev');

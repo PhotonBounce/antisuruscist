@@ -710,6 +710,6 @@
     <script src="../scripts/adaptive-ai.js?v=172"></script>
     <script src="../scripts/jukebox.js?v=172"></script>
     <script src="scripts/mobile.js?v=174"></script>
-    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('../sw.js',{scope:'/ar/'}).catch(function(){});}</script>
+    <script>if('serviceWorker' in navigator){if(location.hostname.indexOf('github.io')!==-1){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});}else{navigator.serviceWorker.register('../sw.js',{scope:'/ar/'}).catch(function(){});}}</script>
   </body>
 </html>

@@ -12,6 +12,9 @@
 var _API_BASE = (function () {
   var h = location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3001';
+  // GitHub Pages staging (*.github.io): no backend — run offline (localStorage),
+  // exactly like the production shared-hosting build. Keeps staging self-contained.
+  if (/\.github\.io$/.test(h)) return '';
   // Codespaces: replace the app port in the forwarded URL
   var base = location.origin.replace(/-\d+\.app\.github\.dev/, '-3001.app.github.dev');
   return base;

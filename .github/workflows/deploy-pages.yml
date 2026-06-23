@@ -1,0 +1,72 @@
+name: Deploy staging to GitHub Pages
+
+# Publishes the static game to a GitHub Pages STAGING URL
+# (https://<owner>.github.io/<repo>/). This is a separate host from the
+# production cPanel site and cannot affect it. Runs offline (localStorage),
+# mirroring production behaviour — no backend required.
+
+on:
+  push:
+    branches: [claude/stoic-davinci-o63qlb]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment; let in-progress runs finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble static site (web assets only)
+        run: |
+          mkdir -p _site
+          rsync -a ./ _site/ \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '_site' \
+            --exclude 'server' \
+            --exclude 'node_modules' \
+            --exclude 'nft-deploy' \
+            --exclude 'contracts' \
+            --exclude 'screencaptures' \
+            --exclude 'qa-*.js' \
+            --exclude '*.test.js' \
+            --exclude '*.md' \
+            --exclude '.htaccess' \
+            --exclude '.cpanel.yml' \
+            --exclude '.gitignore' \
+            --exclude 'package.json' \
+            --exclude 'package-lock.json'
+          # Pages is served from a sub-path; disable Jekyll so files with
+          # leading underscores / unusual names are served verbatim.
+          touch _site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -669,6 +669,6 @@
     <script src="scripts/engine-extras.js?v=172"></script>
     <script src="scripts/adaptive-ai.js?v=172"></script>
     <script src="scripts/jukebox.js?v=172"></script>
-    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js',{scope:'/ar/'}).then(function(r){console.log('SW registered, scope:',r.scope);}).catch(function(e){console.warn('SW fail:',e);});}</script>
+    <script>if('serviceWorker' in navigator){if(location.hostname.indexOf('github.io')!==-1){/* GitHub Pages staging: skip SW (its /ar/ scope is cPanel-only) and clear any stale cache so testers always get fresh builds */navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});}else{navigator.serviceWorker.register('sw.js',{scope:'/ar/'}).then(function(r){console.log('SW registered, scope:',r.scope);}).catch(function(e){console.warn('SW fail:',e);});}}</script>
   </body>
 </html>
