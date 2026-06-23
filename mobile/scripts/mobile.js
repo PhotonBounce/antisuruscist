@@ -524,7 +524,7 @@
     { file: 'track06-when-occupant-dies-v6.mp3',  name: 'When Occupant Dies v6' },
     { file: 'track07-sunflowers.mp3',             name: 'Sunflowers' },
     { file: 'track08-sunflowers-v2.mp3',          name: 'Sunflowers v2' },
-    { file: 'track09-putin-khuilo.wav',            name: 'Putin Khuilo' }
+    { file: 'track09-putin-khuilo.mp3',            name: 'Putin Khuilo' }
   ];
   var TRACK_BASE = '../sounds/music/jukeboxaudios/';
   var jbAudio = null;
