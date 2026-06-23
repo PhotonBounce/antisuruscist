@@ -1,9 +1,14 @@
 name: Deploy staging to GitHub Pages
 
-# Publishes the static game to a GitHub Pages STAGING URL
-# (https://<owner>.github.io/<repo>/). This is a separate host from the
-# production cPanel site and cannot affect it. Runs offline (localStorage),
-# mirroring production behaviour — no backend required.
+# Publishes the static game to a GitHub Pages STAGING URL on a separate host
+# (https://<owner>.github.io/<repo>/) so the WIP branch can be tested without
+# touching the production cPanel site — it CANNOT affect anti-ruscist.com.
+#
+# Publishes to a `gh-pages` branch via the built-in GITHUB_TOKEN. This avoids
+# the `github-pages` deployment environment, whose branch policy only permits
+# the default branch — letting us deploy this WIP branch automatically.
+#
+# Staging runs offline (localStorage), mirroring production — no backend needed.
 
 on:
   push:
@@ -11,24 +16,21 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Allow only one concurrent deployment; let in-progress runs finish.
 concurrency:
-  group: pages
+  group: pages-gh
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Assemble static site (web assets only)
         run: |
-          mkdir -p _site
+          rm -rf _site && mkdir -p _site
           rsync -a ./ _site/ \
             --exclude '.git' \
             --exclude '.github' \
@@ -46,27 +48,26 @@ jobs:
             --exclude '.gitignore' \
             --exclude 'package.json' \
             --exclude 'package-lock.json'
-          # Pages is served from a sub-path; disable Jekyll so files with
-          # leading underscores / unusual names are served verbatim.
+          # Disable Jekyll so files are served verbatim from the sub-path.
           touch _site/.nojekyll
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Publish to gh-pages branch
+        run: |
+          cd _site
+          git init -q
+          git checkout -q -b gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy staging from ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Summary
+        run: |
+          echo "### Staging built and pushed to \`gh-pages\` ✅" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "One-time step to go live: **Settings → Pages → Source → Deploy from a branch → \`gh-pages\` / \`/ (root)\` → Save**." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Then the staging site will be at: \`https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/\`" >> "$GITHUB_STEP_SUMMARY"
