@@ -11786,7 +11786,7 @@ $(document).ready(function () {
               +(function(){ var _dd = getDailyDeals(); if(!_dd.length) return ''; var _h = '<div class="earn-block earn-block--deals"><div class="earn-block-hdr"><span class="earn-ico">🔥</span><div><h4 class="earn-blk-title">Daily Deals</h4><p class="earn-blk-sub">Rotating discounts — refreshes at midnight!</p></div></div><div class="daily-deals-grid">'; _dd.forEach(function(d){ _h += '<div class="dd-card" data-cosm-id="'+d.id+'" data-price="'+d.salePrice+'"><div class="dd-type">'+d.type+'</div><div class="dd-label">'+d.label+'</div><div class="dd-prices"><s>'+d.price+'</s> <b>'+d.salePrice+' ARC</b></div><button class="dd-buy-btn earn-btn">BUY</button></div>'; }); return _h + '</div></div>'; })()
               +'<div class="earn-block"><div class="earn-block-hdr"><span class="earn-ico">👥</span><div><h4 class="earn-blk-title">Referral Rewards</h4><p class="earn-blk-sub">+2 Anti-Ruscist Coin (ARC) for each friend who joins via your link</p></div></div>'
               +'<div class="earn-ref-code">'+_refCode+'</div>'
-              +'<div class="earn-ref-url-wrap"><input class="earn-ref-url-input" id="earn-ref-url-input" type="text" readonly value="'+_shareUrl+'" onclick="this.select()"></div>'
+              +'<div class="earn-ref-url-wrap"><input class="earn-ref-url-input" id="earn-ref-url-input" type="text" aria-label="Your referral invite link" readonly value="'+_shareUrl+'" onclick="this.select()"></div>'
               +'<button id="earn-ref-copy-btn" class="earn-btn" data-url="'+_shareUrl+'">\uD83D\uDCCB Copy Invite Link</button>'
               +'<div class="earn-ref-count">'+_refCnt+' friend'+(_refCnt===1?'':'s')+' referred • +2 ARC each</div></div>'
               +'<div class="earn-block"><div class="earn-block-hdr"><span class="earn-ico">🏆</span><div><h4 class="earn-blk-title">Wave High Scores</h4><p class="earn-blk-sub">Beat your personal best per wave — +1 Anti-Ruscist Coin (ARC) each time</p></div></div>'
@@ -13196,7 +13196,7 @@ $(document).ready(function () {
               h += '<span class="pvp-score-val">' + (score > 0 ? score : '–') + '</span>';
               h += '</div>';
               h += '<div class="pvp-bet-row">';
-              h += '<label class="pvp-bet-lbl">ARC Bet (optional, 0-25):</label>';
+              h += '<label class="pvp-bet-lbl" for="pvp-bet-inp">ARC Bet (optional, 0-25):</label>';
               h += '<input id="pvp-bet-inp" class="pvp-bet-inp" type="number" min="0" max="25" value="0" />';
               h += '</div>';
               if (score > 0) {
