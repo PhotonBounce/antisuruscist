@@ -119,4 +119,10 @@ independently shippable and revertable (one PR per phase / sub-step).
 - ✅ DOM-leak test — 3× play→die→restart cycles; DOM node count stable (~940–985, no unbounded growth). Restart hygiene clean.
 - ✅ ~10 game states QA'd (signup, lobby, gameplay, wave-3, armory, settings, profile, game-over, mobile) — 0 JS exceptions; backend 13/13; guardian PASS.
 
+**Accessibility pass (axe-core wcag2a/2aa)**
+- ✅ Settings form-label fix (`caaee4c`) — 3 volume sliders flagged critical "Form elements must have labels"; the Display-tab accent-color + 4 toggle checkboxes had the same defect (hidden from the scan). Added `for` to all 8 control labels. axe 3→0 with modal+tabs visible.
+- ✅ Inventory form-label fix (`72711cc`) — referral-link input (`aria-label`) + PvP-bet input (`for`). Inventory label violations 2→0.
+- ℹ️ Mobile viewport disables pinch-zoom (`user-scalable=no`) — axe "moderate". Deliberate landscape touch-game choice (accidental zoom would disrupt aiming); left as-is, **flagged for owner**.
+- ✅ No contrast or other wcag2a/2aa issues across signup, lobby, settings, inventory, mobile.
+
 All screenshot proofs in [`screencaptures/`](./screencaptures/). CI green throughout.
