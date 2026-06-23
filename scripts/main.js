@@ -1401,8 +1401,11 @@ $(document).ready(function () {
     img.onerror = function () { _bgAvail[w] = false; _bgProbed[w] = true; cb(false); };
     img.src = 'images/background/bg-' + w + '.png?probe=' + Date.now();
   }
-  // Pre-probe waves 1-20 at boot (non-blocking, parallel)
-  for (var _pw = 1; _pw <= 20; _pw++) { (function(w){ probeBg(w, function(){}); })(_pw); }
+  // Pre-probe wave 1 + a one-wave lookahead at boot. Higher waves are probed
+  // on demand (and prefetched one ahead from updateParallaxBg), so booting the
+  // game no longer fires a wall of 404s for backgrounds that don't exist yet.
+  probeBg(1, function(){});
+  probeBg(2, function(){});
   // Expose for admin panel to invalidate after upload
   window._bgInvalidate = function(w) { _bgProbed[w] = false; _bgAvail[w] = false; };
 
@@ -1434,6 +1437,10 @@ $(document).ready(function () {
 
   // Sync parallax bg images with wave
   function updateParallaxBg(wave) {
+    // Prefetch the NEXT wave's background so its transition is flash-free,
+    // without eager-probing the whole range at boot. probeBg() is cached, so
+    // each wave costs at most one extra request (and none once it's known).
+    if (wave >= 1) probeBg(wave + 1, function(){});
     // Check if a raster bg exists for this wave (any wave, not just 1-4)
     function _applyRaster() {
       var bgUrl = 'url("images/background/bg-' + wave + '.png")';
