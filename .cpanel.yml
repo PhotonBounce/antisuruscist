@@ -40,7 +40,7 @@ deployment:
     - /bin/cp apple-touch-icon.png $DEPLOYDIR/
     - /bin/cp icon-192.png $DEPLOYDIR/
     - /bin/cp icon-512.png $DEPLOYDIR/
-    - /bin/cp zombie-mayhem.jpg $DEPLOYDIR/
+    - /bin/cp social-card.jpg $DEPLOYDIR/
 
     # ── Directories (recursive, force-overwrite to avoid stale timestamps) ─
     - /bin/cp -Rf scripts $DEPLOYDIR/

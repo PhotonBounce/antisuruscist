@@ -10,7 +10,7 @@
 #   index.html, admin.html, manifest.json, sw.js, robots.txt, sitemap.xml
 #   .htaccess (Apache security headers + rewrite rules)
 #   favicon.ico, apple-touch-icon.png, icon-192.png, icon-512.png
-#   zombie-mayhem.jpg (social share / OG image)
+#   social-card.jpg (social share / OG image — 1200x630)
 #   scripts/  — main.js, jukebox.js, adaptive-ai.js, agent-manager.js,
 #               agent-memory.js, api-client.js, engine-extras.js, ml-brain.js
 #   styles/main.css
@@ -75,7 +75,7 @@ FILES=(
   "apple-touch-icon.png"
   "icon-192.png"
   "icon-512.png"
-  "zombie-mayhem.jpg"
+  "social-card.jpg"
 )
 
 # Game scripts (only the ones loaded by index.html / mobile/index.html)
