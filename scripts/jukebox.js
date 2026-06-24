@@ -18,7 +18,9 @@
     { file: 'track08-sunflowers-v2.mp3',          name: 'Sunflowers v2' },
     { file: 'track09-putin-khuilo.mp3',            name: 'Putin Khuilo' }
   ];
-  var BASE = 'sounds/music/jukeboxaudios/';
+  // Prefix with ARC_BASE (set by main.js) so the path resolves to the shared
+  // asset root whether served from / (desktop) or /mobile/ (mobile). '' on desktop.
+  var BASE = (window.ARC_BASE || '') + 'sounds/music/jukeboxaudios/';
   var audio = null;
   var current = -1;
   var playing = false;

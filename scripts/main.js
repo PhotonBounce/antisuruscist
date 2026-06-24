@@ -20,6 +20,14 @@ var _API_BASE = (function () {
   return base;
 }());
 
+/* Asset base prefix — this script is shared by the desktop build (served from
+   the site root) and the mobile build (served from /mobile/, one level below
+   the asset root). Page-relative paths like "images/..." resolve correctly at
+   the root but 404 under /mobile/. Prefix them with ARC_BASE so both resolve to
+   the shared root. Empty string on desktop => paths are byte-identical there. */
+var ARC_BASE = (location.pathname.indexOf('/mobile/') !== -1) ? '../' : '';
+window.ARC_BASE = ARC_BASE;
+
 /* ═══════════════════════════════════════════════════════════════
    ML TELEMETRY COLLECTOR — lightweight client-side analytics
    ═══════════════════════════════════════════════════════════════ */
@@ -1402,7 +1410,7 @@ $(document).ready(function () {
     var img = new Image();
     img.onload  = function () { _bgAvail[w] = true;  _bgProbed[w] = true; cb(true);  };
     img.onerror = function () { _bgAvail[w] = false; _bgProbed[w] = true; cb(false); };
-    img.src = 'images/background/bg-' + w + '.png?probe=' + Date.now();
+    img.src = ARC_BASE + 'images/background/bg-' + w + '.png?probe=' + Date.now();
   }
   // Pre-probe wave 1 + a one-wave lookahead at boot. Higher waves are probed
   // on demand (and prefetched one ahead from updateParallaxBg), so booting the
@@ -1446,7 +1454,7 @@ $(document).ready(function () {
     if (wave >= 1) probeBg(wave + 1, function(){});
     // Check if a raster bg exists for this wave (any wave, not just 1-4)
     function _applyRaster() {
-      var bgUrl = 'url("images/background/bg-' + wave + '.png")';
+      var bgUrl = 'url("' + ARC_BASE + 'images/background/bg-' + wave + '.png")';
       _crossfadeFarTo(bgUrl + ' center/cover no-repeat', 0.92);
       $('#parallax-mid').css({ background: 'none', opacity: 0.10 });
       $('#parallax-near').css({ background: 'none', opacity: 0.04 });
@@ -2981,7 +2989,7 @@ $(document).ready(function () {
   // ─────────────────────────────────────────────────────────────────────────
   // ── INCOMING DRONES ──────────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────────────────────────
-  const DRONE_SVG = '<img src="images/vehicles/russdronefpv.png" alt="Enemy Drone" style="width:60px;height:60px;object-fit:contain;">';
+  const DRONE_SVG = '<img src="' + ARC_BASE + 'images/vehicles/russdronefpv.png" alt="Enemy Drone" style="width:60px;height:60px;object-fit:contain;">';
   const _activeDroneBuzzes = [];  // track active drone oscillator stop-functions for pause cleanup
 
   function stopAllDroneBuzzes() {
@@ -8061,7 +8069,7 @@ $(document).ready(function () {
     const groundY = ch * 0.72;
     const brdH = 252;
     const $brd = $('<div class="bradley-ci" style="position:absolute;z-index:18;pointer-events:none">' +
-      '<img src="images/vehicles/bradley.png" alt="Bradley" onerror="this.style.visibility=\'hidden\'">' +
+      '<img src="' + ARC_BASE + 'images/vehicles/bradley.png" alt="Bradley" onerror="this.style.visibility=\'hidden\'">' +
       '<div class="brd-muzzle-flash"></div>' +
       '</div>').css({ left: '-300px', top: (groundY - brdH * 0.62) + 'px' });
     $canves.append($brd);
@@ -8167,7 +8175,7 @@ $(document).ready(function () {
     const cw = $canves.width(), ch = $canves.height();
     const flyY = ch * 0.28 + Math.random() * ch * 0.18;
     const cRect = $canves[0].getBoundingClientRect();
-    const $fd = $('<div class="firedrone-ci"><img src="images/vehicles/firedrone.png" alt="Fire Drone"><span class="fd-flame">\uD83D\uDD25</span></div>')
+    const $fd = $('<div class="firedrone-ci"><img src="' + ARC_BASE + 'images/vehicles/firedrone.png" alt="Fire Drone"><span class="fd-flame">\uD83D\uDD25</span></div>')
       .css({ left: (cw + 40) + 'px', top: flyY + 'px' });
     $canves.append($fd);
     const travelMs = ((cw + 180) / 200) * 1000;
@@ -8281,7 +8289,7 @@ $(document).ready(function () {
     // FPV enters from top-right, dives toward target
     const startX = cw * 0.85 + Math.random() * cw * 0.1;
     const startY = -40;
-    const $fpv = $('<div class="fpv-ci"><img src="images/vehicles/fpv.png" alt="FPV Drone"></div>')
+    const $fpv = $('<div class="fpv-ci"><img src="' + ARC_BASE + 'images/vehicles/fpv.png" alt="FPV Drone"></div>')
       .css({ left: startX + 'px', top: startY + 'px' });
     $canves.append($fpv);
     // FPV buzzing sound — rising pitch dive
@@ -8374,7 +8382,7 @@ $(document).ready(function () {
     const rovY = ch * 0.72;
     const rovH = 76;
     const $rov = $('<div class="rover-ci" style="position:absolute;z-index:18;pointer-events:none">' +
-      '<img src="images/vehicles/rover.png" alt="Rover" onerror="this.style.visibility=\'hidden\'">' +
+      '<img src="' + ARC_BASE + 'images/vehicles/rover.png" alt="Rover" onerror="this.style.visibility=\'hidden\'">' +
       '<div class="rov-muzzle-flash"></div>' +
       '</div>').css({ left: '-80px', top: (rovY - rovH * 0.6) + 'px' });
     $canves.append($rov);
@@ -8508,7 +8516,7 @@ $(document).ready(function () {
           data-hp="${hp}" data-max-hp="${hp}"
           style="animation-duration:${dur}s; bottom:${bot}px">
         <div class="truck-hp-bar"><span class="truck-hp-fill" style="width:100%"></span></div>
-        <img src="images/vehicles/truck.png" alt="Enemy truck" draggable="false"
+        <img src="${ARC_BASE}images/vehicles/truck.png" alt="Enemy truck" draggable="false"
              onerror="this.style.width='120px';this.style.height='60px';this.style.background='#3a2200';this.style.border='2px dashed #ff4400';">
         <span class="truck-label">⚠ TRUCK</span>
       </div>`);
@@ -8580,7 +8588,7 @@ $(document).ready(function () {
     var img = new Image();
     img.onload = function() { tankRasterOverride = true; };
     img.onerror = function() { tankRasterOverride = false; };
-    img.src = 'images/vehicles/tank.png?check=' + Date.now();
+    img.src = ARC_BASE + 'images/vehicles/tank.png?check=' + Date.now();
   })();
   const TANK_SVG = `<svg width="275" height="103" viewBox="0 0 220 82" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -8760,7 +8768,7 @@ $(document).ready(function () {
     const dur = Math.round(9 / spd * 10) / 10;
     const bot = 42 + getRandom(0, 22);
     const tankVisual = tankRasterOverride
-      ? '<img src="images/vehicles/tank.png" alt="Enemy tank" draggable="false" style="width:275px;height:auto;max-width:100%;object-fit:contain">'
+      ? '<img src="' + ARC_BASE + 'images/vehicles/tank.png" alt="Enemy tank" draggable="false" style="width:275px;height:auto;max-width:100%;object-fit:contain">'
       : TANK_SVG;
     const $tank = $(`<div class="tank-target" role="button" aria-label="Enemy tank" tabindex="0"
           data-hp="${hp}" data-max-hp="${hp}"
@@ -12529,7 +12537,7 @@ $(document).ready(function () {
               });
               owned.forEach(function(h) {
                 html += '<div class="myheroes-card">'
-                  + '<img class="myheroes-card-img" src="' + (h.img || 'images/ui/hero-placeholder.png') + '" alt="' + h.name + '">'
+                  + '<img class="myheroes-card-img" src="' + (h.img || ARC_BASE + 'images/ui/hero-placeholder.png') + '" alt="' + h.name + '">'
                   + '<div class="myheroes-card-name">' + h.name + '</div>'
                   + '<div class="myheroes-card-rar" style="color:' + ({common:'#b0b0b0',rare:'#44aaff',epic:'#cc44ff',legendary:'#FFD700'}[h.rarity]||'#aaa') + '">' + (h.rarity || 'common').toUpperCase() + '</div>'
                   + '<div class="myheroes-card-actions">'
@@ -15044,7 +15052,7 @@ $(document).ready(function () {
     'images/zombies/zombie-4-death.png', 'images/zombies/zombie-5.png',
     'images/zombies/zombie-5-death.png', 'images/zombies/zombie-6.png',
     'images/zombies/zombie-6-death.png',
-  ], function () {
+  ].map(function (s) { return ARC_BASE + s; }), function () {
     _dismissLoader();
     // Prime AudioContext on first interaction — must resume for browser autoplay policy
     $(document).one('click', function() { var ac = getACtx(); if (ac.state === 'suspended') ac.resume().catch(function(){}); });
