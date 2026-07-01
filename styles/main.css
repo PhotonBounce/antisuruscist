@@ -10452,7 +10452,7 @@ body::before {
 
 /* ── Boss alert banner ── */
 #canves.juice-boss-alert::after {
-  content: '\u26A0 WARNING \u2014 HEAVY ARMOR INCOMING'; position: absolute;
+  content: '\26A0  WARNING \2014  HEAVY ARMOR INCOMING'; position: absolute;
   top: 8%; left: 50%; transform: translateX(-50%); z-index: 100001;
   font-family: 'Oswald', Impact, sans-serif; font-size: 28px; font-weight: 900;
   color: #ff2222; text-shadow: 0 0 20px #ff0000, 0 0 40px rgba(255,0,0,0.6);
