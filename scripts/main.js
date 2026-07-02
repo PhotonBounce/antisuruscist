@@ -5046,7 +5046,7 @@ $(document).ready(function () {
     var $b=$('#chess-board'); if(!$b.length) return;
     var h='<div style="display:inline-block;border:2px solid #c8a866;background:#1a1a2e;padding:4px;">';
     h+='<div style="text-align:center;color:#ffd700;font-size:13px;padding:2px;">♟️ W:'+_chess.stats.wins+' L:'+_chess.stats.losses+' D:'+_chess.stats.draws+'</div>';
-    for(var r=0;r<8;r++){
+    if(_chess.board) for(var r=0;r<8;r++){
       h+='<div style="display:flex;">';
       for(var c=0;c<8;c++){
         var dark=(r+c)%2===1;
@@ -5175,7 +5175,7 @@ $(document).ready(function () {
     var $b=$('#checkers-board'); if(!$b.length) return;
     var h='<div style="display:inline-block;border:2px solid #c8a866;background:#1a1a2e;padding:4px;">';
     h+='<div style="text-align:center;color:#ffd700;font-size:13px;padding:2px;">⛀ W:'+_ckr.stats.wins+' L:'+_ckr.stats.losses+'</div>';
-    for(var r=0;r<8;r++){
+    if(_ckr.board) for(var r=0;r<8;r++){
       h+='<div style="display:flex;">';
       for(var c=0;c<8;c++){
         var dark=(r+c)%2===1, bg=dark?'#5c4033':'#d4a76a';
@@ -12715,8 +12715,8 @@ $(document).ready(function () {
             const _owned = JSON.parse(localStorage.getItem('arc_cosmetics') || '[]');
             const _bal   = +(localStorage.getItem('arc_balance') || 0);
             const _cats  = ['title','skin','badge','vfx','msg','xhair','wskin','boost'];
-            const _catLabels = { title:'\U0001f451 Titles', skin:'\U0001f3a8 HUD Skins', badge:'\U0001f6e1\uFE0F Badges', vfx:'\u2728 VFX', msg:'\U0001f4ac Kill Messages', xhair:'\U0001f3af Crosshair Skins', wskin:'\U0001f52b Weapon Skins', boost:'\u26a1 Boosts' };
-            let h = '<div class="cos-title">\U0001f3a8 ARC COSMETICS SHOP</div>';
+            const _catLabels = { title:'\uD83D\uDC51 Titles', skin:'\uD83C\uDFA8 HUD Skins', badge:'\uD83D\uDEE1\uFE0F Badges', vfx:'\u2728 VFX', msg:'\uD83D\uDCAC Kill Messages', xhair:'\uD83C\uDFAF Crosshair Skins', wskin:'\uD83D\uDD2B Weapon Skins', boost:'\u26a1 Boosts' };
+            let h = '<div class="cos-title">\uD83C\uDFA8 ARC COSMETICS SHOP</div>';
             h += '<div class="cos-bal">ARC Balance: <strong class="cos-bal-val">' + _bal.toLocaleString() + ' ARC</strong></div>';
             _cats.forEach(function(cat) {
               const items = _COSMETICS.filter(function(c){return c.cat===cat;});
@@ -12851,7 +12851,7 @@ $(document).ready(function () {
             const _stakes   = JSON.parse(localStorage.getItem('arc_stakes') || '[]');
             const _bal      = +(localStorage.getItem('arc_balance') || 0);
             const _now      = Date.now();
-            let h = '<div class="stake-title">\U0001f4b0 ARC STAKING</div>';
+            let h = '<div class="stake-title">\uD83D\uDCB0 ARC STAKING</div>';
             h += '<div class="stake-bal">Available to stake: <strong>' + _bal.toLocaleString() + ' ARC</strong></div>';
             // Plans
             h += '<div class="stake-plans">';
@@ -13248,14 +13248,14 @@ $(document).ready(function () {
             h += '<div class="s2-countdown-lbl">Estimated launch: <strong>30 days</strong></div>';
             h += '<div class="s2-preview-grid">';
             const _s2items = [
-              { icon: '\U0001f6e1\uFE0F', name: 'Tank Operator', desc: 'New playable role: Abrams crew' },
+              { icon: '\uD83D\uDEE1\uFE0F', name: 'Tank Operator', desc: 'New playable role: Abrams crew' },
               { icon: '\u2708\uFE0F', name: 'Air Support', desc: 'Call-in F-16 strike with targeting laser' },
-              { icon: '\U0001f4a3', name: 'Mine Layer', desc: 'Deploy anti-vehicle mines as traps' },
-              { icon: '\U0001f525', name: 'Molotov Kit', desc: 'Area-denial incendiary drops' },
-              { icon: '\U0001f3c5', name: '50 new achievements', desc: 'S2-exclusive milestone badges' },
-              { icon: '\U0001fa99', name: '2× ARC rewards', desc: 'Double ARC earn rate all season' },
-              { icon: '\U0001f1fa\U0001f1e6', name: 'UA City Maps', desc: 'Kyiv, Kharkiv, Bakhmut theatres' },
-              { icon: '\U0001f47e', name: 'Boss Enemies', desc: 'Russian T-90 tank + Kamaz truck boss' },
+              { icon: '\uD83D\uDCA3', name: 'Mine Layer', desc: 'Deploy anti-vehicle mines as traps' },
+              { icon: '\uD83D\uDD25', name: 'Molotov Kit', desc: 'Area-denial incendiary drops' },
+              { icon: '\uD83C\uDFC5', name: '50 new achievements', desc: 'S2-exclusive milestone badges' },
+              { icon: '\uD83E\uDE99', name: '2× ARC rewards', desc: 'Double ARC earn rate all season' },
+              { icon: '\uD83C\uDDFA\uD83C\uDDE6', name: 'UA City Maps', desc: 'Kyiv, Kharkiv, Bakhmut theatres' },
+              { icon: '\uD83D\uDC7E', name: 'Boss Enemies', desc: 'Russian T-90 tank + Kamaz truck boss' },
             ];
             _s2items.forEach(function(item) {
               h += '<div class="s2-item">';
@@ -13270,7 +13270,7 @@ $(document).ready(function () {
             h += '<div class="s2-bar-wrap"><div class="s2-bar" style="width:' + _earlyPct + '%"></div></div>';
             h += '<div class="s2-bar-lbl">' + Math.min(_k, 300) + ' / 300 kills — ' + _earlyPct + '%' + (_earlyDone ? ' \u2705 UNLOCKED!' : '') + '</div>';
             if (_earlyDone) {
-              h += '<div class="s2-unlocked-banner">\U0001f947 You qualify for Season 2 Early Access!</div>';
+              h += '<div class="s2-unlocked-banner">\uD83E\uDD47 You qualify for Season 2 Early Access!</div>';
             }
             h += '<p class="s2-note">Season 2 content is under development. All S1 progress and ARC balance carry over.</p>';
             return h;
