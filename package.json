@@ -1,8 +1,12 @@
 {
+  "scripts": {
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers playwright test"
+  },
   "dependencies": {
     "puppeteer": "^24.39.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "clean-css-cli": "^5.6.3",
     "html-minifier-terser": "^7.2.0",
     "terser": "^5.46.1"

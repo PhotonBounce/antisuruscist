@@ -1,0 +1,10 @@
+=== Guardian base(origin/main) vs head ===
+  ✓ NAV_BUTTONS base=37 head=37
+  ✓ SECTIONS base=34 head=34
+  ✓ HANDLERS base=61 head=61
+  · JS_DECLARATIONS base=692 head=692
+  · CSS_LINES base=11111 head=11111
+  · HTML_LINES base=677 head=674
+  · JS_LINES base=15164 head=15164
+  · SCRIPT_TAGS base=9 head=6
+GUARDIAN: PASS

@@ -5,8 +5,8 @@
 #
 # Setup:
 #   1. In cPanel → Git Version Control → Create
-#   2. Clone URL: https://github.com/lindapot-art/antiruscist.git
-#   3. Repository Path: /home/<cpanel-user>/repositories/antiruscist
+#   2. Clone URL: https://github.com/PhotonBounce/antisuruscist.git
+#   3. Repository Path: /home/<cpanel-user>/repositories/antisuruscist
 #   4. Deploy HEAD Commit (checked)
 #   5. This file runs automatically after each pull
 #
@@ -40,7 +40,7 @@ deployment:
     - /bin/cp apple-touch-icon.png $DEPLOYDIR/
     - /bin/cp icon-192.png $DEPLOYDIR/
     - /bin/cp icon-512.png $DEPLOYDIR/
-    - /bin/cp zombie-mayhem.jpg $DEPLOYDIR/
+    - /bin/cp social-card.jpg $DEPLOYDIR/
 
     # ── Directories (recursive, force-overwrite to avoid stale timestamps) ─
     - /bin/cp -Rf scripts $DEPLOYDIR/

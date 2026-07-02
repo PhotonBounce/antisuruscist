@@ -2,7 +2,8 @@
 # Guardian pre/post-edit snapshot — run before and after edits to detect regressions
 # Usage: bash scripts/guardian-snapshot.sh [label]
 set -euo pipefail
-cd /workspaces/antiruscist
+# Resolve repo root relative to this script so it runs in any environment
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 LABEL="${1:-snapshot}"
 NAV=$(grep -c 'inv-nav-btn.*data-target' scripts/main.js 2>/dev/null || echo 0)

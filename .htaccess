@@ -57,7 +57,11 @@
 
 # ── Compression ────────────────────────────────────────────────────────
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml application/xml
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml application/xml font/ttf
+</IfModule>
+# Brotli — better ratio than gzip on text assets; no-op if the module isn't present
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml application/xml font/ttf
 </IfModule>
 
 # ── Browser Caching ───────────────────────────────────────────────────

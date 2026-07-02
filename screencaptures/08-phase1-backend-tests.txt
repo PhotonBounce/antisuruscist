@@ -1,0 +1,30 @@
+================ PHASE 1 BACKEND HARDENING — PROOF ================
+--- DEV MODE: start server (DB_PATH=/tmp/phase1.db, no NODE_ENV) ---
+PASS: health 200 + status ok  [status=200]
+PASS: setup/status needsSetup=true on fresh DB  [{"needsSetup":true}]
+PASS: setup rejects <10-char password (policy 6->10)  [400 Password must be at least 10 characters]
+PASS: setup creates admin (201) + returns JWT  [status=201]
+PASS: admin route ALLOWS valid JWT  [status=200]
+PASS: admin route REJECTS anon_id fallback (footgun removed)  [status=401]
+PASS: admin route rejects no-auth  [status=401]
+
+ALL DEV-MODE CHECKS PASSED
+
+DB_PATH override created file? 462848 bytes
+
+--- PROD GUARD 1: NODE_ENV=production, NO JWT_SECRET (expect FATAL + exit 1) ---
+✅ Database initialized at /tmp/phase1b.db
+FATAL: JWT_SECRET must be set in production (refusing to start with a random secret that would invalidate all tokens on restart).
+exit=1
+
+--- PROD GUARD 2: NODE_ENV=production, JWT set, NO CORS_ORIGINS (expect FATAL + exit 1) ---
+✅ Database initialized at /tmp/phase1b.db
+FATAL: CORS_ORIGINS must be set in production (refusing to reflect all origins).
+exit=1
+
+--- PROD GUARD 3: NODE_ENV=production, JWT + CORS set (expect server starts) ---
+prod health -> 200
+HSTS header present?
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+OVERALL DEV CHECKS RC=0

@@ -12,10 +12,21 @@
 var _API_BASE = (function () {
   var h = location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3001';
+  // GitHub Pages staging (*.github.io): no backend — run offline (localStorage),
+  // exactly like the production shared-hosting build. Keeps staging self-contained.
+  if (/\.github\.io$/.test(h)) return '';
   // Codespaces: replace the app port in the forwarded URL
   var base = location.origin.replace(/-\d+\.app\.github\.dev/, '-3001.app.github.dev');
   return base;
 }());
+
+/* Asset base prefix — this script is shared by the desktop build (served from
+   the site root) and the mobile build (served from /mobile/, one level below
+   the asset root). Page-relative paths like "images/..." resolve correctly at
+   the root but 404 under /mobile/. Prefix them with ARC_BASE so both resolve to
+   the shared root. Empty string on desktop => paths are byte-identical there. */
+var ARC_BASE = (location.pathname.indexOf('/mobile/') !== -1) ? '../' : '';
+window.ARC_BASE = ARC_BASE;
 
 /* ═══════════════════════════════════════════════════════════════
    ML TELEMETRY COLLECTOR — lightweight client-side analytics
@@ -376,6 +387,11 @@ $(document).ready(function () {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
       var key = el.getAttribute('data-i18n');
       var val = t(key);
+      // Key not present in this script's tables (e.g. mobile-only keys like
+      // rotateLandscape) — t() returns the bare key. Leave the element's existing
+      // fallback/text so the owning script (mobile.js) can localize it instead of
+      // overwriting it with the raw key string.
+      if (val === key) return;
       if (val.indexOf('<div>') !== -1 || val.indexOf('<br') !== -1) {
         // Sanitize: allow only <div>, </div>, <span>, </span>, <br>, <br/>
         el.innerHTML = val.replace(/<(?!\/?(?:div|span|br)\s*\/?>)[^>]*>/gi, '');
@@ -1394,19 +1410,52 @@ $(document).ready(function () {
     var img = new Image();
     img.onload  = function () { _bgAvail[w] = true;  _bgProbed[w] = true; cb(true);  };
     img.onerror = function () { _bgAvail[w] = false; _bgProbed[w] = true; cb(false); };
-    img.src = 'images/background/bg-' + w + '.png?probe=' + Date.now();
+    img.src = ARC_BASE + 'images/background/bg-' + w + '.png?probe=' + Date.now();
   }
-  // Pre-probe waves 1-20 at boot (non-blocking, parallel)
-  for (var _pw = 1; _pw <= 20; _pw++) { (function(w){ probeBg(w, function(){}); })(_pw); }
+  // Pre-probe wave 1 + a one-wave lookahead at boot. Higher waves are probed
+  // on demand (and prefetched one ahead from updateParallaxBg), so booting the
+  // game no longer fires a wall of 404s for backgrounds that don't exist yet.
+  probeBg(1, function(){});
+  probeBg(2, function(){});
   // Expose for admin panel to invalidate after upload
   window._bgInvalidate = function(w) { _bgProbed[w] = false; _bgAvail[w] = false; };
 
+  // Cross-fade the far parallax layer between wave backgrounds (juice — showcases
+  // the per-wave art instead of an instant swap). Instant fallback on reduced motion.
+  var _curFarBg = null, _curFarOpacity = 0.92;
+  function _crossfadeFarTo(newBg, op) {
+    var $far = $('#parallax-far');
+    if (!$far.length) return;
+    op = (op == null) ? 0.92 : op;
+    if (window._reducedMotion || _curFarBg === null) {
+      $far.css({ background: newBg, opacity: op });
+      _curFarBg = newBg; _curFarOpacity = op; return;
+    }
+    if (newBg === _curFarBg) { $far.css({ opacity: op }); _curFarOpacity = op; return; }
+    var $prev = $('#parallax-far-prev');
+    if (!$prev.length) {
+      $prev = $('<div class="parallax-layer" id="parallax-far-prev" aria-hidden="true"></div>');
+      $far.after($prev); // sits above #parallax-far (also via z-index)
+    }
+    // Outgoing image goes ON TOP at full, then fades out to reveal the new far bg
+    // beneath. Transition is set inline so the parallax mouse handler can't strip it.
+    $prev.css({ background: _curFarBg, opacity: _curFarOpacity, display: 'block', transition: 'none' });
+    void $prev[0].offsetWidth;                          // commit the start state
+    $far.css({ background: newBg, opacity: op });       // new bg instantly underneath
+    $prev.css({ transition: 'opacity 1.1s ease', opacity: 0 });
+    _curFarBg = newBg; _curFarOpacity = op;
+  }
+
   // Sync parallax bg images with wave
   function updateParallaxBg(wave) {
+    // Prefetch the NEXT wave's background so its transition is flash-free,
+    // without eager-probing the whole range at boot. probeBg() is cached, so
+    // each wave costs at most one extra request (and none once it's known).
+    if (wave >= 1) probeBg(wave + 1, function(){});
     // Check if a raster bg exists for this wave (any wave, not just 1-4)
     function _applyRaster() {
-      var bgUrl = 'url("images/background/bg-' + wave + '.png")';
-      $('#parallax-far').css({ background: bgUrl + ' center/cover no-repeat', opacity: 0.92 });
+      var bgUrl = 'url("' + ARC_BASE + 'images/background/bg-' + wave + '.png")';
+      _crossfadeFarTo(bgUrl + ' center/cover no-repeat', 0.92);
       $('#parallax-mid').css({ background: 'none', opacity: 0.10 });
       $('#parallax-near').css({ background: 'none', opacity: 0.04 });
       spawnDistantBg(wave);
@@ -1458,7 +1507,7 @@ $(document).ready(function () {
       // Aurora shimmer
       midBg = 'linear-gradient(180deg, rgba(40,200,150,0.05) 0%, rgba(80,60,200,0.04) 50%, transparent 100%)';
     }
-    $('#parallax-far').css({ background: far, opacity: 0.92 });
+    _crossfadeFarTo(far, 0.92);
     $('#parallax-mid').css({ background: midBg, opacity: midBg === 'none' ? 0 : 0.08 });
     $('#parallax-near').css({ background: 'none', opacity: 0 });
     spawnDistantBg(wave);
@@ -1609,6 +1658,21 @@ $(document).ready(function () {
     const $hm   = $('<div></div>').addClass(cls).text(label).css({ left: ex + 'px', top: ey + 'px' });
     $canves.append($hm);
     setTimeout(() => $hm.remove(), 700);
+    doDamageNumber(ex, ey, isHeadshot);
+  }
+
+  // \u2500\u2500 Floating damage number (juice) \u2014 pops the per-weapon damage at the hit \u2500\u2500
+  function doDamageNumber(ex, ey, isHeadshot) {
+    var w = WEAPONS[currentWeapon];
+    var base = (w && w.dmg) ? w.dmg : 1;
+    var dmg  = isHeadshot ? base * 3 : base;
+    var jx   = Math.random() * 22 - 11; // horizontal jitter so stacked hits fan out
+    var $n = $('<div></div>')
+      .addClass('dmg-number' + (isHeadshot ? ' dmg-number--crit' : ''))
+      .text(isHeadshot ? ('\u2620' + dmg) : dmg)
+      .css({ left: (ex + jx) + 'px', top: ey + 'px' });
+    $canves.append($n);
+    setTimeout(function () { $n.remove(); }, 750);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -2925,7 +2989,7 @@ $(document).ready(function () {
   // ─────────────────────────────────────────────────────────────────────────
   // ── INCOMING DRONES ──────────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────────────────────────
-  const DRONE_SVG = '<img src="images/vehicles/russdronefpv.png" alt="Enemy Drone" style="width:60px;height:60px;object-fit:contain;">';
+  const DRONE_SVG = '<img src="' + ARC_BASE + 'images/vehicles/russdronefpv.png" alt="Enemy Drone" style="width:60px;height:60px;object-fit:contain;">';
   const _activeDroneBuzzes = [];  // track active drone oscillator stop-functions for pause cleanup
 
   function stopAllDroneBuzzes() {
@@ -3201,10 +3265,12 @@ $(document).ready(function () {
     if (comboCount >= 3) { $canves.removeClass('combo-shake'); void $canves[0].offsetWidth; $canves.addClass('combo-shake'); }
     comboTimer = setTimeout(() => { comboCount = 0; }, 3000);
     $z.css('pointer-events', 'none').find('.strength-bar').addClass('hide');
+    // Brief brightness pop on the sprite at the kill frame (juice)
+    if (!window._reducedMotion) { $z.addClass('z-killflash'); setTimeout(function () { $z.removeClass('z-killflash'); }, 90); }
     // Blood splatter particles on kill
     _spawnBloodSplatter(cx || 0, cy || 0, isHead);
-    // Hitstop freeze frame on headshots
-    if (isHead) hitStop(25);
+    // Hitstop freeze frame — punchy on headshots, a subtle single-frame beat on every kill
+    hitStop(isHead ? 55 : 18);
     setTimeout(() => {
       // Death animation variant
       var _deathVar = isHead ? 'killed--explode' : ['killed--back','killed--collapse','killed--dissolve'][Math.floor(Math.random()*3)];
@@ -3662,6 +3728,11 @@ $(document).ready(function () {
   let _waveDmgTaken     = 0;
   let _waveStartMs      = 0;
   let _sessionArcEarned = 0;
+  // Wave-clear cinematic trackers
+  let _waveKillsAtStart = 0;   // zombieKilled count at the start of each wave
+  let _waveArcAtStart   = 0;   // _sessionArcEarned at start of each wave
+  let _waveShotsFiredAtStart = 0; // shotsFired at start of each wave (for per-wave accuracy)
+  let _waveShotsHitAtStart   = 0; // shotsHit at start of each wave
   // Whale-farming velocity guard — ring buffer of recent earn timestamps
   let _arcEarnTimestamps = [];
   const _ARC_VELOCITY_WINDOW_MS  = 30000; // 30-second rolling window
@@ -4975,7 +5046,7 @@ $(document).ready(function () {
     var $b=$('#chess-board'); if(!$b.length) return;
     var h='<div style="display:inline-block;border:2px solid #c8a866;background:#1a1a2e;padding:4px;">';
     h+='<div style="text-align:center;color:#ffd700;font-size:13px;padding:2px;">♟️ W:'+_chess.stats.wins+' L:'+_chess.stats.losses+' D:'+_chess.stats.draws+'</div>';
-    for(var r=0;r<8;r++){
+    if(_chess.board) for(var r=0;r<8;r++){
       h+='<div style="display:flex;">';
       for(var c=0;c<8;c++){
         var dark=(r+c)%2===1;
@@ -5104,7 +5175,7 @@ $(document).ready(function () {
     var $b=$('#checkers-board'); if(!$b.length) return;
     var h='<div style="display:inline-block;border:2px solid #c8a866;background:#1a1a2e;padding:4px;">';
     h+='<div style="text-align:center;color:#ffd700;font-size:13px;padding:2px;">⛀ W:'+_ckr.stats.wins+' L:'+_ckr.stats.losses+'</div>';
-    for(var r=0;r<8;r++){
+    if(_ckr.board) for(var r=0;r<8;r++){
       h+='<div style="display:flex;">';
       for(var c=0;c<8;c++){
         var dark=(r+c)%2===1, bg=dark?'#5c4033':'#d4a76a';
@@ -5213,6 +5284,64 @@ $(document).ready(function () {
   // Auto-render mini-games when their section is shown
   $(document).on('click', '[data-target="inv-sec-naperstki"]', function(){ setTimeout(function(){ _napRender('Pick a cup... 👀'); }, 50); });
   $(document).on('click', '[data-target="inv-sec-putinpool"]', function(){ setTimeout(_ppoolRender, 50); });
+
+  // ── Leaderboard: async server refresh when section is opened ────────
+  $(document).on('click', '[data-target="inv-sec-leaders"]', function() {
+    setTimeout(function() { _lbRefreshFromServer(); }, 80);
+  });
+
+  /** Fetch the global leaderboard from the server and update #inv-sec-leaders */
+  function _lbRefreshFromServer() {
+    if (!window.ARC_API) return;
+    var $sec = $('#inv-sec-leaders');
+    if (!$sec.length) return;
+    var $body = $sec.find('.lb-server-body');
+    if (!$body.length) return;
+    // Show loading state
+    $body.find('.lb-footer-note').text('Loading global leaderboard…');
+    window.ARC_API.fetchLeaderboard(_getLbPeriod(), 20).then(function(data) {
+      if (!data || !Array.isArray(data.entries) || !data.entries.length) {
+        // Server unreachable or empty — restore local fallback note
+        $body.find('.lb-footer-note').text('📡 Showing personal best board. Connect to server for global rankings.');
+        return;
+      }
+      _lbRenderServerData($sec, data);
+    });
+  }
+
+  /** Render server leaderboard data into the #inv-sec-leaders section */
+  function _lbRenderServerData($sec, data) {
+    var myName = localStorage.getItem('arc_username') || 'Fighter';
+    var rows = data.entries.map(function(e, i) {
+      var rank = i + 1;
+      var isMe = e.username === myName;
+      var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank);
+      var rowCls = isMe ? ' lb-row--me' : '';
+      var youBadge = isMe ? ' <span class="lb-you-badge">YOU</span>' : '';
+      return '<tr class="lb-row' + rowCls + '">'
+        + '<td class="lb-rank">' + medal + '</td>'
+        + '<td class="lb-name">' + _escHtml(e.username || '?') + youBadge + '</td>'
+        + '<td class="lb-wave">W' + (e.wave || 0) + '</td>'
+        + '<td class="lb-kills">' + (e.kills || 0) + '</td>'
+        + '<td class="lb-score">' + (e.score || 0).toLocaleString() + '</td>'
+        + '<td class="lb-arc">—</td>'
+        + '</tr>';
+    }).join('');
+
+    // Coerce server-provided rank/total to integers (defense-in-depth: never inject raw server strings via .html())
+    var _lbMyRank = (data.myRank != null) ? parseInt(data.myRank, 10) : null;
+    var _lbTotal  = parseInt(data.total, 10) || 0;
+    var myRankStr = (_lbMyRank != null && !isNaN(_lbMyRank)) ? ('#' + _lbMyRank + ' of ' + _lbTotal) : 'Not ranked yet';
+    var tableHtml = '<table class="lb-table"><thead><tr>'
+      + '<th>#</th><th>Player</th><th>Wave</th><th>Kills</th><th>Score</th><th>ARC</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    var footerHtml = '<div class="lb-footer-note lb-source-badge">🌐 Global leaderboard — top ' + data.entries.length + ' of ' + _lbTotal + ' players.</div>';
+
+    var $body = $sec.find('.lb-server-body');
+    $body.find('.lb-myrank').html('🎯 Your rank: <b>' + myRankStr + '</b>');
+    $body.find('.lb-table-wrap').html(tableHtml);
+    $body.find('.lb-footer-note').replaceWith(footerHtml);
+  }
 
   // ── User Registration Modal ──────────────────────────────────
   function showRegModal(onDone) {
@@ -6194,6 +6323,7 @@ $(document).ready(function () {
       cosm: _ownedCosm ? _ownedCosm.length : 0,
       ts: Date.now()
     };
+    // ── Local fallback (always written) ──────────────────────────────
     var lb; try { lb = JSON.parse(localStorage.getItem('arc_leaderboard') || '[]'); } catch(e) { lb = []; }
     const idx = lb.findIndex(e => e.name === name);
     if (idx >= 0) { if (entry.score > lb[idx].score) lb[idx] = entry; }
@@ -6202,6 +6332,22 @@ $(document).ready(function () {
     localStorage.setItem('arc_leaderboard', JSON.stringify(lb.slice(0, 50)));
     const _myRankIdx = lb.findIndex(e => e.name === name);
     if (_myRankIdx >= 0) localStorage.setItem('arc_lb_rank', String(_myRankIdx + 1));
+    // ── Server submit (best-effort, non-blocking) ─────────────────────
+    if (window.ARC_API && score > 0) {
+      const _period = _getLbPeriod();
+      window.ARC_API.submitLeaderboard(_period, { score: score, kills: zombieKilled, wave: wave })
+        .then(function(r) {
+          if (r && r.rank) localStorage.setItem('arc_lb_server_rank', String(r.rank));
+        });
+    }
+  }
+
+  // Return the current weekly period key (e.g. '2026-W25')
+  function _getLbPeriod() {
+    var now = new Date();
+    var jan1 = new Date(now.getFullYear(), 0, 1);
+    var weekNum = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return now.getFullYear() + '-W' + (weekNum < 10 ? '0' : '') + weekNum;
   }
 
   function getLeaderboard() {
@@ -6827,6 +6973,12 @@ $(document).ready(function () {
       $('#revolver-cylinder').hide();
       $ammoTitle.find('.ammo-visual').show();
       renderClayAmmoVisual();
+    } else {
+      // All other weapons (stugna, drone_bomb, panzerfaust, pkm, ak12, matador,
+      // nlaw, laser, sniper, ftdrone, tank_cannon, bradley) get a generic pip-bar.
+      $('#revolver-cylinder').hide();
+      $ammoTitle.find('.ammo-visual').show();
+      renderPipBarAmmoVisual();
     }
   }
 
@@ -6897,6 +7049,50 @@ $(document).ready(function () {
     $ammoTitle.find('.ammo-visual').html(
       `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shells.join('')}</svg>`
     );
+  }
+
+  // ── Generic pip-bar ammo visual for non-bespoke weapons ───────
+  // Tracks previous ammo count so we can trigger the eject micro-animation.
+  var _pipbarPrevAmmo = -1;
+  var _pipbarPrevWeapon = null;
+
+  function renderPipBarAmmoVisual() {
+    const max = getAmmoMax();
+    const PIP_CAP = 30; // above this threshold switch to segmented bar
+    const $vis = $ammoTitle.find('.ammo-visual');
+
+    if (max > PIP_CAP) {
+      // Segmented progress bar for high-capacity weapons (LMG belt, PKM, Bradley…)
+      const pct    = max > 0 ? ammo / max : 0;
+      const pctLo  = pct <= 0.20;
+      const pctMd  = pct <= 0.50 && !pctLo;
+      const barCol = pctLo ? '#FF3300' : pctMd ? '#FFA500' : '#FFD700';
+      const barW   = Math.round(pct * 76);
+      $vis.html(
+        '<div class="ammo-pipbar ammo-pipbar--seg" aria-label="' + ammo + ' / ' + max + ' rounds">' +
+          '<div class="ammo-pipbar__track"><div class="ammo-pipbar__fill" style="width:' + barW + 'px;background:' + barCol + ';"></div></div>' +
+          '<span class="ammo-pipbar__count">' + ammo + '</span>' +
+        '</div>'
+      );
+    } else {
+      // Individual pips — one pip per round in the magazine
+      var pipsHtml = '';
+      for (var i = 0; i < max; i++) {
+        var cls = i < ammo ? 'ammo-pip ammo-pip--loaded' : 'ammo-pip ammo-pip--spent';
+        pipsHtml += '<span class="' + cls + '" aria-hidden="true"></span>';
+      }
+      // Ejected-case micro-flash: light up when ammo just decremented by 1.
+      // Respects window._reducedMotion.
+      var justFired = (_pipbarPrevWeapon === currentWeapon && _pipbarPrevAmmo > 0 && ammo === _pipbarPrevAmmo - 1);
+      var ejectCls  = (justFired && !window._reducedMotion) ? ' ammo-pipbar--eject' : '';
+      $vis.html('<div class="ammo-pipbar' + ejectCls + '" aria-label="' + ammo + ' / ' + max + ' rounds">' + pipsHtml + '</div>');
+      if (justFired && !window._reducedMotion) {
+        // Remove eject class after animation (300 ms) so next shot can retrigger
+        setTimeout(function () { $vis.find('.ammo-pipbar').removeClass('ammo-pipbar--eject'); }, 320);
+      }
+    }
+    _pipbarPrevAmmo = ammo;
+    _pipbarPrevWeapon = currentWeapon;
   }
   // ── Clay Ball Thrower — equip, sound, visuals ─────────────────
 
@@ -7873,7 +8069,7 @@ $(document).ready(function () {
     const groundY = ch * 0.72;
     const brdH = 252;
     const $brd = $('<div class="bradley-ci" style="position:absolute;z-index:18;pointer-events:none">' +
-      '<img src="images/vehicles/bradley.png" alt="Bradley" onerror="this.style.visibility=\'hidden\'">' +
+      '<img src="' + ARC_BASE + 'images/vehicles/bradley.png" alt="Bradley" onerror="this.style.visibility=\'hidden\'">' +
       '<div class="brd-muzzle-flash"></div>' +
       '</div>').css({ left: '-300px', top: (groundY - brdH * 0.62) + 'px' });
     $canves.append($brd);
@@ -7979,7 +8175,7 @@ $(document).ready(function () {
     const cw = $canves.width(), ch = $canves.height();
     const flyY = ch * 0.28 + Math.random() * ch * 0.18;
     const cRect = $canves[0].getBoundingClientRect();
-    const $fd = $('<div class="firedrone-ci"><img src="images/vehicles/firedrone.png" alt="Fire Drone"><span class="fd-flame">\uD83D\uDD25</span></div>')
+    const $fd = $('<div class="firedrone-ci"><img src="' + ARC_BASE + 'images/vehicles/firedrone.png" alt="Fire Drone"><span class="fd-flame">\uD83D\uDD25</span></div>')
       .css({ left: (cw + 40) + 'px', top: flyY + 'px' });
     $canves.append($fd);
     const travelMs = ((cw + 180) / 200) * 1000;
@@ -8093,7 +8289,7 @@ $(document).ready(function () {
     // FPV enters from top-right, dives toward target
     const startX = cw * 0.85 + Math.random() * cw * 0.1;
     const startY = -40;
-    const $fpv = $('<div class="fpv-ci"><img src="images/vehicles/fpv.png" alt="FPV Drone"></div>')
+    const $fpv = $('<div class="fpv-ci"><img src="' + ARC_BASE + 'images/vehicles/fpv.png" alt="FPV Drone"></div>')
       .css({ left: startX + 'px', top: startY + 'px' });
     $canves.append($fpv);
     // FPV buzzing sound — rising pitch dive
@@ -8186,7 +8382,7 @@ $(document).ready(function () {
     const rovY = ch * 0.72;
     const rovH = 76;
     const $rov = $('<div class="rover-ci" style="position:absolute;z-index:18;pointer-events:none">' +
-      '<img src="images/vehicles/rover.png" alt="Rover" onerror="this.style.visibility=\'hidden\'">' +
+      '<img src="' + ARC_BASE + 'images/vehicles/rover.png" alt="Rover" onerror="this.style.visibility=\'hidden\'">' +
       '<div class="rov-muzzle-flash"></div>' +
       '</div>').css({ left: '-80px', top: (rovY - rovH * 0.6) + 'px' });
     $canves.append($rov);
@@ -8320,7 +8516,7 @@ $(document).ready(function () {
           data-hp="${hp}" data-max-hp="${hp}"
           style="animation-duration:${dur}s; bottom:${bot}px">
         <div class="truck-hp-bar"><span class="truck-hp-fill" style="width:100%"></span></div>
-        <img src="images/vehicles/truck.png" alt="Enemy truck" draggable="false"
+        <img src="${ARC_BASE}images/vehicles/truck.png" alt="Enemy truck" draggable="false"
              onerror="this.style.width='120px';this.style.height='60px';this.style.background='#3a2200';this.style.border='2px dashed #ff4400';">
         <span class="truck-label">⚠ TRUCK</span>
       </div>`);
@@ -8392,7 +8588,7 @@ $(document).ready(function () {
     var img = new Image();
     img.onload = function() { tankRasterOverride = true; };
     img.onerror = function() { tankRasterOverride = false; };
-    img.src = 'images/vehicles/tank.png?check=' + Date.now();
+    img.src = ARC_BASE + 'images/vehicles/tank.png?check=' + Date.now();
   })();
   const TANK_SVG = `<svg width="275" height="103" viewBox="0 0 220 82" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -8572,7 +8768,7 @@ $(document).ready(function () {
     const dur = Math.round(9 / spd * 10) / 10;
     const bot = 42 + getRandom(0, 22);
     const tankVisual = tankRasterOverride
-      ? '<img src="images/vehicles/tank.png" alt="Enemy tank" draggable="false" style="width:275px;height:auto;max-width:100%;object-fit:contain">'
+      ? '<img src="' + ARC_BASE + 'images/vehicles/tank.png" alt="Enemy tank" draggable="false" style="width:275px;height:auto;max-width:100%;object-fit:contain">'
       : TANK_SVG;
     const $tank = $(`<div class="tank-target" role="button" aria-label="Enemy tank" tabindex="0"
           data-hp="${hp}" data-max-hp="${hp}"
@@ -8999,6 +9195,36 @@ $(document).ready(function () {
       '</div>');
     }
     $canves.append($z);
+    // ── Elite enemy callout (backlog #6) ───────────────────────────────────────
+    // Eliteness is driven by the rarity-weighted military RANK, not the cosmetic
+    // zombieType (which rolls 1-6 uniformly and would flag ~60% of late-wave enemies).
+    // Rank-based keeps elites special: ~17% in late waves, none in wave 1.
+    (function _eliteCallout() {
+      var _isTitan  = rank.id === 'commander';
+      var _isTank   = rank.id === 'captain';
+      var _isBrute  = rank.id === 'lieutenant';
+      if (!_isTitan && !_isTank && !_isBrute) return;  // not elite — skip
+      var _tier = _isTitan ? 'titan' : _isTank ? 'tank' : 'brute';
+      var _label = _isTitan ? '☠ TITAN' : _isTank ? '⚠ TANK' : '⚠ BRUTE';
+      // 1. Persistent aura class on the zombie element
+      $z.addClass('z-elite-' + _tier);
+      // 2. Small badge pinned inside the element
+      $z.append('<div class="z-elite-badge">' + _label + '</div>');
+      // 3. Floating callout above the spawn point — respects _reducedMotion
+      if (!window._reducedMotion) {
+        // Compute a position roughly above where the zombie will appear
+        var _cx = parseFloat($z.css('left') || 0);
+        var _cy = parseFloat(botVar) + 20;
+        var $callout = $('<div class="elite-callout elite-callout-' + _tier + '">' + _label + '</div>')
+          .css({ left: ($canves.width() * 0.5 + (Math.random() - 0.5) * 200) + 'px', top: (_cy - 30) + 'px' });
+        $canves.append($callout);
+        requestAnimationFrame(function () { $callout.addClass('elite-callout--in'); });
+        setTimeout(function () {
+          $callout.addClass('elite-callout--out');
+          setTimeout(function () { $callout.remove(); }, 450);
+        }, 1100);
+      }
+    }());
     _liveZ.push($z[0]);
     _waveSpawned++;
     return true;
@@ -9043,10 +9269,14 @@ $(document).ready(function () {
         if (typeof t === 'undefined' || t-- > 0) {
           try {
             var result = func.call(null);
-            // If spawn failed (screen full), give back the ticket and retry after delay
+            // If spawn failed (screen full / paused), give back the ticket and
+            // retry after delay — BUT only while the game is still running.
+            // createZombies() also returns false on game-over (!gameActive); in
+            // that case we must terminate the chain instead of rescheduling it
+            // forever, otherwise every game that ends mid-wave leaks a setTimeout
+            // loop that busy-reschedules ~every spawn interval (B190).
             if (result === false && typeof t !== 'undefined') {
-              t++;
-              setTimeout(interv, w);
+              if (gameActive) { t++; setTimeout(interv, w); }
               return;
             }
           } catch (e) { t = 0; throw e.toString(); }
@@ -9062,6 +9292,10 @@ $(document).ready(function () {
     _ironWillUsed = false;
     _waveDmgTaken = 0;
     _waveStartMs = Date.now();
+    _waveKillsAtStart = zombieKilled;
+    _waveArcAtStart   = _sessionArcEarned;
+    _waveShotsFiredAtStart = shotsFired;
+    _waveShotsHitAtStart   = shotsHit;
     _ambushShotsLeft = hasSkill('ambush') ? 3 : 0;
     _berserkShotCounter = 0;
     $('body').off('keydown.game');
@@ -9647,7 +9881,53 @@ $(document).ready(function () {
       masterGain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.55);
     }
 
+    // ── Wave-clear cinematic overlay (~2 s) — shown BEFORE inventory opens ──────
+    var _wccRM = !!window._reducedMotion; // capture once so cinematic + inventory-open timers can't diverge
+    (function _showWaveCinematic() {
+      var _wccKills    = zombieKilled - _waveKillsAtStart;
+      var _wccArc      = _sessionArcEarned - _waveArcAtStart;
+      var _wccShots    = shotsFired - _waveShotsFiredAtStart; // per-wave, not cumulative session
+      var _wccAcc      = _wccShots > 0 ? Math.round((shotsHit - _waveShotsHitAtStart) / _wccShots * 100) : null;
+      var _wccElapsed  = _waveStartMs ? Date.now() - _waveStartMs : 0;
+      var _wccM = Math.floor(_wccElapsed / 60000);
+      var _wccS = Math.floor((_wccElapsed % 60000) / 1000);
+      var _wccTimeStr  = _wccM + ':' + (_wccS < 10 ? '0' : '') + _wccS;
+
+      var _accHtml = _wccAcc !== null
+        ? '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccAcc + '%</span><span class="wcc-stat-lbl">Accuracy</span></span>'
+        : '';
+
+      var $wcc = $('<div class="wcc-overlay" role="status" aria-live="polite">' +
+        '<div class="wcc-card">' +
+          '<div class="wcc-title">WAVE ' + completedWave + ' CLEARED</div>' +
+          '<div class="wcc-stats-row">' +
+            '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccKills + '</span><span class="wcc-stat-lbl">Kills</span></span>' +
+            '<span class="wcc-stat"><span class="wcc-stat-val">🪙 ' + _wccArc + '</span><span class="wcc-stat-lbl">ARC Earned</span></span>' +
+            _accHtml +
+            '<span class="wcc-stat"><span class="wcc-stat-val">' + _wccTimeStr + '</span><span class="wcc-stat-lbl">Time</span></span>' +
+          '</div>' +
+          '<div class="wcc-continue">&#9654; CONTINUE</div>' +
+        '</div>' +
+      '</div>');
+
+      $canves.append($wcc);
+
+      // Animate in (skip if reduced-motion)
+      if (!window._reducedMotion) {
+        requestAnimationFrame(function() { $wcc.addClass('wcc-overlay--in'); });
+      } else {
+        $wcc.addClass('wcc-overlay--in wcc-overlay--static');
+      }
+
+      // Auto-dismiss after 2 s; player click also dismisses early
+      var _wccDuration = _wccRM ? 800 : 2000;
+      var _wccTid = setTimeout(function() { $wcc.remove(); }, _wccDuration);
+      $wcc.on('click', function() { clearTimeout(_wccTid); $wcc.remove(); });
+    })();
+
     // ── Build & reveal inventory ~660 ms later (lets flash + fanfare breathe) ─
+    // Offset by cinematic duration so inventory opens after cinematic completes
+    var _wccOffset = _wccRM ? 800 : 2000;
     setTimeout(() => {
       buildInventory();
 
@@ -9778,7 +10058,7 @@ $(document).ready(function () {
         waveTransitioning = false;
         nextWaveFn();
       });
-    }, 660);
+    }, _wccOffset + 660);
   }
 
   let trackZombies = function repeatOften() {
@@ -10939,7 +11219,7 @@ $(document).ready(function () {
     shooterXP = 0; shooterShotsFired = 0; shooterShotsHit = 0;
     consecutiveMisses = 0; _skillUnlocks = [];
     _bestCombo = 0; _headshots = 0; _hsStreak = 0; _bestHsStreak = 0; _gameStartMs = 0; _bpLastToast = 0;
-    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {};
+    _sessionDmgTaken = 0; _waveDmgTaken = 0; _waveStartMs = 0; _sessionArcEarned = 0; _arcEarnTimestamps = []; totalDmgDealt = 0; _weaponKills = {}; _waveKillsAtStart = 0; _waveArcAtStart = 0; _waveShotsFiredAtStart = 0; _waveShotsHitAtStart = 0;
     _comboKills = 0; _comboMultiLive = 1.0; if (_comboTimer) { clearTimeout(_comboTimer); _comboTimer = null; }
     _bossAlive = false;
     $('#kill-feed').remove();
@@ -11517,7 +11797,7 @@ $(document).ready(function () {
               +(function(){ var _dd = getDailyDeals(); if(!_dd.length) return ''; var _h = '<div class="earn-block earn-block--deals"><div class="earn-block-hdr"><span class="earn-ico">🔥</span><div><h4 class="earn-blk-title">Daily Deals</h4><p class="earn-blk-sub">Rotating discounts — refreshes at midnight!</p></div></div><div class="daily-deals-grid">'; _dd.forEach(function(d){ _h += '<div class="dd-card" data-cosm-id="'+d.id+'" data-price="'+d.salePrice+'"><div class="dd-type">'+d.type+'</div><div class="dd-label">'+d.label+'</div><div class="dd-prices"><s>'+d.price+'</s> <b>'+d.salePrice+' ARC</b></div><button class="dd-buy-btn earn-btn">BUY</button></div>'; }); return _h + '</div></div>'; })()
               +'<div class="earn-block"><div class="earn-block-hdr"><span class="earn-ico">👥</span><div><h4 class="earn-blk-title">Referral Rewards</h4><p class="earn-blk-sub">+2 Anti-Ruscist Coin (ARC) for each friend who joins via your link</p></div></div>'
               +'<div class="earn-ref-code">'+_refCode+'</div>'
-              +'<div class="earn-ref-url-wrap"><input class="earn-ref-url-input" id="earn-ref-url-input" type="text" readonly value="'+_shareUrl+'" onclick="this.select()"></div>'
+              +'<div class="earn-ref-url-wrap"><input class="earn-ref-url-input" id="earn-ref-url-input" type="text" aria-label="Your referral invite link" readonly value="'+_shareUrl+'" onclick="this.select()"></div>'
               +'<button id="earn-ref-copy-btn" class="earn-btn" data-url="'+_shareUrl+'">\uD83D\uDCCB Copy Invite Link</button>'
               +'<div class="earn-ref-count">'+_refCnt+' friend'+(_refCnt===1?'':'s')+' referred • +2 ARC each</div></div>'
               +'<div class="earn-block"><div class="earn-block-hdr"><span class="earn-ico">🏆</span><div><h4 class="earn-blk-title">Wave High Scores</h4><p class="earn-blk-sub">Beat your personal best per wave — +1 Anti-Ruscist Coin (ARC) each time</p></div></div>'
@@ -12257,7 +12537,7 @@ $(document).ready(function () {
               });
               owned.forEach(function(h) {
                 html += '<div class="myheroes-card">'
-                  + '<img class="myheroes-card-img" src="' + (h.img || 'images/ui/hero-placeholder.png') + '" alt="' + h.name + '">'
+                  + '<img class="myheroes-card-img" src="' + (h.img || ARC_BASE + 'images/ui/hero-placeholder.png') + '" alt="' + h.name + '">'
                   + '<div class="myheroes-card-name">' + h.name + '</div>'
                   + '<div class="myheroes-card-rar" style="color:' + ({common:'#b0b0b0',rare:'#44aaff',epic:'#cc44ff',legendary:'#FFD700'}[h.rarity]||'#aaa') + '">' + (h.rarity || 'common').toUpperCase() + '</div>'
                   + '<div class="myheroes-card-actions">'
@@ -12435,8 +12715,8 @@ $(document).ready(function () {
             const _owned = JSON.parse(localStorage.getItem('arc_cosmetics') || '[]');
             const _bal   = +(localStorage.getItem('arc_balance') || 0);
             const _cats  = ['title','skin','badge','vfx','msg','xhair','wskin','boost'];
-            const _catLabels = { title:'\U0001f451 Titles', skin:'\U0001f3a8 HUD Skins', badge:'\U0001f6e1\uFE0F Badges', vfx:'\u2728 VFX', msg:'\U0001f4ac Kill Messages', xhair:'\U0001f3af Crosshair Skins', wskin:'\U0001f52b Weapon Skins', boost:'\u26a1 Boosts' };
-            let h = '<div class="cos-title">\U0001f3a8 ARC COSMETICS SHOP</div>';
+            const _catLabels = { title:'\uD83D\uDC51 Titles', skin:'\uD83C\uDFA8 HUD Skins', badge:'\uD83D\uDEE1\uFE0F Badges', vfx:'\u2728 VFX', msg:'\uD83D\uDCAC Kill Messages', xhair:'\uD83C\uDFAF Crosshair Skins', wskin:'\uD83D\uDD2B Weapon Skins', boost:'\u26a1 Boosts' };
+            let h = '<div class="cos-title">\uD83C\uDFA8 ARC COSMETICS SHOP</div>';
             h += '<div class="cos-bal">ARC Balance: <strong class="cos-bal-val">' + _bal.toLocaleString() + ' ARC</strong></div>';
             _cats.forEach(function(cat) {
               const items = _COSMETICS.filter(function(c){return c.cat===cat;});
@@ -12571,7 +12851,7 @@ $(document).ready(function () {
             const _stakes   = JSON.parse(localStorage.getItem('arc_stakes') || '[]');
             const _bal      = +(localStorage.getItem('arc_balance') || 0);
             const _now      = Date.now();
-            let h = '<div class="stake-title">\U0001f4b0 ARC STAKING</div>';
+            let h = '<div class="stake-title">\uD83D\uDCB0 ARC STAKING</div>';
             h += '<div class="stake-bal">Available to stake: <strong>' + _bal.toLocaleString() + ' ARC</strong></div>';
             // Plans
             h += '<div class="stake-plans">';
@@ -12927,7 +13207,7 @@ $(document).ready(function () {
               h += '<span class="pvp-score-val">' + (score > 0 ? score : '–') + '</span>';
               h += '</div>';
               h += '<div class="pvp-bet-row">';
-              h += '<label class="pvp-bet-lbl">ARC Bet (optional, 0-25):</label>';
+              h += '<label class="pvp-bet-lbl" for="pvp-bet-inp">ARC Bet (optional, 0-25):</label>';
               h += '<input id="pvp-bet-inp" class="pvp-bet-inp" type="number" min="0" max="25" value="0" />';
               h += '</div>';
               if (score > 0) {
@@ -12968,14 +13248,14 @@ $(document).ready(function () {
             h += '<div class="s2-countdown-lbl">Estimated launch: <strong>30 days</strong></div>';
             h += '<div class="s2-preview-grid">';
             const _s2items = [
-              { icon: '\U0001f6e1\uFE0F', name: 'Tank Operator', desc: 'New playable role: Abrams crew' },
+              { icon: '\uD83D\uDEE1\uFE0F', name: 'Tank Operator', desc: 'New playable role: Abrams crew' },
               { icon: '\u2708\uFE0F', name: 'Air Support', desc: 'Call-in F-16 strike with targeting laser' },
-              { icon: '\U0001f4a3', name: 'Mine Layer', desc: 'Deploy anti-vehicle mines as traps' },
-              { icon: '\U0001f525', name: 'Molotov Kit', desc: 'Area-denial incendiary drops' },
-              { icon: '\U0001f3c5', name: '50 new achievements', desc: 'S2-exclusive milestone badges' },
-              { icon: '\U0001fa99', name: '2× ARC rewards', desc: 'Double ARC earn rate all season' },
-              { icon: '\U0001f1fa\U0001f1e6', name: 'UA City Maps', desc: 'Kyiv, Kharkiv, Bakhmut theatres' },
-              { icon: '\U0001f47e', name: 'Boss Enemies', desc: 'Russian T-90 tank + Kamaz truck boss' },
+              { icon: '\uD83D\uDCA3', name: 'Mine Layer', desc: 'Deploy anti-vehicle mines as traps' },
+              { icon: '\uD83D\uDD25', name: 'Molotov Kit', desc: 'Area-denial incendiary drops' },
+              { icon: '\uD83C\uDFC5', name: '50 new achievements', desc: 'S2-exclusive milestone badges' },
+              { icon: '\uD83E\uDE99', name: '2× ARC rewards', desc: 'Double ARC earn rate all season' },
+              { icon: '\uD83C\uDDFA\uD83C\uDDE6', name: 'UA City Maps', desc: 'Kyiv, Kharkiv, Bakhmut theatres' },
+              { icon: '\uD83D\uDC7E', name: 'Boss Enemies', desc: 'Russian T-90 tank + Kamaz truck boss' },
             ];
             _s2items.forEach(function(item) {
               h += '<div class="s2-item">';
@@ -12990,7 +13270,7 @@ $(document).ready(function () {
             h += '<div class="s2-bar-wrap"><div class="s2-bar" style="width:' + _earlyPct + '%"></div></div>';
             h += '<div class="s2-bar-lbl">' + Math.min(_k, 300) + ' / 300 kills — ' + _earlyPct + '%' + (_earlyDone ? ' \u2705 UNLOCKED!' : '') + '</div>';
             if (_earlyDone) {
-              h += '<div class="s2-unlocked-banner">\U0001f947 You qualify for Season 2 Early Access!</div>';
+              h += '<div class="s2-unlocked-banner">\uD83E\uDD47 You qualify for Season 2 Early Access!</div>';
             }
             h += '<p class="s2-note">Season 2 content is under development. All S1 progress and ARC balance carry over.</p>';
             return h;
@@ -13057,7 +13337,7 @@ $(document).ready(function () {
             <h2 class="inv-sec-title">🏆 Leaderboard</h2>
             <p class="inv-sec-sub">Top fighters this week — ranked by score. Yours is highlighted. Resets every Monday.</p>
           </div>
-          ${(()=>{
+          <div class="lb-server-body">${(()=>{
             const _myName = localStorage.getItem('arc_username') || 'Fighter';
             const _lb     = getLeaderboard();
             const _now    = new Date();
@@ -13088,11 +13368,11 @@ $(document).ready(function () {
               + '<div class="lb-reset-lbl">Resets in ' + _daysToMon + ' day' + (_daysToMon===1?'':'s') + '</div>'
               + '<div class="lb-myrank">🎯 Your rank: <b>' + _myRankStr + '</b></div>'
               + '</div>'
-              + '<table class="lb-table"><thead><tr>'
+              + '<div class="lb-table-wrap"><table class="lb-table"><thead><tr>'
               + '<th>#</th><th>Player</th><th>Wave</th><th>Kills</th><th>Score</th><th>ARC</th>'
-              + '</tr></thead><tbody>' + _rows + '</tbody></table>'
-              + '<div class="lb-footer-note">� Personal best board. Global leaderboard sync coming with server update!</div>';
-          })()}
+              + '</tr></thead><tbody>' + _rows + '</tbody></table></div>'
+              + '<div class="lb-footer-note">📋 Personal best board. Loading global rankings…</div>';
+          })()}</div>
         </section>
 
         <!-- ╔═══════════════ PLAYER STATS ═══════════════╗ -->
@@ -14772,7 +15052,7 @@ $(document).ready(function () {
     'images/zombies/zombie-4-death.png', 'images/zombies/zombie-5.png',
     'images/zombies/zombie-5-death.png', 'images/zombies/zombie-6.png',
     'images/zombies/zombie-6-death.png',
-  ], function () {
+  ].map(function (s) { return ARC_BASE + s; }), function () {
     _dismissLoader();
     // Prime AudioContext on first interaction — must resume for browser autoplay policy
     $(document).one('click', function() { var ac = getACtx(); if (ac.state === 'suspended') ac.resume().catch(function(){}); });

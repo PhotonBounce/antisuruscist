@@ -14,6 +14,8 @@
 
     var h = location.hostname;
     if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3001';
+    // GitHub Pages staging (*.github.io): no backend — run offline (localStorage), like production
+    if (/\.github\.io$/.test(h)) return '';
     // Shared hosting — no Node.js backend; use localStorage fallback unless external API URL is configured
     if (h === 'www.photon-bounce.com' || h === 'photon-bounce.com') return '';
     return location.origin.replace(/-\d+\.app\.github\.dev/, '-3001.app.github.dev');
@@ -172,6 +174,36 @@
   function getNews() { return apiCall('GET', '/news'); }
   function fetchGameConfig() { return apiCall('GET', '/game-config'); }
 
+  // ── Leaderboard ─────────────────────────────────────────────────────
+  /**
+   * Submit the player's score for a period (e.g. 'weekly', 'global').
+   * Silently returns null on network failure so callers never need to catch.
+   * @param {string} period
+   * @param {{ score: number, kills: number, wave: number }} data
+   * @returns {Promise<{ok:boolean, rank:number, myScore:number}|null>}
+   */
+  function submitLeaderboard(period, data) {
+    if (!API_BASE) return Promise.resolve(null);
+    return apiCall('POST', '/leaderboard/' + encodeURIComponent(period), {
+      score: data.score || 0,
+      kills: data.kills || 0,
+      wave:  data.wave  || 0
+    });
+  }
+
+  /**
+   * Fetch the global top-N leaderboard for a period.
+   * Silently returns null on network failure.
+   * @param {string} period
+   * @param {number} [limit=20]
+   * @returns {Promise<{entries:Array, myRank:number|null, total:number}|null>}
+   */
+  function fetchLeaderboard(period, limit) {
+    if (!API_BASE) return Promise.resolve(null);
+    var qs = limit ? ('?limit=' + encodeURIComponent(limit)) : '';
+    return apiCall('GET', '/leaderboard/' + encodeURIComponent(period) + qs);
+  }
+
   // ── Expose global ───────────────────────────────────────────────────
   // ── External API URL management ───────────────────────────────
   function setApiUrl(url) {
@@ -206,6 +238,8 @@
     endSession: endSession,
     getNews: getNews,
     fetchGameConfig: fetchGameConfig,
+    submitLeaderboard: submitLeaderboard,
+    fetchLeaderboard: fetchLeaderboard,
     // Raw
     get: function(ep) { return apiCall('GET', ep); },
     post: function(ep, body) { return apiCall('POST', ep, body); }

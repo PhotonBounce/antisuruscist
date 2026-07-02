@@ -660,6 +660,114 @@ body {
 }
 #revolver-cylinder svg { display: block; }
 
+/* ── Ammo pip-bar — generic visual for non-bespoke weapons ─────
+   Inserted immediately after #revolver-cylinder rules (line 661).
+   Prefix: .ammo-pipbar / .ammo-pip  (unique — not used elsewhere). */
+.ammo-pipbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-end;
+  padding: 4px 2px 2px;
+  width: 80px;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+.ammo-pip {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid rgba(255,215,0,0.25);
+  transition: background 0.12s, opacity 0.12s;
+}
+.ammo-pip--loaded {
+  background: #FFD700;
+  border-color: #b8860b;
+  opacity: 1;
+}
+.ammo-pip--spent {
+  background: #1e1e1e;
+  border-color: #444;
+  opacity: 0.55;
+}
+
+/* Ejected-case micro-flash on each shot (skipped when _reducedMotion) */
+@keyframes ammo-pipbar-eject {
+  0%   { filter: brightness(1);   }
+  15%  { filter: brightness(2.4); }
+  100% { filter: brightness(1);   }
+}
+.ammo-pipbar--eject {
+  animation: ammo-pipbar-eject 0.28s ease-out forwards;
+}
+
+/* Segmented bar variant for high-capacity weapons (>30 rounds) */
+.ammo-pipbar--seg {
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  padding: 2px 2px 2px 2px;
+  width: 88px;
+  min-height: 30px;
+}
+.ammo-pipbar__track {
+  width: 80px;
+  height: 10px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ammo-pipbar__fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.12s linear, background 0.2s;
+  min-width: 2px;
+}
+.ammo-pipbar__count {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 11px;
+  color: #FFD700;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+/* Weapon-specific overrides: expand .ammo widget to fit pip-bar */
+.ammo[data-weapon="stugna"],
+.ammo[data-weapon="drone_bomb"],
+.ammo[data-weapon="panzerfaust"],
+.ammo[data-weapon="nlaw"],
+.ammo[data-weapon="matador"],
+.ammo[data-weapon="sniper"],
+.ammo[data-weapon="laser"],
+.ammo[data-weapon="ak12"],
+.ammo[data-weapon="pkm"],
+.ammo[data-weapon="ftdrone"],
+.ammo[data-weapon="tank_cannon"],
+.ammo[data-weapon="bradley"] {
+  background: none;
+  width: 90px;
+  height: 60px;
+  bottom: 30px;
+}
+.ammo[data-weapon="stugna"] .ammo-visual,
+.ammo[data-weapon="drone_bomb"] .ammo-visual,
+.ammo[data-weapon="panzerfaust"] .ammo-visual,
+.ammo[data-weapon="nlaw"] .ammo-visual,
+.ammo[data-weapon="matador"] .ammo-visual,
+.ammo[data-weapon="sniper"] .ammo-visual,
+.ammo[data-weapon="laser"] .ammo-visual,
+.ammo[data-weapon="ak12"] .ammo-visual,
+.ammo[data-weapon="pkm"] .ammo-visual,
+.ammo[data-weapon="ftdrone"] .ammo-visual,
+.ammo[data-weapon="tank_cannon"] .ammo-visual,
+.ammo[data-weapon="bradley"] .ammo-visual {
+  display: block;
+  width: 90px;
+  height: 60px;
+}
+
 /* Shotgun ammo display */
 .ammo[data-weapon="shotgun"] {
   background: none;
@@ -3405,6 +3513,100 @@ body {
   color: #fff;
   text-shadow: 0 0 20px rgba(255,255,255,0.6), 1px 1px 0 #000;
   line-height: 1.1;
+}
+
+/* ══════════════════════════════════════════════════════
+   Wave-clear cinematic overlay (.wcc-*)
+   Shown for ~2 s after a wave ends, before inventory opens.
+   ══════════════════════════════════════════════════════ */
+.wcc-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 19000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  /* Dark translucent scrim — lets the battlefield show through */
+  background: rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.wcc-overlay--in {
+  opacity: 1;
+}
+/* Skip fade animation in reduced-motion mode */
+.wcc-overlay--static {
+  transition: none;
+}
+.wcc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 36px 48px 28px;
+  background: linear-gradient(160deg, rgba(20,20,30,0.97) 0%, rgba(10,10,18,0.99) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.55);
+  border-radius: 12px;
+  box-shadow: 0 0 48px rgba(255, 215, 0, 0.22), 0 8px 32px rgba(0,0,0,0.7);
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  /* Card entrance: slide up from slight offset */
+  transform: translateY(14px) scale(0.96);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wcc-overlay--in .wcc-card {
+  transform: translateY(0) scale(1);
+}
+.wcc-overlay--static .wcc-card {
+  transition: none;
+  transform: none;
+}
+.wcc-title {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #FFD700;
+  text-shadow: 0 0 24px rgba(255, 215, 0, 0.7), 0 2px 0 #000;
+  line-height: 1.1;
+}
+.wcc-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 32px;
+}
+.wcc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.wcc-stat-val {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  line-height: 1.1;
+}
+.wcc-stat-lbl {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 215, 0, 0.7);
+}
+.wcc-continue {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  margin-top: 4px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -9196,6 +9398,12 @@ body::before {
   border-radius: 6px; font-family: 'Oswald', monospace; font-size: 10px;
   color: rgba(150,200,255,0.6); letter-spacing: 0.06em;
 }
+/* Global leaderboard source indicator — replaces the "coming soon" note */
+.lb-source-badge {
+  background: rgba(0,180,100,0.08); border-color: rgba(100,255,160,0.25);
+  color: rgba(100,255,160,0.75);
+}
+.lb-table-wrap { overflow-x: auto; }
 
 /* ══════════════════════════════════════════════════════════════
    FEATURE 3: BATTLE PASS
@@ -10244,7 +10452,7 @@ body::before {
 
 /* ── Boss alert banner ── */
 #canves.juice-boss-alert::after {
-  content: '\u26A0 WARNING \u2014 HEAVY ARMOR INCOMING'; position: absolute;
+  content: '\26A0  WARNING \2014  HEAVY ARMOR INCOMING'; position: absolute;
   top: 8%; left: 50%; transform: translateX(-50%); z-index: 100001;
   font-family: 'Oswald', Impact, sans-serif; font-size: 28px; font-weight: 900;
   color: #ff2222; text-shadow: 0 0 20px #ff0000, 0 0 40px rgba(255,0,0,0.6);
@@ -10708,6 +10916,51 @@ body.xh-supreme .chx-svg { filter: drop-shadow(0 0 8px #b9f2ff) drop-shadow(0 0 
 .hs-streak--in { opacity: 1; transform: translateX(-50%) scale(1); }
 .hs-streak--out { opacity: 0; transform: translateX(-50%) scale(0.7); }
 
+/* ── Elite enemy aura / badge (backlog #6) ── */
+/* Brute-tier (zombieType 3 / rank captain): orange glow */
+.z-elite-brute {
+  outline: 2px solid rgba(255,140,0,0.9);
+  box-shadow: 0 0 10px 3px rgba(255,140,0,0.55), inset 0 0 6px rgba(255,140,0,0.25);
+}
+/* Tank-tier (zombieType 4 / rank captain high-end): red glow */
+.z-elite-tank {
+  outline: 2px solid rgba(220,50,50,0.95);
+  box-shadow: 0 0 12px 4px rgba(220,50,50,0.6), inset 0 0 7px rgba(220,50,50,0.3);
+}
+/* Titan/Commander-tier (zombieType 5-6 / rank commander): purple glow */
+.z-elite-titan {
+  outline: 2px solid rgba(180,0,255,0.95);
+  box-shadow: 0 0 16px 5px rgba(180,0,255,0.65), inset 0 0 9px rgba(180,0,255,0.35);
+}
+/* Reduced-motion: keep outline, suppress glow animation pulse */
+@media (prefers-reduced-motion: reduce) {
+  .z-elite-brute, .z-elite-tank, .z-elite-titan { box-shadow: none; }
+}
+/* Elite badge pinned top-right of zombie element */
+.z-elite-badge {
+  position: absolute; top: -14px; right: 2px;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  padding: 2px 5px; border-radius: 3px;
+  pointer-events: none; z-index: 9; white-space: nowrap;
+  font-family: 'Oswald', sans-serif; letter-spacing: 0.03em;
+}
+.z-elite-brute  .z-elite-badge { background: rgba(255,140,0,0.9); color: #fff; text-shadow: 0 0 4px rgba(180,80,0,0.8); }
+.z-elite-tank   .z-elite-badge { background: rgba(200,40,40,0.9);  color: #fff; text-shadow: 0 0 4px rgba(120,0,0,0.8); }
+.z-elite-titan  .z-elite-badge { background: rgba(140,0,220,0.9);  color: #fff; text-shadow: 0 0 4px rgba(80,0,160,0.8); }
+/* Floating callout that spawns above elite on entry, then fades */
+.elite-callout {
+  position: absolute; z-index: 520; pointer-events: none;
+  font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
+  padding: 3px 9px; border-radius: 4px;
+  white-space: nowrap; transform: translateX(-50%) translateY(0);
+  opacity: 0; transition: opacity 0.2s, transform 0.4s ease-out;
+}
+.elite-callout-brute { background: rgba(255,140,0,0.88); color: #fff; border: 1px solid rgba(255,160,30,0.9); }
+.elite-callout-tank  { background: rgba(200,40,40,0.88);  color: #fff; border: 1px solid rgba(230,60,60,0.9); }
+.elite-callout-titan { background: rgba(140,0,220,0.88);  color: #fff; border: 1px solid rgba(180,30,255,0.9); }
+.elite-callout--in  { opacity: 1; transform: translateX(-50%) translateY(-12px); }
+.elite-callout--out { opacity: 0; transform: translateX(-50%) translateY(-24px); }
+
 /* ── Ammo Scavenge popup ── */
 .ammo-scav-pop {
   position: absolute; z-index: 520; pointer-events: none;
@@ -11109,3 +11362,30 @@ body.xh-supreme .chx-svg { filter: drop-shadow(0 0 8px #b9f2ff) drop-shadow(0 0 
 }
 @keyframes su-toast-in { from { opacity:0; transform: translateX(-50%) translateY(20px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
 @keyframes su-toast-out { to { opacity:0; transform: translateX(-50%) translateY(-10px); } }
+
+/* ── Floating damage numbers (combat juice) ─────────────────────────────── */
+.dmg-number{
+  position:absolute; z-index:62; pointer-events:none;
+  font-family:'Oswald','Russo One',Impact,sans-serif; font-weight:700;
+  font-size:18px; line-height:1; color:#fff;
+  text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.85);
+  transform:translate(-50%,-50%);
+  animation:dmgFloat .75s ease-out forwards;
+}
+.dmg-number--crit{ color:#ffd23f; font-size:27px;
+  text-shadow:0 2px 4px #000, 0 0 12px rgba(255,170,0,.9); }
+@keyframes dmgFloat{
+  0%{   opacity:0; transform:translate(-50%,-50%) scale(.6); }
+  18%{  opacity:1; transform:translate(-50%,-95%) scale(1.18); }
+  100%{ opacity:0; transform:translate(-50%,-185%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce){
+  .dmg-number{ animation:dmgFloatRM .6s ease-out forwards; }
+}
+@keyframes dmgFloatRM{ 0%{opacity:0} 20%{opacity:1} 100%{opacity:0} }
+
+/* ── Wave background cross-fade (juice) — outgoing image sits above, fades out ── */
+#parallax-far-prev { z-index:3; pointer-events:none; }
+
+/* ── Zombie kill-flash (juice) — brief brightness pop at the kill frame ──── */
+.z-killflash{ filter: brightness(2.6) contrast(1.15) drop-shadow(0 0 7px rgba(255,255,255,.9)) !important; }

@@ -1,0 +1,56 @@
+Loading page...
+DOM loaded. Waiting 10s for JS init...
+
+=== DOM STATE ===
+  canvesClasses: "intro season-spring"
+  loaderExists: false
+  gameCoverVisible: false
+  startBtnVisible: "found: 🎯\n          Kill Ruscists Now!\n        "
+  inventoryPanel: "exists, display: block"
+  scoreHud: true
+  zombieCount: 0
+  jQueryLoaded: true
+  arcGameBridge: true
+  arcAdaptive: true
+  langPickerBtns: 15
+  typewriterText: "NOT FOUND"
+
+=== ERRORS (31) ===
+  ❌ FAILED REQUEST: https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Russo+One&display=swap — net::ERR_CERT_AUTHORITY_INVALID
+  ❌ Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID
+  ❌ FAILED REQUEST: http://localhost:3001/api/game-config — net::ERR_CONNECTION_REFUSED
+  ❌ FAILED REQUEST: http://localhost:3001/api/player/auth — net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ FAILED REQUEST: http://localhost:3001/api/player/auth — net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: net::ERR_CONNECTION_REFUSED
+  ❌ FAILED REQUEST: http://localhost:3001/api/player/sync — net::ERR_CONNECTION_REFUSED
+  ❌ FAILED REQUEST: http://localhost:3001/api/game-config — net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: net::ERR_CONNECTION_REFUSED
+  ❌ FAILED REQUEST: http://localhost:3001/api/player/sync — net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: the server responded with a status of 404 (Not Found)
+  ❌ FAILED REQUEST: http://localhost:3001/api/jokes/ticker — net::ERR_CONNECTION_REFUSED
+  ❌ Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+=== CONSOLE LOGS (first 10) ===
+  [warn] [ARC-API] Offline or error: Failed to fetch
+  [warn] [ARC-API] Offline or error: Failed to fetch
+  [log] SW registered, scope: http://localhost:8080/ar/
+  [warn] [ARC-API] Offline or error: Failed to fetch
+  [warn] Error while trying to use the following icon from the Manifest: http://localhost:8080/ar/icon-192.png (Download error or resource isn't a valid image)

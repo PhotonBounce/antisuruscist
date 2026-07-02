@@ -24,7 +24,13 @@ db.pragma('foreign_keys = ON');
 
 const app = express();
 const PORT = process.env.API_PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || (function () {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET must be set in production (refusing to start with a random secret that would invalidate all tokens on restart).');
+    process.exit(1);
+  }
+  return crypto.randomBytes(32).toString('hex'); // dev-only ephemeral secret
+})();
 const JWT_EXPIRES = '7d';
 
 // ── Middleware ─────────────────────────────────────────────────────────
@@ -42,10 +48,15 @@ app.use(helmet({
       frameAncestors: ["'none'"],
     },
   },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+if (process.env.NODE_ENV === 'production' && !ALLOWED_ORIGINS.length) {
+  console.error('FATAL: CORS_ORIGINS must be set in production (refusing to reflect all origins).');
+  process.exit(1);
+}
 app.use(cors({
-  origin: ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : true,
+  origin: ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : true, // dev only: reflect all origins
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
@@ -82,6 +93,17 @@ const syncLimiter = rateLimit({
   message: { error: 'Sync rate limited' },
 });
 app.use('/api/player/sync', syncLimiter);
+
+// Strict limit on first-time admin setup. It is self-securing (only works while no
+// admin exists), but throttle to prevent brute/race abuse during the bootstrap window.
+const setupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many setup attempts, try again later' },
+});
+app.use('/api/setup', setupLimiter);
 
 // Serve static game files from parent directory
 app.use(express.static(path.join(__dirname, '..')));
@@ -182,8 +204,8 @@ app.post('/api/setup', (req, res) => {
   if (username.length < 2 || username.length > 24) {
     return res.status(400).json({ error: 'Username must be 2-24 characters' });
   }
-  if (typeof password !== 'string' || password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (typeof password !== 'string' || password.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters' });
   }
 
   const existing = db.prepare('SELECT id FROM players WHERE username = ?').get(username);
@@ -216,8 +238,8 @@ app.post('/api/signup', (req, res) => {
   if (typeof username !== 'string' || username.length < 2 || username.length > 24) {
     return res.status(400).json({ error: 'Username must be 2-24 characters' });
   }
-  if (typeof password !== 'string' || password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (typeof password !== 'string' || password.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters' });
   }
   // Check username uniqueness
   const existing = db.prepare('SELECT id FROM players WHERE username = ?').get(username.trim());
@@ -607,12 +629,82 @@ app.post('/api/market/buy', authMiddleware, (req, res) => {
 });
 
 // ── Leaderboard ───────────────────────────────────────────────────────
+
+// GET /api/leaderboard/:period[?limit=20]
+// Returns { entries: [...top N...], myRank: number|null, total: number }
+// Auth is optional — when an anon_id header is present the caller's rank is included.
 app.get('/api/leaderboard/:period', (req, res) => {
-  const period = req.params.period || 'weekly';
-  const rows = db.prepare(`SELECT l.*, p.username FROM leaderboard l
-    JOIN players p ON l.player_id = p.id WHERE l.period = ?
-    ORDER BY l.rank ASC LIMIT 100`).all(period);
-  res.json(rows);
+  const VALID_PERIODS = /^[a-z0-9_-]{1,32}$/;
+  const period = (req.params.period || 'weekly').toLowerCase();
+  if (!VALID_PERIODS.test(period)) return res.status(400).json({ error: 'Invalid period' });
+  const limit = Math.min(Math.max(1, parseInt(req.query.limit, 10) || 20), 100);
+
+  // Recompute ranks on the fly so they stay accurate even without a separate job.
+  // We store the best score per (player, period) and order descending.
+  const entries = db.prepare(`
+    SELECT l.score, l.kills, l.wave, l.snapshot_at,
+           p.username,
+           ROW_NUMBER() OVER (ORDER BY l.score DESC) AS rank
+    FROM leaderboard l
+    JOIN players p ON l.player_id = p.id
+    WHERE l.period = ?
+    ORDER BY l.score DESC
+    LIMIT ?
+  `).all(period, limit);
+
+  // Caller's rank (optional auth via x-anon-id header)
+  let myRank = null;
+  const anonId = req.headers['x-anon-id'];
+  if (anonId) {
+    const caller = db.prepare('SELECT id FROM players WHERE anon_id = ?').get(anonId);
+    if (caller) {
+      const rankRow = db.prepare(`
+        SELECT COUNT(*) + 1 AS rank
+        FROM leaderboard
+        WHERE period = ? AND score > (
+          SELECT COALESCE(score, -1) FROM leaderboard WHERE player_id = ? AND period = ?
+        )
+      `).get(period, caller.id, period);
+      const ownRow = db.prepare('SELECT id FROM leaderboard WHERE player_id = ? AND period = ?').get(caller.id, period);
+      myRank = ownRow ? rankRow.rank : null;
+    }
+  }
+
+  const totalRow = db.prepare('SELECT COUNT(*) AS c FROM leaderboard WHERE period = ?').get(period);
+  res.json({ entries, myRank, total: totalRow.c });
+});
+
+// POST /api/leaderboard/:period
+// Body: { score, kills, wave }
+// Upserts the caller's best score for this period (keeps highest score only).
+// Returns { ok:true, rank, myScore }
+app.post('/api/leaderboard/:period', authMiddleware, (req, res) => {
+  const VALID_PERIODS = /^[a-z0-9_-]{1,32}$/;
+  const period = (req.params.period || 'weekly').toLowerCase();
+  if (!VALID_PERIODS.test(period)) return res.status(400).json({ error: 'Invalid period' });
+
+  const pid   = req.player.id;
+  const score = Math.min(Math.max(0, parseInt(req.body.score, 10) || 0), 10_000_000);
+  const kills = Math.min(Math.max(0, parseInt(req.body.kills, 10) || 0), 100_000);
+  const wave  = Math.min(Math.max(0, parseInt(req.body.wave,  10) || 0), 1_000);
+
+  // Upsert: only update if new score is better
+  const existing = db.prepare('SELECT score FROM leaderboard WHERE player_id = ? AND period = ?').get(pid, period);
+  if (!existing) {
+    db.prepare(`INSERT INTO leaderboard (player_id, period, score, kills, wave, snapshot_at)
+                VALUES (?, ?, ?, ?, ?, datetime('now'))`).run(pid, period, score, kills, wave);
+  } else if (score > existing.score) {
+    db.prepare(`UPDATE leaderboard SET score = ?, kills = ?, wave = ?, snapshot_at = datetime('now')
+                WHERE player_id = ? AND period = ?`).run(score, kills, wave, pid, period);
+  }
+
+  // Return caller's current rank
+  const finalScore = Math.max(existing ? existing.score : 0, score);
+  const rankRow = db.prepare(`
+    SELECT COUNT(*) + 1 AS rank FROM leaderboard WHERE period = ? AND score > ?
+  `).get(period, finalScore);
+
+  res.json({ ok: true, rank: rankRow.rank, myScore: finalScore });
 });
 
 // ── Donations ─────────────────────────────────────────────────────────
@@ -709,13 +801,11 @@ app.post('/api/player/sync', authMiddleware, (req, res) => {
 // ADMIN ROUTES
 // ══════════════════════════════════════════════════════════════════════
 
-// Admin routes accept JWT OR anon_id for backward compatibility
+// Admin routes require a valid JWT. The previous anon_id fallback was a footgun
+// (any player row with is_admin=1 could reach admin endpoints without a token);
+// the admin panel authenticates with a Bearer JWT, so JWT-only is the correct gate.
 function adminAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return jwtAuth(req, res, next);
-  }
-  return authMiddleware(req, res, next);
+  return jwtAuth(req, res, next);
 }
 
 app.get('/api/admin/players', adminAuth, adminOnly, (req, res) => {
@@ -2500,6 +2590,90 @@ initMLOptimizer(app, db, adminAuth, adminOnly);
 // ══════════════════════════════════════════════════════════════════════
 const { initContractDeploy } = require('./contract-deploy');
 initContractDeploy(app, db, adminAuth, adminOnly);
+
+// ══════════════════════════════════════════════════════════════════════
+// LOG / TELEMETRY PRUNING  (prevents free-tier DB from filling up)
+// ══════════════════════════════════════════════════════════════════════
+//
+// Retention windows (configurable via env):
+//   TELEMETRY_RETENTION_DAYS  — ml_telemetry, ml_error_logs, ml_anomalies,
+//                               game_sessions, ml_training_runs,
+//                               ml_economy_snapshots, ml_balance_snapshots,
+//                               ai_prompt_history            (default: 30 days)
+//   ADMIN_LOG_RETENTION_DAYS  — admin_log                   (default: 365 days)
+//
+// Runs once on boot, then every 6 hours.
+
+const TELEMETRY_RETENTION_DAYS = Math.max(1, parseInt(process.env.TELEMETRY_RETENTION_DAYS) || 30);
+const ADMIN_LOG_RETENTION_DAYS  = Math.max(1, parseInt(process.env.ADMIN_LOG_RETENTION_DAYS)  || 365);
+
+// Tables pruned by TELEMETRY_RETENTION_DAYS (table → timestamp column)
+const PRUNE_TELEMETRY_TABLES = [
+  { table: 'ml_telemetry',          col: 'created_at' },
+  { table: 'ml_error_logs',         col: 'last_seen'  },
+  { table: 'ml_anomalies',          col: 'created_at' },
+  { table: 'game_sessions',         col: 'started_at' },
+  { table: 'ml_training_runs',      col: 'started_at' },
+  { table: 'ml_economy_snapshots',  col: 'snapshot_at' },
+  { table: 'ml_balance_snapshots',  col: 'snapshot_at' },
+  { table: 'ai_prompt_history',     col: 'created_at' },
+];
+
+function pruneOldLogs() {
+  let totalDeleted = 0;
+  const details = [];
+
+  // Guard: check which tables exist before pruning
+  const tableExists = (name) => {
+    try {
+      return !!db.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?"
+      ).get(name);
+    } catch { return false; }
+  };
+
+  for (const { table, col } of PRUNE_TELEMETRY_TABLES) {
+    if (!tableExists(table)) continue;
+    try {
+      const result = db.prepare(
+        `DELETE FROM ${table} WHERE ${col} < datetime('now', '-' || ? || ' days')`
+      ).run(TELEMETRY_RETENTION_DAYS);
+      if (result.changes > 0) {
+        details.push(`${table}:${result.changes}`);
+        totalDeleted += result.changes;
+      }
+    } catch (e) {
+      console.error(`[prune] Failed to prune ${table}: ${e.message}`);
+    }
+  }
+
+  // admin_log — longer retention
+  if (tableExists('admin_log')) {
+    try {
+      const result = db.prepare(
+        `DELETE FROM admin_log WHERE created_at < datetime('now', '-' || ? || ' days')`
+      ).run(ADMIN_LOG_RETENTION_DAYS);
+      if (result.changes > 0) {
+        details.push(`admin_log:${result.changes}`);
+        totalDeleted += result.changes;
+      }
+    } catch (e) {
+      console.error(`[prune] Failed to prune admin_log: ${e.message}`);
+    }
+  }
+
+  if (totalDeleted > 0) {
+    console.log(`[prune] Deleted ${totalDeleted} old rows (${details.join(', ')})`);
+  } else {
+    console.log('[prune] No stale rows to delete');
+  }
+}
+
+// Run on boot, then every 6 hours
+pruneOldLogs();
+const PRUNE_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const pruneTimer = setInterval(pruneOldLogs, PRUNE_INTERVAL_MS);
+pruneTimer.unref(); // don't keep the process alive just for pruning
 
 // ══════════════════════════════════════════════════════════════════════
 // START

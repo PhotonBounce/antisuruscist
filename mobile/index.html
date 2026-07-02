@@ -15,14 +15,16 @@
     <meta property="og:description" content="Defend Ukraine in this mobile zombie shooter. 18 weapons, 7 call-ins, adaptive AI, ARC token rewards. Play free in 15 languages.">
     <meta property="og:url" content="https://www.photon-bounce.com/ar/mobile/">
     <link rel="canonical" href="https://www.photon-bounce.com/ar/mobile/">
-    <meta property="og:image" content="https://www.photon-bounce.com/ar/apple-touch-icon.png">
-    <meta property="og:image:alt" content="Anti-Ruscist mobile game — Ukrainian flag themed zombie shooter">
+    <meta property="og:image" content="https://www.photon-bounce.com/ar/social-card.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Anti-Ruscist — war-torn Red Square at the foot of the Kremlin">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Anti-Ruscist — Mobile Zombie Shooter">
     <meta name="twitter:description" content="Defend Ukraine. Earn ARC tokens. Mint kill NFTs. Touch controls, 18 weapons, adaptive AI.">
-    <meta name="twitter:image" content="https://www.photon-bounce.com/ar/apple-touch-icon.png">
+    <meta name="twitter:image" content="https://www.photon-bounce.com/ar/social-card.jpg">
 
     <title>Anti-Ruscist — Mobile Zombie Shooter</title>
     <link rel="icon" href="../favicon.ico" sizes="any">
@@ -41,7 +43,9 @@
 
     <div id="rotate-prompt">
       <div class="rotate-inner">
-        <div class="rotate-icon">📱↔️</div>
+        <div class="rotate-phone-wrap">
+          <div class="rotate-phone"></div>
+        </div>
         <div class="rotate-text" data-i18n="rotateLandscape">Rotate your device to landscape mode</div>
         <div class="rotate-sub" data-i18n="requiresLandscape">This game requires landscape orientation</div>
       </div>
@@ -706,11 +710,8 @@
     <script src="../scripts/main.js?v=172"></script>
     <script src="../scripts/engine-extras.js?v=172"></script>
     <script src="../scripts/adaptive-ai.js?v=172"></script>
-    <script src="../scripts/agent-memory.js?v=172"></script>
-    <script src="../scripts/ml-brain.js?v=172"></script>
-    <script src="../scripts/agent-manager.js?v=172"></script>
     <script src="../scripts/jukebox.js?v=172"></script>
     <script src="scripts/mobile.js?v=174"></script>
-    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('../sw.js',{scope:'/ar/'}).catch(function(){});}</script>
+    <script>if('serviceWorker' in navigator){if(location.hostname.indexOf('github.io')!==-1){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});}else{navigator.serviceWorker.register('../sw.js',{scope:'/ar/'}).catch(function(){});}}</script>
   </body>
 </html>

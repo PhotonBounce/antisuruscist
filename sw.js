@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 /* Bump this version string on EVERY deploy to bust stale caches.
    Old caches are auto-deleted in the activate handler below. */
-var CACHE_NAME = 'arc-v5.54-batch199';
+var CACHE_NAME = 'arc-v5.55-batch200';
 
 /* Base path — change to '/' if deployed at domain root */
 var BASE = '/ar/';
@@ -16,9 +16,6 @@ var PRECACHE = [
   BASE + 'scripts/api-client.js',
   BASE + 'scripts/main.js',
   BASE + 'scripts/adaptive-ai.js',
-  BASE + 'scripts/agent-memory.js',
-  BASE + 'scripts/ml-brain.js',
-  BASE + 'scripts/agent-manager.js',
   BASE + 'scripts/engine-extras.js',
   BASE + 'scripts/jukebox.js',
   BASE + 'styles/main.css',
