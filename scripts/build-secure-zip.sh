@@ -83,11 +83,8 @@ FILES+=(
   "scripts/main.js"
   "scripts/jukebox.js"
   "scripts/adaptive-ai.js"
-  "scripts/agent-manager.js"
-  "scripts/agent-memory.js"
   "scripts/api-client.js"
   "scripts/engine-extras.js"
-  "scripts/ml-brain.js"
 )
 
 # Compiled CSS only (no SCSS source)
