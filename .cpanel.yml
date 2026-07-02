@@ -5,8 +5,8 @@
 #
 # Setup:
 #   1. In cPanel → Git Version Control → Create
-#   2. Clone URL: https://github.com/lindapot-art/antiruscist.git
-#   3. Repository Path: /home/<cpanel-user>/repositories/antiruscist
+#   2. Clone URL: https://github.com/PhotonBounce/antisuruscist.git
+#   3. Repository Path: /home/<cpanel-user>/repositories/antisuruscist
 #   4. Deploy HEAD Commit (checked)
 #   5. This file runs automatically after each pull
 #
