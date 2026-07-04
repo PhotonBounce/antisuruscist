@@ -14373,6 +14373,10 @@ $(document).ready(function () {
         updateScoreHUD();
         _invLastSection = 'inv-sec-armory';
         buildInventory();
+      }, onCancel: function() {
+        // Clear the click-guard so a cancelled purchase can be retried.
+        // (onConfirm rebuilds the inventory, which drops the flag anyway.)
+        $ubtn.data('busy', false);
       }});
     });
 
