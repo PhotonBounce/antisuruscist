@@ -9576,8 +9576,12 @@ $(document).ready(function () {
         // B179: Clear dead bodies left from game-over
         $('.zombie.killed').remove();
         _liveZ = [];
-        // Revive at 50% HP
+        // Revive at 50% HP — shooterHp is the HP that damageShooter drains and
+        // that gates death (shooterHp<=0 => endGame). Restoring only `life` left
+        // the player at shooterHp 0, so the paid Continue re-died on the next hit.
         life = Math.round(gcfg('economy','start_hp',100) * 0.5);
+        shooterHp = Math.round(gcfg('economy','start_hp',100) * 0.5);
+        updateShooterHpBar();
         gameActive = true;
         gamePaused = false;
         waveTransitioning = false;
@@ -10668,7 +10672,10 @@ $(document).ready(function () {
     $modal.addClass('open');
   }
 
-  $('#settings-btn').on('click', _openSettings);
+  // Call through a closure so the checkbox-restore wrapper assigned to
+  // _openSettings later (see below) actually runs — binding the bare
+  // reference here captured the pre-wrap version and skipped the restore.
+  $('#settings-btn').on('click', function () { _openSettings(); });
   $(document).on('click', '#settings-close-btn', function() {
     $('#settings-modal').removeClass('open');
   });
