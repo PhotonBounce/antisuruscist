@@ -3179,6 +3179,7 @@ $(document).ready(function () {
     if (!$z || !$z.length) return;
     if ($z.hasClass('killed') || $z.css('pointer-events') === 'none') return;
     zombieKilled++;
+    zombiesCleared++;
     _weaponKills[currentWeapon] = (_weaponKills[currentWeapon] || 0) + 1;
     _addMasteryKill(currentWeapon);
     // Boss kill reward
@@ -3634,6 +3635,9 @@ $(document).ready(function () {
   // ── Game state ────────────────────────────────────────────────
   let godMode = false, gamePaused = false;
   let life = gcfg('economy','start_lives',3), zombieKilled = 0, wave = 0, ammo = 6;
+  // Wave-progress counter: real kills AND breaches (enemies that walk off the field).
+  // zombieKilled stays kills-only — it feeds stats, achievements, unlocks, leaderboards.
+  let zombiesCleared = 0;
   let pauseZombieTracking;
   let gameActive = false;       // guards post-win/lose callbacks
   let _continuedThisRun = false; // death-upsell: max 1 continue per run
@@ -4331,7 +4335,7 @@ $(document).ready(function () {
       waveStart  = 0;
       waveTarget = WAVE_1_ZOMBIE_QTY;
     }
-    var done  = Math.max(0, (zombieKilled || 0) - waveStart);
+    var done  = Math.max(0, (zombiesCleared || 0) - waveStart);
     var total = Math.max(1, waveTarget - waveStart);
     var pct   = Math.min(100, Math.round(done / total * 100));
     $fill.css('width', pct + '%');
@@ -5640,6 +5644,7 @@ $(document).ready(function () {
         arcoins = +(localStorage.getItem('arc_balance') || 0);
         credits = gcfg('economy','start_credits',500);
         zombieKilled = 0;
+        zombiesCleared = 0;
         wave = 0;
         updateScoreHUD();
         buildInventory();
@@ -5653,7 +5658,7 @@ $(document).ready(function () {
     if (!confirm('⚠️ DELETE ALL SAVE DATA? This cannot be undone!')) return;
     if (!confirm('Are you REALLY sure? All progress, ARC, achievements, everything will be lost.')) return;
     _ARC_DB_KEYS.forEach(function(k) { localStorage.removeItem(k); });
-    arcoins = 0; credits = gcfg('economy','start_credits',500); zombieKilled = 0; wave = 0;
+    arcoins = 0; credits = gcfg('economy','start_credits',500); zombieKilled = 0; zombiesCleared = 0; wave = 0;
     updateScoreHUD();
     shooterSpeech('🗑️ All data cleared. Refresh to start fresh.');
   }
@@ -6143,6 +6148,7 @@ $(document).ready(function () {
     localStorage.removeItem('arc_total_wins');
     // Reset in-memory game vars so prestige takes effect immediately
     zombieKilled = 0;
+    zombiesCleared = 0;
     wave = 0;
     score = 0;
     life = gcfg('economy','start_lives',3) === 3 ? 100 : gcfg('economy','start_hp',100);
@@ -9768,14 +9774,14 @@ $(document).ready(function () {
     // B190: Pre-check — only fade remaining zombies if wave WILL actually transition
     // (prevents mid-wave disappearing when _waveSpawned >= _waveTarget but kills < threshold)
     var _willTransition = false;
-    if (wave >= 5 && zombieKilled >= _endlessKillTarget) _willTransition = true;
-    else if (wave === 4 && zombieKilled >= ALL_ZOMBIES) _willTransition = true;
-    else if (wave === 3 && zombieKilled >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY + WAVE_3_ZOMBIE_QTY)) _willTransition = true;
-    else if (wave === 2 && zombieKilled >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY)) _willTransition = true;
-    else if (wave === 1 && zombieKilled >= WAVE_1_ZOMBIE_QTY) _willTransition = true;
+    if (wave >= 5 && zombiesCleared >= _endlessKillTarget) _willTransition = true;
+    else if (wave === 4 && zombiesCleared >= ALL_ZOMBIES) _willTransition = true;
+    else if (wave === 3 && zombiesCleared >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY + WAVE_3_ZOMBIE_QTY)) _willTransition = true;
+    else if (wave === 2 && zombiesCleared >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY)) _willTransition = true;
+    else if (wave === 1 && zombiesCleared >= WAVE_1_ZOMBIE_QTY) _willTransition = true;
     if (!_willTransition) return;
     if (_liveZ.length > 0) { $(_liveZ).fadeOut(200, function(){ $(this).remove(); }); _liveZ = []; }
-    if (wave >= 5 && zombieKilled >= _endlessKillTarget) {
+    if (wave >= 5 && zombiesCleared >= _endlessKillTarget) {
       // Endless mode wave transition — rewards scale with depth
       waveTransitioning = true;
       var _endlessArc = Math.min(25, Math.floor(2 + (wave - 4) * 1.5));
@@ -9787,10 +9793,10 @@ $(document).ready(function () {
         currentMusicProfile = Math.floor(Math.random() * MUSIC_PROFILES.length);
         if (!mutedMusic) startMusic();
         const p = getEndlessWaveParams(wave + 1);
-        _endlessKillTarget = zombieKilled + p.qty;
+        _endlessKillTarget = zombiesCleared + p.qty;
         startWave(p.freq, p.qty);
       });
-    } else if (wave === 4 && zombieKilled >= ALL_ZOMBIES) {
+    } else if (wave === 4 && zombiesCleared >= ALL_ZOMBIES) {
       waveTransitioning = true;
       earnArcoin(gcfg('economy','wave_clear_arc_w4',2), 'Wave 4 cleared — ENDLESS MODE!');
       stopMusic();
@@ -9801,7 +9807,7 @@ $(document).ready(function () {
         _endlessKillTarget = ALL_ZOMBIES + p.qty;
         startWave(p.freq, p.qty);
       });
-    } else if (wave === 3 && zombieKilled >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY + WAVE_3_ZOMBIE_QTY)) {
+    } else if (wave === 3 && zombiesCleared >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY + WAVE_3_ZOMBIE_QTY)) {
       waveTransitioning = true;
       earnArcoin(gcfg('economy','wave_clear_arc_w3',1), 'Wave 3 completed');
       stopMusic();
@@ -9810,7 +9816,7 @@ $(document).ready(function () {
         if (!mutedMusic) startMusic();
         startWave(WAVE_4_ZOMBIE_FRQ, WAVE_4_ZOMBIE_QTY);
       });
-    } else if (wave === 2 && zombieKilled >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY)) {
+    } else if (wave === 2 && zombiesCleared >= (WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY)) {
       waveTransitioning = true;
       earnArcoin(gcfg('economy','wave_clear_arc_w2',1), 'Wave 2 completed');
       stopMusic();
@@ -9819,7 +9825,7 @@ $(document).ready(function () {
         if (!mutedMusic) startMusic();
         startWave(WAVE_3_ZOMBIE_FRQ, WAVE_3_ZOMBIE_QTY);
       });
-    } else if (wave === 1 && zombieKilled >= WAVE_1_ZOMBIE_QTY) {
+    } else if (wave === 1 && zombiesCleared >= WAVE_1_ZOMBIE_QTY) {
       waveTransitioning = true;
       earnArcoin(gcfg('economy','wave_clear_arc_w1',1), 'Wave 1 completed');
       stopMusic();
@@ -10081,7 +10087,7 @@ $(document).ready(function () {
             $z.remove();
             sndPunch();
             damageShooter(10);  // B197: reduced breach damage for longer gameplay
-            zombieKilled++;
+            zombiesCleared++;   // breach counts toward wave progress, NOT toward kill stats
             updateScoreHUD();
             if (_waveSpawned < _waveTarget && ($zombie.length - 1) < MAX_CONCURRENT_ZOMBIES) createZombies();
             if (!waveTransitioning) calcWave();
@@ -11173,7 +11179,7 @@ $(document).ready(function () {
 
   // ── Reset ─────────────────────────────────────────────────────
   function resetGame() {
-    zombieKilled = 0; wave = 0;
+    zombieKilled = 0; zombiesCleared = 0; wave = 0;
     currentWeapon = REVOLVER_WEAPON;
     newWeapons.clear();
     $('#inv-shortcut-label').removeClass('inv-has-new');
@@ -11288,6 +11294,7 @@ $(document).ready(function () {
       WAVE_1_ZOMBIE_QTY + WAVE_2_ZOMBIE_QTY + WAVE_3_ZOMBIE_QTY,
     ];
     zombieKilled = waveOffsets[targetWave] || 0;
+    zombiesCleared = zombieKilled; // keep wave-progress counter in lockstep on jump
 
     // Highlight the active wave button
     $('.lvl-btn').removeClass('active');
@@ -14396,7 +14403,7 @@ $(document).ready(function () {
       else if(id==='adm-addarc'){arcoins+=10000;localStorage.setItem('arc_balance',String(arcoins));log.append('<div class="admin-log-entry">🪙 +10,000 ARC → '+arcoins+'</div>');updateScoreHUD();_invLastSection='inv-sec-admin';buildInventory();}
       else if(id==='adm-fullhp'){hp=maxHp;godMode=true;$canves.toggleClass('god-mode-on',true);Object.keys(_ciCdEnd).forEach(k=>{_ciCdEnd[k]=0;});updateScoreHUD();log.append('<div class="admin-log-entry">❤️ Full HP + God Mode ON + Unlimited Call-ins</div>');}
       else if(id==='adm-allweapons'){shotgunUnlocked=m16Unlocked=clayUnlocked=true;['stugna','drone_bomb','panzerfaust','pkm','ak12','matador'].forEach(function(w){localStorage.setItem('unlocked_'+w,'1');});log.append('<div class="admin-log-entry">🔫 All weapons unlocked</div>');_invLastSection='inv-sec-admin';buildInventory();}
-      else if(id==='adm-resetgame'){if(!confirm('Reset ALL game data?'))return;['arc_balance','arc_nfts','arc_ref_code','arc_username','skill_unlocks','arc_p2p_listings','sol_upgrades'].forEach(function(k){localStorage.removeItem(k);});zombieKilled=0;credits=0;arcoins=0;shotsFired=0;shotsHit=0;shooterHp=100;updateShooterHpBar();_skillUnlocks=[];log.append('<div class="admin-log-entry admin-log-entry--danger">🗑️ Reset '+new Date().toLocaleTimeString()+'</div>');updateScoreHUD();buildInventory();}
+      else if(id==='adm-resetgame'){if(!confirm('Reset ALL game data?'))return;['arc_balance','arc_nfts','arc_ref_code','arc_username','skill_unlocks','arc_p2p_listings','sol_upgrades'].forEach(function(k){localStorage.removeItem(k);});zombieKilled=0;zombiesCleared=0;credits=0;arcoins=0;shotsFired=0;shotsHit=0;shooterHp=100;updateShooterHpBar();_skillUnlocks=[];log.append('<div class="admin-log-entry admin-log-entry--danger">🗑️ Reset '+new Date().toLocaleTimeString()+'</div>');updateScoreHUD();buildInventory();}
       else if(id==='adm-su-setrate'){var r=parseFloat($p.find('#adm-su-rate').val());if(isNaN(r)||r<0){log.append('<div class="admin-log-entry admin-log-entry--danger">❌ Invalid rate</div>');return;}SHOT_UA_RATE=r;_suUpdateUsd();log.append('<div class="admin-log-entry">💰 Shot rate → $'+r+'</div>');}
       else if(id==='adm-su-setmiles'){var raw=$p.find('#adm-su-milestones').val();var arr=raw.split(',').map(function(s){return parseInt(s.trim(),10);}).filter(function(n){return !isNaN(n)&&n>0;}).sort(function(a,b){return a-b;});if(!arr.length){log.append('<div class="admin-log-entry admin-log-entry--danger">❌ Invalid milestones</div>');return;}_suMilestones.length=0;arr.forEach(function(n){_suMilestones.push(n);});log.append('<div class="admin-log-entry">🎯 Milestones → '+arr.join(', ')+'</div>');}
       else if(id==='adm-su-reset'){if(!confirm('Reset shots-for-Ukraine counter to 0?'))return;shotsForUkraine=0;localStorage.setItem('arc_shots_ukraine','0');_suUpdateUsd();log.append('<div class="admin-log-entry">🔄 Shots for UA reset to 0</div>');_invLastSection='inv-sec-admin';buildInventory();}
