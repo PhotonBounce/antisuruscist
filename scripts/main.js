@@ -6025,7 +6025,7 @@ $(document).ready(function () {
   ];
 
   function getStakeData() {
-    try { return JSON.parse(localStorage.getItem('arc_stakes') || '[]'); } catch(e) { return []; }
+    try { var d = JSON.parse(localStorage.getItem('arc_stakes') || '[]'); return Array.isArray(d) ? d : []; } catch(e) { return []; }
   }
   function saveStakeData(d) { localStorage.setItem('arc_stakes', JSON.stringify(d)); }
 
@@ -12862,7 +12862,7 @@ $(document).ready(function () {
         <!-- STAKING SECTION (F13) -->
         <section class="inv-section" id="inv-sec-staking">
           ${(function(){
-            const _stakes   = JSON.parse(localStorage.getItem('arc_stakes') || '[]');
+            const _stakes   = getStakeData();
             const _bal      = +(localStorage.getItem('arc_balance') || 0);
             const _now      = Date.now();
             let h = '<div class="stake-title">\uD83D\uDCB0 ARC STAKING</div>';
