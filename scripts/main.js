@@ -5926,7 +5926,7 @@ $(document).ready(function () {
   ];
 
   function getCosmeticsOwned() {
-    try { return JSON.parse(localStorage.getItem('arc_cosmetics') || '[]'); } catch(e) { return []; }
+    try { var d = JSON.parse(localStorage.getItem('arc_cosmetics') || '[]'); return Array.isArray(d) ? d : []; } catch(e) { return []; }
   }
   const getOwnedCosmetics = getCosmeticsOwned;
   function buyCosmetic(id) {
@@ -6270,7 +6270,7 @@ $(document).ready(function () {
     localStorage.setItem('arc_login_streak', String(streak));
 
     // Check for newly earned milestone badges
-    var badges; try { badges = JSON.parse(localStorage.getItem('arc_streak_badges') || '[]'); } catch(e) { badges = []; }
+    var badges; try { badges = JSON.parse(localStorage.getItem('arc_streak_badges') || '[]'); if (!Array.isArray(badges)) badges = []; } catch(e) { badges = []; }
     _STREAK_BADGES.forEach(b => {
       if (streak >= b.days && !badges.includes(b.id)) {
         badges.push(b.id);
@@ -9752,7 +9752,7 @@ $(document).ready(function () {
         // Route to proper payment — show ARC upsell for 150 ARC purchase
         showArcUpsell(150, function() {
           // Grant exclusive starter cosmetic after successful purchase
-          var _owned; try { _owned = JSON.parse(localStorage.getItem('arc_cosmetics')||'[]'); } catch(e){ _owned=[]; }
+          var _owned = getCosmeticsOwned();
           if (!_owned.includes('title_founder')) _owned.push('title_founder');
           if (!_owned.includes('name_gold')) _owned.push('name_gold');
           localStorage.setItem('arc_cosmetics', JSON.stringify(_owned));
@@ -12726,7 +12726,7 @@ $(document).ready(function () {
         <!-- COSMETICS SHOP SECTION (F15) -->
         <section class="inv-section" id="inv-sec-cosmetics">
           ${(function(){
-            const _owned = JSON.parse(localStorage.getItem('arc_cosmetics') || '[]');
+            const _owned = getCosmeticsOwned();
             const _bal   = +(localStorage.getItem('arc_balance') || 0);
             const _cats  = ['title','skin','badge','vfx','msg','xhair','wskin','boost'];
             const _catLabels = { title:'\uD83D\uDC51 Titles', skin:'\uD83C\uDFA8 HUD Skins', badge:'\uD83D\uDEE1\uFE0F Badges', vfx:'\u2728 VFX', msg:'\uD83D\uDCAC Kill Messages', xhair:'\uD83C\uDFAF Crosshair Skins', wskin:'\uD83D\uDD2B Weapon Skins', boost:'\u26a1 Boosts' };
@@ -14543,7 +14543,7 @@ $(document).ready(function () {
     else if(id==='sol_explosive'){window._solExplosive=true;shooterSpeech('💥 Explosive Rounds active!');}
     else if(id==='sol_extmags'){Object.keys(ammoReserve).forEach(function(k){ammoReserve[k]+=3;});shooterSpeech('📦 +3 Magazines added to all weapons!');}
   }
-  (function(){var _su;try{_su=JSON.parse(localStorage.getItem('sol_upgrades')||'[]');}catch(e){_su=[];}_su.forEach(function(id){setTimeout(function(){applySolUpgrade(id);},2500);});})();
+  (function(){var _su;try{_su=JSON.parse(localStorage.getItem('sol_upgrades')||'[]');if(!Array.isArray(_su))_su=[];}catch(e){_su=[];}_su.forEach(function(id){setTimeout(function(){applySolUpgrade(id);},2500);});})();
 
   // ── Weapon Hands SVG System ──────────────────────────────────
   // FPS behind-the-weapon view. Filled polygon arm sleeves match the game's
@@ -14863,7 +14863,7 @@ $(document).ready(function () {
 
   // Get equipped weapon skin for current weapon (CSS filter based)
   function getEquippedWeaponSkin(weaponKey) {
-    var _owned; try { _owned = JSON.parse(localStorage.getItem('arc_cosmetics')||'[]'); } catch(e){ _owned=[]; }
+    var _owned = getCosmeticsOwned();
     var _equipped = localStorage.getItem('arc_wskin_' + weaponKey) || '';
     if (_equipped && _owned.includes(_equipped)) return _equipped;
     // Auto-detect: check if any skin for this weapon is owned
