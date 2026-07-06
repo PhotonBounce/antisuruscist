@@ -95,9 +95,15 @@ html, body {
 .zombie {
   --z-bot-mobile-offset: -20px;
 }
-.zombie.z-lane-near { bottom: calc(var(--z-bot, 140px) - 30px) !important; }
-.zombie.z-lane-mid  { bottom: calc(var(--z-bot, 200px) - 15px) !important; }
-.zombie.z-lane-far  { bottom: var(--z-bot, 270px) !important; }
+/* Mobile enemy lanes as viewport-relative % (feet position from bottom of
+   #canves) instead of desktop-tuned px. On a short landscape viewport the old
+   px values (far=270px) put far/mid enemies at 27-61% from top with heads
+   clipping off the top / floating in sky. These % keep all lanes' feet in the
+   ground band (~66-78% from top) so bodies stay clear of the top 30% and
+   bottom ~20% on any phone height. Small per-lane offset preserves depth. */
+.zombie.z-lane-near { bottom: 22% !important; }
+.zombie.z-lane-mid  { bottom: 28% !important; }
+.zombie.z-lane-far  { bottom: 34% !important; }
 
 /* ── Truck/Tank: scale for shorter viewport ──────────────────────────── */
 .truck-target { bottom: 40px !important; }
