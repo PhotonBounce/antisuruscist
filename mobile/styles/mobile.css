@@ -1424,3 +1424,19 @@ html, body {
 .game-over   #callin-panel,
 .game-paused #callin-panel,
 .level-message #callin-panel { display: none !important; }
+
+/* Hide the in-game touch HUD/controls (fire, reload, weapon switcher, HP bar,
+   stats bar, call-in drawer) whenever the armory/inventory or pause overlay is
+   up — otherwise they render on top of the menu. The #mob-* bars are siblings
+   that follow #canves in the DOM, so target them via the general-sibling
+   combinator off #canves' state classes. */
+#canves.inv-open ~ #mob-topbar,
+#canves.inv-open ~ #mob-bottombar,
+#canves.inv-open ~ #mob-drawer,
+#canves.inv-open ~ #jukebox-mini,
+#canves.game-paused ~ #mob-topbar,
+#canves.game-paused ~ #mob-bottombar,
+#canves.game-paused ~ #mob-drawer,
+#canves.game-paused ~ #jukebox-mini {
+  display: none !important;
+}
