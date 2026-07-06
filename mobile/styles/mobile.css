@@ -479,7 +479,7 @@ html, body {
 
 /* FIRE button */
 #mob-fire-btn {
-  width: 56px; height: 56px;
+  width: 50px; height: 50px;   /* fit inside the 52px #mob-bottombar (was 56px -> clipped 2px below viewport) */
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #dd3333, #881111 70%, #550808);
   border: 2px solid rgba(255,100,80,0.4);
@@ -546,16 +546,11 @@ html, body {
   background: rgba(255,215,0,0.15);
 }
 .jb-btn.playing { color: #44ff44; border-color: rgba(80,255,80,0.3); }
+/* Track name is illegible at 24px wide and word-break made the mini a tall
+   left strip. Hide it in the collapsed mini — the full name shows in the
+   expanded jukebox panel. */
 .jb-track-info {
-  font-size: 7px;
-  color: rgba(200,255,180,0.7);
-  max-width: 24px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.1;
-  text-align: center;
-  word-break: break-all;
-  max-height: 20px;
+  display: none !important;
 }
 .jb-track-name {
   font-weight: 700;
