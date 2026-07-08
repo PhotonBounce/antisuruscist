@@ -267,6 +267,10 @@
 
   var lastTapTime = 0;
   document.addEventListener('touchend', function (e) {
+    // Never suppress taps on interactive controls — preventDefault here
+    // cancels the synthesized click, silently eating every second tap on
+    // call-in buttons, drawer, pause, lobby cards, etc.
+    if (e.target.closest('button, [role="button"], a, input, select, .ci-btn, .lvl-btn')) { lastTapTime = Date.now(); return; }
     var now = Date.now();
     if (now - lastTapTime < 300) e.preventDefault();
     lastTapTime = now;
@@ -303,7 +307,10 @@
 
   canvesEl.addEventListener('touchstart', function (e) {
     if (e.target.closest(uiElements)) return;
-    var t = e.touches[0];
+    // targetTouches: only touches on the canvas — e.touches[0] is the first
+    // touch on the PAGE, so holding FIRE (finger 1 on the bottom bar) made
+    // aim-taps read the fire button's coordinates instead of the battlefield.
+    var t = e.targetTouches[0] || e.touches[0];
     var c = canvasCoords(t);
     touchX = c.x; touchY = c.y;
     updateCrosshair(touchX, touchY);
@@ -312,7 +319,7 @@
 
   canvesEl.addEventListener('touchmove', function (e) {
     if (e.target.closest(scrollAllowed)) return;
-    var t = e.touches[0];
+    var t = e.targetTouches[0] || e.touches[0];
     var c = canvasCoords(t);
     touchX = c.x; touchY = c.y;
     updateCrosshair(touchX, touchY);
@@ -379,8 +386,9 @@
   if (reloadBtn) {
     reloadBtn.addEventListener('touchstart', function (e) {
       e.preventDefault(); e.stopPropagation();
+      // Single trigger only — firing both #reload-fab AND the center prompt
+      // ran reload() twice, burning two spare magazines per tap.
       $('#reload-fab').trigger('click');
-      $canves.find('.reload-center-prompt').trigger('click');
       haptic(8);
     }, { passive: false });
   }
@@ -532,9 +540,9 @@
   var jbPlaying = false;
   var jbVolume = parseFloat(localStorage.getItem('arc_music_vol') || '0.38');
 
-  var jbPlayBtn = document.getElementById('jb-play');
-  var jbPrevBtn = document.getElementById('jb-prev');
-  var jbNextBtn = document.getElementById('jb-next');
+  var jbPlayBtn = document.getElementById('mjb-play');
+  var jbPrevBtn = document.getElementById('mjb-prev');
+  var jbNextBtn = document.getElementById('mjb-next');
   var jbTrackName = document.getElementById('jb-track-name');
   var jbListToggle = document.getElementById('jb-list-toggle');
   var jbPanel = document.getElementById('jukebox-panel');
@@ -728,8 +736,12 @@
      SECTION 7 — Zombie Direct-Tap
      ════════════════════════════════════════════════════════════════════════ */
   $canves.on('touchstart.mobzombie', '.zombie', function (e) {
-    var t = e.originalEvent.touches[0];
+    var oe = e.originalEvent;
+    var t = (oe.targetTouches && oe.targetTouches[0]) || oe.touches[0];
     if (!t) return;
+    // Cancel the browser's compatibility click for this touch — otherwise a
+    // single tap fires twice (synthetic click below + native click) = 2 shots.
+    e.preventDefault();
     this.dispatchEvent(new MouseEvent('click', {
       clientX: t.clientX, clientY: t.clientY, bubbles: true
     }));
