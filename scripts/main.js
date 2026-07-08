@@ -6165,6 +6165,11 @@ $(document).ready(function () {
   function getCosmeticsOwned() {
     try { var d = JSON.parse(localStorage.getItem('arc_cosmetics') || '[]'); return Array.isArray(d) ? d : []; } catch(e) { return []; }
   }
+  // Corruption-safe array read for inventory render paths — a single malformed
+  // localStorage value must never abort the whole buildInventory() render.
+  function _safeArr(key) {
+    try { var d = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(d) ? d : []; } catch(e) { return []; }
+  }
   const getOwnedCosmetics = getCosmeticsOwned;
   function buyCosmetic(id) {
     const owned = getCosmeticsOwned();
@@ -6358,7 +6363,8 @@ $(document).ready(function () {
 
   // ── Prestige System ──────────────────────────────────────────────────
   function getPrestigeData() {
-    const lvl = +(localStorage.getItem('arc_prestige') || 0);
+    let lvl = parseInt(localStorage.getItem('arc_prestige'), 10);   // corrupt/NaN -> 0 (avoids "PRESTIGE NaN")
+    if (!Number.isFinite(lvl) || lvl < 0) lvl = 0;
     const multi = Math.min(3.0, 1.0 + lvl * 0.05);  // +5% per level, cap ×3.0
     return { level: lvl, multiplier: multi };
   }
@@ -12365,7 +12371,7 @@ $(document).ready(function () {
             <small style="opacity:0.6">Connect a MetaMask wallet in the Wallet section to be ready for on-chain migration.</small>
           </div>
           ${(()=>{
-            const _ownedNfts = JSON.parse(localStorage.getItem('arc_nfts')||'[]');
+            const _ownedNfts = _safeArr('arc_nfts');
             const _canMint   = arcoins >= 5;
             const _rarInfo   = [
               {r:'common',    color:'#b0b0b0', stars:'★',       chance:'60%'},
@@ -12394,7 +12400,7 @@ $(document).ready(function () {
               +'<div class="nft-mint-count">'+_ownedNfts.length+' NFT'+(_ownedNfts.length!==1?'s':'')+' owned</div>'
               +'</div>';
             const _rarColor = {common:'#b0b0b0',rare:'#44aaff',epic:'#cc44ff',legendary:'#FFD700'};
-            const _p2pAll   = JSON.parse(localStorage.getItem('arc_p2p_listings') || '[]');
+            const _p2pAll   = _safeArr('arc_p2p_listings');
             const _grid = _ownedNfts.length === 0
               ? '<div class="nft-empty">No NFTs yet — mint your first one above!</div>'
               : '<div class="inv-nft-grid">'
@@ -12697,7 +12703,7 @@ $(document).ready(function () {
 
           <!-- NFT P2P TAB -->
           ${(()=>{
-            const _p2pListings = JSON.parse(localStorage.getItem('arc_p2p_listings') || '[]');
+            const _p2pListings = _safeArr('arc_p2p_listings');
             const _myRef = localStorage.getItem('arc_ref_code') || '';
             const _p2pCards = _p2pListings.length === 0
               ? '<div class="p2p-empty">No NFTs listed yet.<br>Go to 🇺🇦 <b>Heroes</b> tab → tap <b>📤 List for POL</b> on any card to be the first seller.</div>'
@@ -12805,8 +12811,8 @@ $(document).ready(function () {
           </div>
           <div class="myheroes-grid">
             ${(function(){
-              var owned = JSON.parse(localStorage.getItem('arc_owned_heroes') || '[]');
-              var premints = JSON.parse(localStorage.getItem('arc_premint_heroes') || '[]');
+              var owned = _safeArr('arc_owned_heroes');
+              var premints = _safeArr('arc_premint_heroes');
               if (!owned.length && !premints.length) return '<div class="myheroes-empty">You don\'t own any Hero NFTs yet.<br>Visit 🎖️ <b>Heroes</b> tab to browse and pre-mint.</div>';
               var html = '';
               premints.forEach(function(p) {
@@ -12840,7 +12846,7 @@ $(document).ready(function () {
           </div>
           <div class="ua-donate-summary">
             <div class="ua-donate-stat"><span class="ua-donate-val" id="ua-donate-total">$${(+(localStorage.getItem('arc_ua_donated_usd') || 0)).toLocaleString()}</span><span class="ua-donate-lbl">Total Donated (USD equiv.)</span></div>
-            <div class="ua-donate-stat"><span class="ua-donate-val" id="ua-donate-txns">${(JSON.parse(localStorage.getItem('arc_ua_donations') || '[]')).length}</span><span class="ua-donate-lbl">Transactions</span></div>
+            <div class="ua-donate-stat"><span class="ua-donate-val" id="ua-donate-txns">${(_safeArr('arc_ua_donations')).length}</span><span class="ua-donate-lbl">Transactions</span></div>
             <div class="ua-donate-stat"><span class="ua-donate-val">10%</span><span class="ua-donate-lbl">of every purchase</span></div>
             <div class="ua-donate-stat ua-donate-stat--shots"><span class="ua-donate-val" style="color:#FFD700">${shotsForUkraine.toLocaleString()}</span><span class="ua-donate-lbl">Your Shots → ~$${(shotsForUkraine * SHOT_UA_RATE).toFixed(2)} est. impact</span></div>
           </div>
@@ -12864,7 +12870,7 @@ $(document).ready(function () {
             </div>
             <div id="ua-donate-log-list">
               ${(function(){
-                var donations = JSON.parse(localStorage.getItem('arc_ua_donations') || '[]');
+                var donations = _safeArr('arc_ua_donations');
                 var rows = '';
                 // ── Shot-to-donation mechanism row (always shown) ──
                 if (shotsForUkraine > 0) {
@@ -13250,7 +13256,7 @@ $(document).ready(function () {
         <!-- ACHIEVEMENTS SECTION -->
         <section class="inv-section" id="inv-sec-achievements">
           ${(function(){
-            const _earned = JSON.parse(localStorage.getItem('arc_achievements') || '[]');
+            const _earned = _safeArr('arc_achievements');
             const _total  = _ACHIEVEMENTS.length;
             const _done   = _earned.length;
             const _pct    = Math.round(_done/_total*100);
@@ -13460,8 +13466,8 @@ $(document).ready(function () {
         <section class="inv-section" id="inv-sec-pvp">
           ${(function(){
             const _myName = localStorage.getItem('arc_username') || 'Fighter';
-            const _sent   = JSON.parse(localStorage.getItem('arc_pvp_sent')    || '[]');
-            const _results= JSON.parse(localStorage.getItem('arc_pvp_results') || '[]');
+            const _sent   = _safeArr('arc_pvp_sent');
+            const _results= _safeArr('arc_pvp_results');
             let h = '';
 
             if (_pvpChallenge) {
@@ -13668,14 +13674,14 @@ $(document).ready(function () {
             const _email  = localStorage.getItem('arc_user_email') || '—';
             const _regAt  = localStorage.getItem('arc_registered_at');
             const _regStr = _regAt ? new Date(_regAt).toLocaleDateString() : '—';
-            const _nfts   = JSON.parse(localStorage.getItem('arc_nfts') || '[]');
+            const _nfts   = _safeArr('arc_nfts');
             const _acc    = shooterShotsFired > 0
                             ? Math.round(shooterShotsHit / shooterShotsFired * 100) : 0;
             const _hsRows = [1,2,3,4].map(w => {
               const h = parseInt(localStorage.getItem('arc_wave_hs_'+w)||'0',10);
               return '<tr><td>Wave ' + w + '</td><td>' + (h ? h.toLocaleString() : '—') + '</td></tr>';
             }).join('');
-            const _solBought = JSON.parse(localStorage.getItem('sol_upgrades')||'[]');
+            const _solBought = _safeArr('sol_upgrades');
             return (
               '<div class="stats-player-card">'
               +'<div class="stats-avatar">' + proceduralPortrait(_uname, 60) + '</div>'
@@ -13700,7 +13706,7 @@ $(document).ready(function () {
               +'<div class="stats-card"><div class="stats-val">' + Math.round(parseFloat(localStorage.getItem('arc_streak_multi')||'1.0')*100) + '%</div><div class="stats-lbl">⚡ ARC Rate</div></div>'
               +'</div>'
               +'<div class="stats-section-title">🔥 Streak Badges</div>'
-              +'<div class="stats-streak-badges">' + _STREAK_BADGES.map(b => { const e = JSON.parse(localStorage.getItem('arc_streak_badges')||'[]').includes(b.id); return '<div class="stats-stbadge' + (e?' stats-stbadge--earned':'') + '">' + b.icon + '<div class="stats-stbadge-name">' + b.name + '</div><div class="stats-stbadge-day">Day ' + b.days + '</div><div class="stats-stbadge-bonus">+' + Math.round((b.multi-1)*100) + '% ARC</div></div>'; }).join('') + '</div>'
+              +'<div class="stats-streak-badges">' + _STREAK_BADGES.map(b => { const e = _safeArr('arc_streak_badges').includes(b.id); return '<div class="stats-stbadge' + (e?' stats-stbadge--earned':'') + '">' + b.icon + '<div class="stats-stbadge-name">' + b.name + '</div><div class="stats-stbadge-day">Day ' + b.days + '</div><div class="stats-stbadge-bonus">+' + Math.round((b.multi-1)*100) + '% ARC</div></div>'; }).join('') + '</div>'
               +'<div class="stats-section-title" style="margin-top:16px">⚡ Kill NFT Multiplier</div>'
               +(function(){
                 const _kt = getKillNftTier();
