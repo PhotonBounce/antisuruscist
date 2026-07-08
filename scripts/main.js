@@ -6329,7 +6329,13 @@ $(document).ready(function () {
   window.claimStake  = claimStake;
 
   // ── Staking maturity auto-check on load ──────────────────────────
-  (function checkStakingMaturity() {
+  // Deferred to a macrotask so the whole module IIFE (and every const it
+  // declares — _KILL_NFT_TIERS at ~6460, _BP_SEASON at ~6610, etc.) has
+  // finished initializing before earnArcoin runs. Running it inline during
+  // init reaches those consts through getKillNftMulti()/getBpData() while
+  // they are still in the temporal dead zone, throwing and aborting init —
+  // which bricked the app for any player who had a matured stake on reload.
+  setTimeout(function checkStakingMaturity() {
     var stakes = getStakeData();
     var changed = false;
     stakes.forEach(function(s) {
@@ -6345,7 +6351,7 @@ $(document).ready(function () {
       }
     });
     if (changed) saveStakeData(stakes);
-  })();
+  }, 0);
   // Expose all other onclick-called functions to window scope
   window.doPrestige         = doPrestige;
   window.repayLoan          = repayLoan;
