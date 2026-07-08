@@ -261,7 +261,9 @@ $(document).ready(function () {
       wpGl:'\u0413\u0440\u0430\u043d\u0430\u0442\u043e\u043c\u0435\u0442',wpSniper:'\u0421\u043d\u0430\u0439\u043f\u0435\u0440\u0441\u044c\u043a\u0430',wpStugna:'\u0421\u0442\u0443\u0433\u043d\u0430-\u041f',wpDroneBomb:'\u0414\u0440\u043e\u043d-\u0431\u043e\u043c\u0431\u0430',
       wpPanzerfaust:'\u041f\u0430\u043d\u0446\u0435\u0440\u0444\u0430\u0443\u0441\u0442 3',wpPkm:'\u041f\u041a\u041c',wpAk12:'\u0410\u041a-12',wpMatador:'M4 \u041c\u0430\u0442\u0430\u0434\u043e\u0440',
       uiEquip:'\u0412\u0417\u042f\u0422\u0418',uiLocked:'\u0417\u0410\u041a\u0420\u0418\u0422\u041e',uiActive:'\u0410\u041a\u0422\u0418\u0412\u041d\u0410',uiOwned:'\u041a\u0423\u041f\u041b\u0415\u041d\u041e',uiFree:'\u0411\u0415\u0417\u041a\u041e\u0428\u0422.',uiNew:'\u041d\u041e\u0412\u0415',
-      uiKeepKilling:'\u041f\u0440\u043e\u0434\u043e\u0432\u0436\u0443\u0439\u0442\u0435 \u0432\u0431\u0438\u0432\u0430\u0442\u0438 \u0434\u043b\u044f \u0440\u043e\u0437\u0431\u043b\u043e\u043a\u0443\u0432\u0430\u043d\u043d\u044f \u2192',uiNoAmmo:'\u0421\u043f\u043e\u0447\u0430\u0442\u043a\u0443 \u0440\u043e\u0437\u0431\u043b\u043e\u043a\u0443\u0439\u0442\u0435 \u0437\u0431\u0440\u043e\u044e.',uiIntel:'\u0424\u0420\u041e\u041d\u0422\u041e\u0412\u0410 \u0420\u041e\u0417\u0412\u0406\u0414\u041a\u0410'
+      uiKeepKilling:'\u041f\u0440\u043e\u0434\u043e\u0432\u0436\u0443\u0439\u0442\u0435 \u0432\u0431\u0438\u0432\u0430\u0442\u0438 \u0434\u043b\u044f \u0440\u043e\u0437\u0431\u043b\u043e\u043a\u0443\u0432\u0430\u043d\u043d\u044f \u2192',uiNoAmmo:'\u0421\u043f\u043e\u0447\u0430\u0442\u043a\u0443 \u0440\u043e\u0437\u0431\u043b\u043e\u043a\u0443\u0439\u0442\u0435 \u0437\u0431\u0440\u043e\u044e.',uiIntel:'\u0424\u0420\u041e\u041d\u0422\u041e\u0412\u0410 \u0420\u041e\u0417\u0412\u0406\u0414\u041a\u0410',
+      secArcSub:'\u0413\u0440\u0430\u0439 \u0456 \u0437\u0430\u0440\u043e\u0431\u043b\u044f\u0439 \u00b7 1 ARC \u0437\u0430 \u043f\u0440\u043e\u0439\u0434\u0435\u043d\u0443 \u0445\u0432\u0438\u043b\u044e \u00b7 \u043c\u0430\u0439\u0431\u0443\u0442\u043d\u0456\u0439 ERC-20 \u043d\u0430 Polygon',secWalletSub:'\u041f\u0456\u0434\u043a\u043b\u044e\u0447\u0456\u0442\u044c MetaMask \u0443 \u043c\u0435\u0440\u0435\u0436\u0456 Polygon, \u0449\u043e\u0431 \u0437\u0432\u02bc\u044f\u0437\u0430\u0442\u0438 \u0431\u0430\u043b\u0430\u043d\u0441 ARC \u043e\u043d-\u0447\u0435\u0439\u043d',secSellSub:'\u0417\u0430\u043f\u0438\u0442 \u043d\u0430 \u0432\u0438\u0432\u0435\u0434\u0435\u043d\u043d\u044f ARC \u0443 Polygon (POL)',
+      secNewsSub:'\u041e\u0441\u0442\u0430\u043d\u043d\u0456 \u043d\u043e\u0432\u0438\u043d\u0438 \u0437 \u0444\u0440\u043e\u043d\u0442\u0443 \u0432\u0456\u0434 \u043d\u0435\u0437\u0430\u043b\u0435\u0436\u043d\u0438\u0445 \u0434\u0436\u0435\u0440\u0435\u043b'
     },
     de:{
       hudWave:'WELLE',hudScore:'PUNKTE',hudHryvni:'HRYWNI',hudKills:'KILLS',hudMenu:'MEN\u00dc',hudCallIn:'UNTERST\u00dcTZUNG',hudShots:'Sch\u00fcsse f\u00fcr die Ukraine',
@@ -270,7 +272,24 @@ $(document).ready(function () {
       navCosmetics:'KOSMETIK',navSkills:'F\u00c4HIGKEITEN',navCups:'BECHER',navMath:'MATHE',navAchieve:'ERFOLGE',navMissions:'MISSIONEN',navStats:'STATISTIK',
       navLeaders:'RANGLISTE',navSeason:'SAISON',navNews:'NACHR.',navMemorial:'GEDENKEN',
       ciArty:'ARTILLERIE',ciDrones:'KAMPFDROHNEN',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'FEUERDROHNE',ciFpv:'FPV-ANGRIFF',ciReady:'BEREIT',
-      uiEquip:'AUSR\u00dcSTEN',uiLocked:'GESPERRT',uiActive:'AKTIV',uiOwned:'IM BESITZ',uiFree:'GRATIS',uiNew:'NEU'
+      uiEquip:'AUSR\u00dcSTEN',uiLocked:'GESPERRT',uiActive:'AKTIV',uiOwned:'IM BESITZ',uiFree:'GRATIS',uiNew:'NEU',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYWNI',whArc:'ARC',
+      whWallet:'WALLET',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMIK',
+      navWallet:'WALLET',navPass:'PASS',navPrestige:'PRESTIGE',
+      navPvp:'PVP',navClan:'CLAN',navProfile:'PROFIL',
+      navAdmin:'ADMIN',ciHimars:'HIMARS',secArsenal:'Arsenal',
+      secArsenalSub:'Schalte mit verdientem Geld Upgrades f\u00fcr jede Waffe frei',secAmmo:'Munitionsladen',secAmmoSub:'Jedes Nachladen kostet ein Magazin aus deiner Reserve \u2014 hier nachkaufen',
+      secEarn:'Anti-Ruscist Coin verdienen',secEarnSub:'Kostenlose Wege, ARC zu verdienen \u2014 ganz ohne Ausgaben',secExchange:'Umtausch',
+      secExchangeSub:'Kaufe Spielgeld mit Krypto oder tausche verdiente ARC',secArc:'Anti-Ruscist Coin (ARC) Kontobuch',secArcSub:'Play-to-Earn \u00b7 1 ARC pro geschaffter Welle \u00b7 k\u00fcnftiger Polygon-ERC-20',
+      secWallet:'Wallet',secWalletSub:'Verbinde MetaMask auf Polygon, um dein ARC-Guthaben on-chain zu verkn\u00fcpfen',secSell:'ARC \u2192 POL verkaufen',
+      secSellSub:'Auszahlung von ARC nach Polygon (POL) beantragen',secHeroes:'Ukrainische Verteidiger \u2014 Helden-NFTs',secNews:'Ukraine-Krieg \u2014 Live-Nachrichten',
+      secNewsSub:'Aktuelle Schlagzeilen vom Schlachtfeld aus unabh\u00e4ngigen Quellen',wpRevolver:'Revolver',wpShotgun:'Schrotflinte',
+      wpM16:'M-16',wpLmg:'LMG',wpClay:'Schei\u00dfewerfer',
+      wpGl:'Granatwerfer',wpSniper:'Scharfsch\u00fctzengewehr',wpStugna:'Stugna-P AT',
+      wpDroneBomb:'Drohnenbombe',wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',
+      wpAk12:'AK-12',wpMatador:'M4 Matador',uiKeepKilling:'Weiter t\u00f6ten zum Freischalten \u2192',
+      uiNoAmmo:'Schalte zuerst Waffen frei, um Munition zu kaufen.',uiIntel:'FRONT-AUFKL\u00c4RUNG'
     },
     fr:{
       hudWave:'VAGUE',hudScore:'SCORE',hudHryvni:'HRYVNI',hudKills:'KILLS',hudMenu:'MENU',hudCallIn:'APPEL SOUTIEN',hudShots:'tirs pour l\u2019Ukraine',
@@ -279,7 +298,24 @@ $(document).ready(function () {
       navCosmetics:'COSM\u00c9TIQUES',navSkills:'COMP\u00c9TENCES',navCups:'GOBELETS',navMath:'MATHS',navAchieve:'SUCC\u00c8S',navMissions:'MISSIONS',navStats:'STATS',
       navLeaders:'CLASSEMENT',navSeason:'SAISON',navNews:'ACTUALIT\u00c9S',navMemorial:'M\u00c9MORIAL',navWallet:'PORTEFEUILLE',
       ciArty:'ARTILLERIE',ciDrones:'DRONES COMBAT',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'DRONE FEU',ciFpv:'FPV',ciReady:'PR\u00caT',
-      uiEquip:'\u00c9QUIPER',uiLocked:'VERROUILL\u00c9',uiActive:'ACTIF',uiOwned:'ACHET\u00c9',uiFree:'GRATUIT',uiNew:'NOUVEAU'
+      uiEquip:'\u00c9QUIPER',uiLocked:'VERROUILL\u00c9',uiActive:'ACTIF',uiOwned:'ACHET\u00c9',uiFree:'GRATUIT',uiNew:'NOUVEAU',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'PORTEFEUILLE',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASSE',navPrestige:'PRESTIGE',navPvp:'PVP',
+      navClan:'CLAN',navProfile:'PROFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenal',secArsenalSub:'D\u00e9bloquez des am\u00e9liorations pour chaque arme avec l\u2019argent gagn\u00e9',
+      secAmmo:'Boutique de munitions',secAmmoSub:'Chaque rechargement consomme un chargeur de votre r\u00e9serve \u2014 achetez-en ici',secEarn:'Gagner des Anti-Ruscist Coin',
+      secEarnSub:'Des moyens gratuits de gagner des ARC \u2014 sans d\u00e9penser',secExchange:'\u00c9change',secExchangeSub:'Achetez de l\u2019argent avec des cryptos ou convertissez vos ARC',
+      secArc:'Registre Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC par vague termin\u00e9e \u00b7 futur ERC-20 sur Polygon',secWallet:'Portefeuille',
+      secWalletSub:'Connectez MetaMask sur Polygon pour lier votre solde ARC on-chain',secSell:'Vendre ARC \u2192 POL',secSellSub:'Demandez le retrait de vos ARC vers Polygon (POL)',
+      secHeroes:'D\u00e9fenseurs ukrainiens \u2014 NFT de h\u00e9ros',secNews:'Guerre en Ukraine \u2014 Actus en direct',secNewsSub:'Derni\u00e8res actualit\u00e9s du front par des sources ind\u00e9pendantes',
+      wpRevolver:'Revolver',wpShotgun:'Fusil \u00e0 pompe',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Lance-merde',wpGl:'Lance-grenades',
+      wpSniper:'Fusil de pr\u00e9cision',wpStugna:'Stugna-P AT',wpDroneBomb:'Drone-bombe',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Continuez \u00e0 tuer pour d\u00e9bloquer \u2192',uiNoAmmo:'D\u00e9bloquez d\u2019abord des armes pour acheter des munitions.',
+      uiIntel:'RENSEIGNEMENT DU FRONT'
     },
     es:{
       hudWave:'OLEADA',hudScore:'PUNTOS',hudHryvni:'HRYVNI',hudKills:'BAJAS',hudMenu:'MEN\u00da',hudCallIn:'PEDIR APOYO',hudShots:'disparos por Ucrania',
@@ -288,7 +324,24 @@ $(document).ready(function () {
       navCosmetics:'COSM\u00c9TICOS',navSkills:'HABILIDADES',navCups:'COPAS',navMath:'MATES',navAchieve:'LOGROS',navMissions:'MISIONES',navStats:'ESTAD\u00cdST.',
       navLeaders:'L\u00cdDERES',navSeason:'TEMPORADA',navNews:'NOTICIAS',navMemorial:'MEMORIAL',navWallet:'CARTERA',
       ciArty:'ARTILLER\u00cdA',ciDrones:'DRONES',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'DRON FUEGO',ciFpv:'FPV',ciReady:'LISTO',
-      uiEquip:'EQUIPAR',uiLocked:'BLOQUEADO',uiActive:'ACTIVO',uiOwned:'COMPRADO',uiFree:'GRATIS',uiNew:'NUEVO'
+      uiEquip:'EQUIPAR',uiLocked:'BLOQUEADO',uiActive:'ACTIVO',uiOwned:'COMPRADO',uiFree:'GRATIS',uiNew:'NUEVO',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'CARTERA',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASE',navPrestige:'PRESTIGIO',navPvp:'PVP',
+      navClan:'CLAN',navProfile:'PERFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenal',secArsenalSub:'Desbloquea mejoras para cada arma con el dinero ganado',
+      secAmmo:'Tienda de munici\u00f3n',secAmmoSub:'Cada recarga consume un cargador de tu reserva \u2014 compra m\u00e1s aqu\u00ed',secEarn:'Gana Anti-Ruscist Coin',
+      secEarnSub:'M\u00e9todos gratis para ganar ARC \u2014 sin gastar nada',secExchange:'Intercambio',secExchangeSub:'Compra dinero con cripto o convierte tus ARC ganados',
+      secArc:'Libro mayor de Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC por oleada superada \u00b7 futuro ERC-20 en Polygon',secWallet:'Cartera',
+      secWalletSub:'Conecta MetaMask en Polygon para vincular tu saldo ARC on-chain',secSell:'Vender ARC \u2192 POL',secSellSub:'Solicita el retiro de ARC a Polygon (POL)',
+      secHeroes:'Defensores ucranianos \u2014 NFT de h\u00e9roes',secNews:'Guerra de Ucrania \u2014 Noticias en vivo',secNewsSub:'\u00daltimos titulares del frente de fuentes independientes',
+      wpRevolver:'Rev\u00f3lver',wpShotgun:'Escopeta',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Lanzamierda',wpGl:'Lanzagranadas',
+      wpSniper:'Rifle de francotirador',wpStugna:'Stugna-P AT',wpDroneBomb:'Dron bomba',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Sigue matando para desbloquear \u2192',uiNoAmmo:'Desbloquea armas primero para comprar munici\u00f3n.',
+      uiIntel:'INTEL DEL FRENTE'
     },
     pl:{
       hudWave:'FALA',hudScore:'WYNIK',hudHryvni:'HRYWNI',hudKills:'ZABICI',hudMenu:'MENU',hudCallIn:'WEZWIJ WSPARCIE',hudShots:'strza\u0142\u00f3w za Ukrain\u0119',
@@ -297,7 +350,24 @@ $(document).ready(function () {
       navCosmetics:'KOSMETYKI',navSkills:'UMIEJ\u0118TNO\u015aCI',navCups:'KUBKI',navMath:'MATMA',navAchieve:'OSI\u0104GNI\u0118CIA',navMissions:'MISJE',navStats:'STATYSTYKI',
       navLeaders:'RANKING',navSeason:'SEZON',navNews:'WIADOMO\u015aCI',navMemorial:'PAMI\u0118\u0106',navWallet:'PORTFEL',
       ciArty:'ARTYLERIA',ciDrones:'DRONY',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'DRON OGNIA',ciFpv:'FPV',ciReady:'GOTOWE',
-      uiEquip:'WYPOSA\u017bY\u0106',uiLocked:'ZABLOKOWANE',uiActive:'AKTYWNE',uiOwned:'POSIADANE',uiFree:'GRATIS',uiNew:'NOWE'
+      uiEquip:'WYPOSA\u017bY\u0106',uiLocked:'ZABLOKOWANE',uiActive:'AKTYWNE',uiOwned:'POSIADANE',uiFree:'GRATIS',uiNew:'NOWE',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYWNI',whArc:'ARC',
+      whWallet:'PORTFEL',nav21:'21',navPool:'PULA',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMIA',
+      navPass:'KARNET',navPrestige:'PRESTI\u017b',navPvp:'PVP',
+      navClan:'KLAN',navProfile:'PROFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsena\u0142',secArsenalSub:'Odblokuj ulepszenia ka\u017cdej broni za zarobione pieni\u0105dze',
+      secAmmo:'Sklep z amunicj\u0105',secAmmoSub:'Ka\u017cde prze\u0142adowanie zu\u017cywa magazynek z zapasu \u2014 dokup tutaj',secEarn:'Zarabiaj Anti-Ruscist Coin',
+      secEarnSub:'Darmowe sposoby na zdobycie ARC \u2014 bez wydawania',secExchange:'Wymiana',secExchangeSub:'Kup pieni\u0105dze za krypto lub wymie\u0144 zarobione ARC',
+      secArc:'Rejestr Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC za fal\u0119 \u00b7 przysz\u0142y ERC-20 na Polygonie',secWallet:'Portfel',
+      secWalletSub:'Po\u0142\u0105cz MetaMask w sieci Polygon, aby powi\u0105za\u0107 saldo ARC on-chain',secSell:'Sprzedaj ARC \u2192 POL',secSellSub:'Z\u0142\u00f3\u017c wniosek o wyp\u0142at\u0119 ARC na Polygon (POL)',
+      secHeroes:'Obro\u0144cy Ukrainy \u2014 NFT bohater\u00f3w',secNews:'Wojna w Ukrainie \u2014 Wiadomo\u015bci na \u017cywo',secNewsSub:'Najnowsze doniesienia z frontu z niezale\u017cnych \u017ar\u00f3de\u0142',
+      wpRevolver:'Rewolwer',wpShotgun:'Strzelba',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Miotacz g\u00f3wna',wpGl:'Granatnik',
+      wpSniper:'Karabin snajperski',wpStugna:'Stugna-P AT',wpDroneBomb:'Dron-bomba',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Zabijaj dalej, aby odblokowa\u0107 \u2192',uiNoAmmo:'Najpierw odblokuj bro\u0144, aby kupi\u0107 amunicj\u0119.',
+      uiIntel:'WYWIAD FRONTOWY'
     },
     pt:{
       hudWave:'ONDA',hudScore:'PONTOS',hudHryvni:'HRYVNI',hudKills:'MORTES',hudMenu:'MENU',hudCallIn:'CHAMAR APOIO',hudShots:'tiros pela Ucr\u00e2nia',
@@ -306,7 +376,24 @@ $(document).ready(function () {
       navCosmetics:'COSM\u00c9TICOS',navSkills:'HABILIDADES',navCups:'COPOS',navMath:'MATEM.',navAchieve:'CONQUISTAS',navMissions:'MISS\u00d5ES',navStats:'ESTAT.',
       navLeaders:'RANKING',navSeason:'TEMPORADA',navNews:'NOT\u00cdCIAS',navMemorial:'MEMORIAL',navWallet:'CARTEIRA',
       ciArty:'ARTILHARIA',ciDrones:'DRONES',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'DRONE FOGO',ciFpv:'FPV',ciReady:'PRONTO',
-      uiEquip:'EQUIPAR',uiLocked:'TRANCADO',uiActive:'ATIVO',uiOwned:'COMPRADO',uiFree:'GR\u00c1TIS',uiNew:'NOVO'
+      uiEquip:'EQUIPAR',uiLocked:'TRANCADO',uiActive:'ATIVO',uiOwned:'COMPRADO',uiFree:'GR\u00c1TIS',uiNew:'NOVO',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'CARTEIRA',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASSE',navPrestige:'PREST\u00cdGIO',navPvp:'PVP',
+      navClan:'CL\u00c3',navProfile:'PERFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenal',secArsenalSub:'Desbloqueie melhorias para cada arma com o dinheiro ganho',
+      secAmmo:'Loja de muni\u00e7\u00f5es',secAmmoSub:'Cada recarga consome um carregador da sua reserva \u2014 compre mais aqui',secEarn:'Ganhe Anti-Ruscist Coin',
+      secEarnSub:'M\u00e9todos gratuitos para ganhar ARC \u2014 sem gastar nada',secExchange:'C\u00e2mbio',secExchangeSub:'Compre dinheiro com cripto ou converta seus ARC ganhos',
+      secArc:'Registro de Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC por onda conclu\u00edda \u00b7 futuro ERC-20 na Polygon',secWallet:'Carteira',
+      secWalletSub:'Conecte a MetaMask na Polygon para vincular seu saldo ARC on-chain',secSell:'Vender ARC \u2192 POL',secSellSub:'Solicite o saque de ARC para a Polygon (POL)',
+      secHeroes:'Defensores ucranianos \u2014 NFTs de her\u00f3is',secNews:'Guerra na Ucr\u00e2nia \u2014 Not\u00edcias ao vivo',secNewsSub:'\u00daltimas manchetes do campo de batalha de fontes independentes',
+      wpRevolver:'Rev\u00f3lver',wpShotgun:'Espingarda',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Lan\u00e7a-merda',wpGl:'Lan\u00e7a-granadas',
+      wpSniper:'Rifle de precis\u00e3o',wpStugna:'Stugna-P AT',wpDroneBomb:'Drone-bomba',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Continue matando para desbloquear \u2192',uiNoAmmo:'Desbloqueie armas primeiro para comprar muni\u00e7\u00e3o.',
+      uiIntel:'INTEL DO FRONT'
     },
     it:{
       hudWave:'ONDATA',hudScore:'PUNTI',hudHryvni:'HRYVNI',hudKills:'UCCISIONI',hudMenu:'MENU',hudCallIn:'CHIAMA SUPPORTO',hudShots:'colpi per l\u2019Ucraina',
@@ -315,7 +402,24 @@ $(document).ready(function () {
       navCosmetics:'COSMETICI',navSkills:'ABILIT\u00c0',navCups:'BICCHIERI',navMath:'MATEM.',navAchieve:'SUCCESSI',navMissions:'MISSIONI',navStats:'STATIST.',
       navLeaders:'CLASSIFICA',navSeason:'STAGIONE',navNews:'NOTIZIE',navMemorial:'MEMORIALE',navWallet:'PORTAFOGLIO',
       ciArty:'ARTIGLIERIA',ciDrones:'DRONI',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'DRONE FUOCO',ciFpv:'FPV',ciReady:'PRONTO',
-      uiEquip:'EQUIPAGGIA',uiLocked:'BLOCCATO',uiActive:'ATTIVO',uiOwned:'ACQUISTATO',uiFree:'GRATIS',uiNew:'NUOVO'
+      uiEquip:'EQUIPAGGIA',uiLocked:'BLOCCATO',uiActive:'ATTIVO',uiOwned:'ACQUISTATO',uiFree:'GRATIS',uiNew:'NUOVO',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'PORTAFOGLIO',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASS',navPrestige:'PRESTIGIO',navPvp:'PVP',
+      navClan:'CLAN',navProfile:'PROFILO',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenale',secArsenalSub:'Sblocca potenziamenti per ogni arma con i soldi guadagnati',
+      secAmmo:'Negozio di munizioni',secAmmoSub:'Ogni ricarica consuma un caricatore dalla riserva \u2014 comprane qui',secEarn:'Guadagna Anti-Ruscist Coin',
+      secEarnSub:'Metodi gratuiti per guadagnare ARC \u2014 senza spendere',secExchange:'Cambio',secExchangeSub:'Compra denaro con cripto o converti gli ARC guadagnati',
+      secArc:'Registro Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC per ondata superata \u00b7 futuro ERC-20 su Polygon',secWallet:'Portafoglio',
+      secWalletSub:'Collega MetaMask su Polygon per collegare il tuo saldo ARC on-chain',secSell:'Vendi ARC \u2192 POL',secSellSub:'Richiedi il prelievo di ARC su Polygon (POL)',
+      secHeroes:'Difensori ucraini \u2014 NFT degli eroi',secNews:'Guerra in Ucraina \u2014 Notizie live',secNewsSub:'Ultimi titoli dal campo di battaglia da fonti indipendenti',
+      wpRevolver:'Revolver',wpShotgun:'Fucile a pompa',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Lanciamerda',wpGl:'Lanciagranate',
+      wpSniper:'Fucile di precisione',wpStugna:'Stugna-P AT',wpDroneBomb:'Drone bomba',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Continua a uccidere per sbloccare \u2192',uiNoAmmo:'Sblocca prima le armi per comprare munizioni.',
+      uiIntel:'INTEL DAL FRONTE'
     },
     nl:{
       hudWave:'GOLF',hudScore:'SCORE',hudHryvni:'HRYVNI',hudKills:'KILLS',hudMenu:'MENU',hudCallIn:'STEUN OPROEPEN',hudShots:'schoten voor Oekra\u00efne',
@@ -324,7 +428,24 @@ $(document).ready(function () {
       navCosmetics:'COSMETICA',navSkills:'VAARDIGHEDEN',navCups:'BEKERS',navMath:'REKENEN',navAchieve:'PRESTATIES',navMissions:'MISSIES',navStats:'STATISTIEK',
       navLeaders:'RANGLIJST',navSeason:'SEIZOEN',navNews:'NIEUWS',navMemorial:'HERDENKING',navWallet:'PORTEMONNEE',
       ciArty:'ARTILLERIE',ciDrones:'GEVECHTSDRONES',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'VUURDRONE',ciFpv:'FPV-AANVAL',ciReady:'KLAAR',
-      uiEquip:'UITRUSTEN',uiLocked:'VERGRENDELD',uiActive:'ACTIEF',uiOwned:'IN BEZIT',uiFree:'GRATIS',uiNew:'NIEUW'
+      uiEquip:'UITRUSTEN',uiLocked:'VERGRENDELD',uiActive:'ACTIEF',uiOwned:'IN BEZIT',uiFree:'GRATIS',uiNew:'NIEUW',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'WALLET',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASS',navPrestige:'PRESTIGE',navPvp:'PVP',
+      navClan:'CLAN',navProfile:'PROFIEL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenaal',secArsenalSub:'Ontgrendel upgrades voor elk wapen met je verdiende geld',
+      secAmmo:'Munitiewinkel',secAmmoSub:'Elke herlaadbeurt kost \u00e9\u00e9n magazijn uit je voorraad \u2014 koop hier bij',secEarn:'Verdien Anti-Ruscist Coin',
+      secEarnSub:'Gratis manieren om ARC te verdienen \u2014 zonder uitgaven',secExchange:'Wissel',secExchangeSub:'Koop geld met crypto of wissel verdiende ARC om',
+      secArc:'Anti-Ruscist Coin (ARC) grootboek',secArcSub:'Play-to-earn \u00b7 1 ARC per voltooide golf \u00b7 toekomstige Polygon ERC-20',secWallet:'Wallet',
+      secWalletSub:'Verbind MetaMask op Polygon om je ARC-saldo on-chain te koppelen',secSell:'Verkoop ARC \u2192 POL',secSellSub:'Vraag uitbetaling van ARC naar Polygon (POL) aan',
+      secHeroes:'Oekra\u00efense verdedigers \u2014 helden-NFT\u2019s',secNews:'Oorlog in Oekra\u00efne \u2014 Live nieuws',secNewsSub:'Laatste headlines van het slagveld uit onafhankelijke bronnen',
+      wpRevolver:'Revolver',wpShotgun:'Hagelgeweer',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Strontwerper',wpGl:'Granaatwerper',
+      wpSniper:'Sluipschuttersgeweer',wpStugna:'Stugna-P AT',wpDroneBomb:'Dronebom',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Blijf doden om te ontgrendelen \u2192',uiNoAmmo:'Ontgrendel eerst wapens om munitie te kopen.',
+      uiIntel:'FRONTLINIE-INTEL'
     },
     cs:{
       hudWave:'VLNA',hudScore:'SK\u00d3RE',hudHryvni:'HRYVNI',hudKills:'ZAB\u0130T\u00cd',hudMenu:'MENU',hudCallIn:'POVOLAT PODPORU',hudShots:'v\u00fdst\u0159el\u016f za Ukrajinu',
@@ -333,7 +454,24 @@ $(document).ready(function () {
       navCosmetics:'KOSMETIKA',navSkills:'DOVEDNOSTI',navCups:'KOF.',navMath:'MATEM.',navAchieve:'\u00daSP\u011aCHY',navMissions:'MISE',navStats:'STATISTAKY',
       navLeaders:'\u017dEB\u0158\u00cd\u010cEK',navSeason:'S\u00c9ZONA',navNews:'ZPR\u00c1VY',navMemorial:'PAM\u00c1TKA',navWallet:'PEN\u011a\u017dENKA',
       ciArty:'D\u011aLOST\u0158ELECTVO',ciDrones:'DRONY',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'OH\u0147OV\u00dd DRON',ciFpv:'FPV',ciReady:'HOTOVO',
-      uiEquip:'VYBAVIT',uiLocked:'ZAM\u010cEN\u00c9',uiActive:'AKTIVN\u00cd',uiOwned:'VLASTN\u011aN\u00c9',uiFree:'ZDARMA',uiNew:'NOV\u00c9'
+      uiEquip:'VYBAVIT',uiLocked:'ZAM\u010cEN\u00c9',uiActive:'AKTIVN\u00cd',uiOwned:'VLASTN\u011aN\u00c9',uiFree:'ZDARMA',uiNew:'NOV\u00c9',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'PEN\u011a\u017dENKA',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMIKA',
+      navPass:'PASS',navPrestige:'PRESTI\u017d',navPvp:'PVP',
+      navClan:'KLAN',navProfile:'PROFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arzen\u00e1l',secArsenalSub:'Odemkni vylep\u0161en\u00ed ka\u017ed\u00e9 zbran\u011b za vyd\u011blan\u00e9 pen\u00edze',
+      secAmmo:'Obchod s munic\u00ed',secAmmoSub:'Ka\u017ed\u00e9 p\u0159ebit\u00ed stoj\u00ed jeden z\u00e1sobn\u00edk z rezervy \u2014 dokup zde',secEarn:'Vyd\u011bl\u00e1vej Anti-Ruscist Coin',
+      secEarnSub:'Zp\u016fsoby, jak z\u00edskat ARC zdarma \u2014 bez utr\u00e1cen\u00ed',secExchange:'Sm\u011bn\u00e1rna',secExchangeSub:'Kup pen\u00edze za krypto nebo sm\u011b\u0148 vyd\u011blan\u00e9 ARC',
+      secArc:'\u00da\u010detn\u00ed kniha Anti-Ruscist Coin (ARC)',secArcSub:'Play-to-earn \u00b7 1 ARC za zvl\u00e1dnutou vlnu \u00b7 budouc\u00ed ERC-20 na Polygonu',secWallet:'Pen\u011b\u017eenka',
+      secWalletSub:'P\u0159ipoj MetaMask na Polygonu a propoj sv\u016fj ARC z\u016fstatek on-chain',secSell:'Prodat ARC \u2192 POL',secSellSub:'Po\u017e\u00e1dej o v\u00fdb\u011br ARC na Polygon (POL)',
+      secHeroes:'Ukrajin\u0161t\u00ed obr\u00e1nci \u2014 hrdinsk\u00e1 NFT',secNews:'V\u00e1lka na Ukrajin\u011b \u2014 \u017div\u00e9 zpr\u00e1vy',secNewsSub:'Nejnov\u011bj\u0161\u00ed zpr\u00e1vy z boji\u0161t\u011b z nez\u00e1visl\u00fdch zdroj\u016f',
+      wpRevolver:'Revolver',wpShotgun:'Brokovnice',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Vrha\u010d hoven',wpGl:'Gran\u00e1tomet',
+      wpSniper:'Odst\u0159elovac\u00ed pu\u0161ka',wpStugna:'Stugna-P AT',wpDroneBomb:'Dron s bombou',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Zab\u00edjej d\u00e1l pro odem\u010den\u00ed \u2192',uiNoAmmo:'Nejprve odemkni zbran\u011b, abys mohl koupit munici.',
+      uiIntel:'ZPR\u00c1VY Z FRONTY'
     },
     ja:{
       hudWave:'\u30a6\u30a7\u30fc\u30d6',hudScore:'\u30b9\u30b3\u30a2',hudHryvni:'\u30d5\u30ea\u30f4\u30cb\u30e3',hudKills:'\u30ad\u30eb',hudMenu:'\u30e1\u30cb\u30e5\u30fc',hudCallIn:'\u652f\u63f4\u8981\u8acb',hudShots:'\u30a6\u30af\u30e9\u30a4\u30ca\u3078\u306e\u5c04\u6483',
@@ -342,7 +480,24 @@ $(document).ready(function () {
       navCosmetics:'\u30b3\u30b9\u30e1',navSkills:'\u30b9\u30ad\u30eb',navAchieve:'\u5b9f\u7e3e',navMissions:'\u30df\u30c3\u30b7\u30e7\u30f3',navStats:'\u7d71\u8a08',
       navLeaders:'\u30e9\u30f3\u30ad\u30f3\u30b0',navSeason:'\u30b7\u30fc\u30ba\u30f3',navNews:'\u30cb\u30e5\u30fc\u30b9',navMemorial:'\u8ffd\u60bc',navWallet:'\u30a6\u30a9\u30ec\u30c3\u30c8',
       ciArty:'\u7832\u6483',ciDrones:'\u30c9\u30ed\u30fc\u30f3',ciBradley:'\u30d6\u30e9\u30c3\u30c9\u30ec\u30fc',ciRover:'\u30ed\u30fc\u30d0\u30fc',ciFiredrone:'\u706b\u708e\u30c9\u30ed\u30fc\u30f3',ciFpv:'FPV\u653b\u6483',ciReady:'\u6e96\u5099\u5b8c\u4e86',
-      uiEquip:'\u88c5\u5099',uiLocked:'\u30ed\u30c3\u30af',uiActive:'\u4f7f\u7528\u4e2d',uiOwned:'\u6240\u6709',uiFree:'\u7121\u6599',uiNew:'\u65b0\u898f'
+      uiEquip:'\u88c5\u5099',uiLocked:'\u30ed\u30c3\u30af',uiActive:'\u4f7f\u7528\u4e2d',uiOwned:'\u6240\u6709',uiFree:'\u7121\u6599',uiNew:'\u65b0\u898f',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'\u30d5\u30ea\u30f4\u30cb\u30e3',whArc:'ARC',
+      whWallet:'\u30a6\u30a9\u30ec\u30c3\u30c8',nav21:'21',navCups:'\u30ab\u30c3\u30d7',
+      navMath:'\u8a08\u7b97',navPool:'\u30d7\u30fc\u30eb',navArc:'ARC',
+      navStaking:'\u30b9\u30c6\u30fc\u30ad\u30f3\u30b0',navTokenomics:'\u30c8\u30fc\u30af\u30ce\u30df\u30af\u30b9',navPass:'\u30d1\u30b9',
+      navPrestige:'\u30d7\u30ec\u30b9\u30c6\u30fc\u30b8',navPvp:'PVP',navClan:'\u30af\u30e9\u30f3',
+      navProfile:'\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb',navAdmin:'\u7ba1\u7406',ciHimars:'HIMARS',
+      secArsenal:'\u5175\u5668\u5eab',secArsenalSub:'\u7a3c\u3044\u3060\u304a\u91d1\u3067\u5404\u6b66\u5668\u306e\u30a2\u30c3\u30d7\u30b0\u30ec\u30fc\u30c9\u3092\u89e3\u9664',secAmmo:'\u5f3e\u85ac\u30b7\u30e7\u30c3\u30d7',
+      secAmmoSub:'\u30ea\u30ed\u30fc\u30c9\u3054\u3068\u306b\u4e88\u5099\u30de\u30ac\u30b8\u30f3\u30921\u3064\u6d88\u8cbb \u2014 \u3053\u3053\u3067\u8cfc\u5165',secEarn:'Anti-Ruscist Coin\u3092\u7a3c\u3050',secEarnSub:'ARC\u3092\u7121\u6599\u3067\u7a3c\u3050\u65b9\u6cd5 \u2014 \u8ab2\u91d1\u4e0d\u8981',
+      secExchange:'\u4e21\u66ff',secExchangeSub:'\u6697\u53f7\u8cc7\u7523\u3067\u30de\u30cd\u30fc\u3092\u8cfc\u5165\u3001\u307e\u305f\u306fARC\u3092\u63db\u91d1',secArc:'Anti-Ruscist Coin\uff08ARC\uff09\u53f0\u5e33',
+      secArcSub:'Play-to-Earn \u00b7 \u30a6\u30a7\u30fc\u30d6\u7a81\u7834\u3054\u3068\u306b1 ARC \u00b7 \u5c06\u6765\u306ePolygon ERC-20',secWallet:'\u30a6\u30a9\u30ec\u30c3\u30c8',secWalletSub:'Polygon\u3067MetaMask\u3092\u63a5\u7d9a\u3057\u3066ARC\u6b8b\u9ad8\u3092\u30aa\u30f3\u30c1\u30a7\u30fc\u30f3\u306b\u9023\u643a',
+      secSell:'ARC \u2192 POL \u3092\u58f2\u5374',secSellSub:'ARC\u306ePolygon\uff08POL\uff09\u3078\u306e\u51fa\u91d1\u3092\u30ea\u30af\u30a8\u30b9\u30c8',secHeroes:'\u30a6\u30af\u30e9\u30a4\u30ca\u306e\u5b88\u8b77\u8005 \u2014 \u30d2\u30fc\u30ed\u30fcNFT',
+      secNews:'\u30a6\u30af\u30e9\u30a4\u30ca\u6226\u4e89 \u2014 \u30e9\u30a4\u30d6\u30cb\u30e5\u30fc\u30b9',secNewsSub:'\u72ec\u7acb\u7cfb\u30e1\u30c7\u30a3\u30a2\u306b\u3088\u308b\u6700\u65b0\u306e\u6226\u6cc1\u30cb\u30e5\u30fc\u30b9',wpRevolver:'\u30ea\u30dc\u30eb\u30d0\u30fc',
+      wpShotgun:'\u30b7\u30e7\u30c3\u30c8\u30ac\u30f3',wpM16:'M-16',wpLmg:'\u8efd\u6a5f\u95a2\u9283',
+      wpClay:'\u3046\u3093\u3053\u6295\u3052\u6a5f',wpGl:'\u30b0\u30ec\u30cd\u30fc\u30c9\u30e9\u30f3\u30c1\u30e3\u30fc',wpSniper:'\u30b9\u30ca\u30a4\u30d1\u30fc\u30e9\u30a4\u30d5\u30eb',
+      wpStugna:'Stugna-P AT',wpDroneBomb:'\u30c9\u30ed\u30fc\u30f3\u7206\u5f3e',wpPanzerfaust:'Panzerfaust 3',
+      wpPkm:'PKM\u8efd\u6a5f\u95a2\u9283',wpAk12:'AK-12',wpMatador:'M4 Matador',
+      uiKeepKilling:'\u5012\u3057\u7d9a\u3051\u3066\u89e3\u9664 \u2192',uiNoAmmo:'\u6b66\u5668\u3092\u89e3\u9664\u3057\u3066\u304b\u3089\u5f3e\u85ac\u3092\u8cfc\u5165\u3067\u304d\u307e\u3059\u3002',uiIntel:'\u524d\u7dda\u60c5\u5831'
     },
     ko:{
       hudWave:'\uc6e8\uc774\ube0c',hudScore:'\uc810\uc218',hudHryvni:'\ud750\ub9ac\ube0c\ub0d0',hudKills:'\ud0ac',hudMenu:'\uba54\ub274',hudCallIn:'\uc9c0\uc6d0 \uc694\uccad',hudShots:'\uc6b0\ud06c\ub77c\uc774\ub098\ub97c \uc704\ud55c \uc0ac\uaca9',
@@ -351,7 +506,24 @@ $(document).ready(function () {
       navCosmetics:'\ucf54\uc2a4\uba54\ud2f1',navSkills:'\uc2a4\ud0ac',navAchieve:'\uc5c5\uc801',navMissions:'\ubbf8\uc158',navStats:'\ud1b5\uacc4',
       navLeaders:'\ub7ad\ud0b9',navSeason:'\uc2dc\uc98c',navNews:'\ub274\uc2a4',navMemorial:'\ucd94\ubaa8',navWallet:'\uc9c0\uac11',
       ciArty:'\ud3ec\uaca9',ciDrones:'\ub4dc\ub860',ciBradley:'\ube0c\ub798\ub4e4\ub9ac',ciRover:'\ub85c\ubc84',ciFiredrone:'\ud654\uc5fc \ub4dc\ub860',ciFpv:'FPV \uacf5\uaca9',ciReady:'\uc900\ube44',
-      uiEquip:'\uc7a5\ucc29',uiLocked:'\uc7a0\uae40',uiActive:'\uc0ac\uc6a9\uc911',uiOwned:'\ubcf4\uc720',uiFree:'\ubb34\ub8cc',uiNew:'\uc2e0\uaddc'
+      uiEquip:'\uc7a5\ucc29',uiLocked:'\uc7a0\uae40',uiActive:'\uc0ac\uc6a9\uc911',uiOwned:'\ubcf4\uc720',uiFree:'\ubb34\ub8cc',uiNew:'\uc2e0\uaddc',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'\ud750\ub9ac\ube0c\ub0d0',whArc:'ARC',
+      whWallet:'\uc9c0\uac11',nav21:'21',navCups:'\ucef5',
+      navMath:'\uc218\ud559',navPool:'\ud480',navArc:'ARC',
+      navStaking:'\uc2a4\ud14c\uc774\ud0b9',navTokenomics:'\ud1a0\ud06c\ub178\ubbf9\uc2a4',navPass:'\ud328\uc2a4',
+      navPrestige:'\ud504\ub808\uc2a4\ud2f0\uc9c0',navPvp:'PVP',navClan:'\ud074\ub79c',
+      navProfile:'\ud504\ub85c\ud544',navAdmin:'\uad00\ub9ac\uc790',ciHimars:'HIMARS',
+      secArsenal:'\ubb34\uae30\uace0',secArsenalSub:'\ubc88 \ub3c8\uc73c\ub85c \uac01 \ubb34\uae30\uc758 \uc5c5\uadf8\ub808\uc774\ub4dc\ub97c \ud574\uc81c\ud558\uc138\uc694',secAmmo:'\ud0c4\uc57d \uc0c1\uc810',
+      secAmmoSub:'\uc7ac\uc7a5\uc804\ud560 \ub54c\ub9c8\ub2e4 \uc608\ube44 \ud0c4\ucc3d 1\uac1c \uc18c\ubaa8 \u2014 \uc5ec\uae30\uc11c \uad6c\ub9e4',secEarn:'Anti-Ruscist Coin \ubc8c\uae30',secEarnSub:'\ubb34\ub8cc\ub85c ARC\ub97c \ubc84\ub294 \ubc29\ubc95 \u2014 \uc9c0\ucd9c \ubd88\ud544\uc694',
+      secExchange:'\ud658\uc804',secExchangeSub:'\uc554\ud638\ud654\ud3d0\ub85c \uba38\ub2c8 \uad6c\ub9e4 \ub610\ub294 ARC \uc218\uc775 \uc804\ud658',secArc:'Anti-Ruscist Coin (ARC) \uc7a5\ubd80',
+      secArcSub:'\ud50c\ub808\uc774 \ud22c \uc5b8 \u00b7 \uc6e8\uc774\ube0c \ud074\ub9ac\uc5b4\ub2f9 1 ARC \u00b7 \ud5a5\ud6c4 Polygon ERC-20',secWallet:'\uc9c0\uac11',secWalletSub:'Polygon\uc5d0\uc11c MetaMask\ub97c \uc5f0\uacb0\ud574 ARC \uc794\uc561\uc744 \uc628\uccb4\uc778\uc5d0 \uc5f0\ub3d9',
+      secSell:'ARC \u2192 POL \ud310\ub9e4',secSellSub:'ARC\ub97c Polygon(POL)\uc73c\ub85c \ucd9c\uae08 \uc694\uccad',secHeroes:'\uc6b0\ud06c\ub77c\uc774\ub098 \uc218\ud638\uc790 \u2014 \uc601\uc6c5 NFT',
+      secNews:'\uc6b0\ud06c\ub77c\uc774\ub098 \uc804\uc7c1 \u2014 \uc2e4\uc2dc\uac04 \ub274\uc2a4',secNewsSub:'\ub3c5\ub9bd \uc5b8\ub860\uc758 \ucd5c\uc2e0 \uc804\uc7a5 \uc18c\uc2dd',wpRevolver:'\ub9ac\ubcfc\ubc84',
+      wpShotgun:'\uc0f7\uac74',wpM16:'M-16',wpLmg:'\uacbd\uae30\uad00\ucd1d',
+      wpClay:'\ub625 \ud22c\ucc99\uae30',wpGl:'\uc720\ud0c4\ubc1c\uc0ac\uae30',wpSniper:'\uc800\uaca9\uc18c\ucd1d',
+      wpStugna:'Stugna-P AT',wpDroneBomb:'\ub4dc\ub860 \ud3ed\ud0c4',wpPanzerfaust:'Panzerfaust 3',
+      wpPkm:'PKM \uacbd\uae30\uad00\ucd1d',wpAk12:'AK-12',wpMatador:'M4 Matador',
+      uiKeepKilling:'\uacc4\uc18d \ucc98\uce58\ud558\uc5ec \uc7a0\uae08 \ud574\uc81c \u2192',uiNoAmmo:'\ubb34\uae30\ub97c \uba3c\uc800 \uc7a0\uae08 \ud574\uc81c\ud574\uc57c \ud0c4\uc57d\uc744 \uc0b4 \uc218 \uc788\uc2b5\ub2c8\ub2e4.',uiIntel:'\uc804\uc120 \uc815\ubcf4'
     },
     zh:{
       hudWave:'\u6ce2\u6b21',hudScore:'\u5206\u6570',hudHryvni:'\u683c\u91cc\u592b\u5c3c\u4e9a',hudKills:'\u51fb\u6740',hudMenu:'\u83dc\u5355',hudCallIn:'\u547c\u53eb\u652f\u63f4',hudShots:'\u4e3a\u4e4c\u514b\u5170\u5c04\u51fb',
@@ -360,7 +532,24 @@ $(document).ready(function () {
       navCosmetics:'\u5316\u5986\u54c1',navSkills:'\u6280\u80fd',navAchieve:'\u6210\u5c31',navMissions:'\u4efb\u52a1',navStats:'\u7edf\u8ba1',
       navLeaders:'\u6392\u884c\u699c',navSeason:'\u8d5b\u5b63',navNews:'\u65b0\u95fb',navMemorial:'\u7eaa\u5ff5',navWallet:'\u94b1\u5305',
       ciArty:'\u70ae\u51fb',ciDrones:'\u65e0\u4eba\u673a',ciBradley:'\u5e03\u96f7\u5fb7\u5229',ciRover:'\u63a2\u6d4b\u8f66',ciFiredrone:'\u706b\u7130\u65e0\u4eba\u673a',ciFpv:'FPV\u6253\u51fb',ciReady:'\u5c31\u7eea',
-      uiEquip:'\u88c5\u5907',uiLocked:'\u9501\u5b9a',uiActive:'\u4f7f\u7528\u4e2d',uiOwned:'\u5df2\u6709',uiFree:'\u514d\u8d39',uiNew:'\u65b0'
+      uiEquip:'\u88c5\u5907',uiLocked:'\u9501\u5b9a',uiActive:'\u4f7f\u7528\u4e2d',uiOwned:'\u5df2\u6709',uiFree:'\u514d\u8d39',uiNew:'\u65b0',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'\u683c\u91cc\u592b\u5c3c\u4e9a',whArc:'ARC',
+      whWallet:'\u94b1\u5305',nav21:'21',navCups:'\u676f\u5b50',
+      navMath:'\u6570\u5b66',navPool:'\u5956\u6c60',navArc:'ARC',
+      navStaking:'\u8d28\u62bc',navTokenomics:'\u4ee3\u5e01\u7ecf\u6d4e',navPass:'\u901a\u884c\u8bc1',
+      navPrestige:'\u5a01\u671b',navPvp:'PVP',navClan:'\u6218\u961f',
+      navProfile:'\u8d44\u6599',navAdmin:'\u7ba1\u7406',ciHimars:'HIMARS',
+      secArsenal:'\u519b\u68b0\u5e93',secArsenalSub:'\u7528\u8d5a\u5230\u7684\u94b1\u89e3\u9501\u6bcf\u4ef6\u6b66\u5668\u7684\u5347\u7ea7',secAmmo:'\u5f39\u836f\u5546\u5e97',
+      secAmmoSub:'\u6bcf\u6b21\u88c5\u586b\u6d88\u8017\u4e00\u4e2a\u5907\u7528\u5f39\u5323 \u2014 \u5728\u6b64\u8d2d\u4e70',secEarn:'\u8d5a\u53d6Anti-Ruscist Coin',secEarnSub:'\u514d\u8d39\u8d5a\u53d6ARC\u7684\u65b9\u6cd5 \u2014 \u65e0\u9700\u82b1\u8d39',
+      secExchange:'\u5151\u6362',secExchangeSub:'\u7528\u52a0\u5bc6\u8d27\u5e01\u8d2d\u4e70\u91d1\u94b1\u6216\u5151\u6362ARC\u6536\u76ca',secArc:'Anti-Ruscist Coin\uff08ARC\uff09\u8d26\u672c',
+      secArcSub:'\u8fb9\u73a9\u8fb9\u8d5a \u00b7 \u6bcf\u901a\u8fc7\u4e00\u6ce2\u83b7\u5f971 ARC \u00b7 \u672a\u6765\u7684Polygon ERC-20',secWallet:'\u94b1\u5305',secWalletSub:'\u5728Polygon\u4e0a\u8fde\u63a5MetaMask\uff0c\u5c06\u4f60\u7684ARC\u4f59\u989d\u94fe\u4e0a\u7ed1\u5b9a',
+      secSell:'\u51fa\u552e ARC \u2192 POL',secSellSub:'\u7533\u8bf7\u5c06ARC\u63d0\u73b0\u81f3Polygon\uff08POL\uff09',secHeroes:'\u4e4c\u514b\u5170\u5b88\u536b\u8005 \u2014 \u82f1\u96c4NFT',
+      secNews:'\u4e4c\u514b\u5170\u6218\u4e89 \u2014 \u5b9e\u65f6\u65b0\u95fb',secNewsSub:'\u6765\u81ea\u72ec\u7acb\u4fe1\u6e90\u7684\u6700\u65b0\u6218\u573a\u5934\u6761',wpRevolver:'\u5de6\u8f6e\u624b\u67aa',
+      wpShotgun:'\u9730\u5f39\u67aa',wpM16:'M-16',wpLmg:'\u8f7b\u673a\u67aa',
+      wpClay:'\u6295\u5c4e\u5668',wpGl:'\u69b4\u5f39\u53d1\u5c04\u5668',wpSniper:'\u72d9\u51fb\u6b65\u67aa',
+      wpStugna:'Stugna-P AT',wpDroneBomb:'\u65e0\u4eba\u673a\u70b8\u5f39',wpPanzerfaust:'Panzerfaust 3',
+      wpPkm:'PKM\u8f7b\u673a\u67aa',wpAk12:'AK-12',wpMatador:'M4 Matador',
+      uiKeepKilling:'\u7ee7\u7eed\u51fb\u6740\u4ee5\u89e3\u9501 \u2192',uiNoAmmo:'\u5148\u89e3\u9501\u6b66\u5668\u624d\u80fd\u8d2d\u4e70\u5f39\u836f\u3002',uiIntel:'\u524d\u7ebf\u60c5\u62a5'
     },
     tr:{
       hudWave:'DALGA',hudScore:'SKOR',hudHryvni:'HRYVNI',hudKills:'\u00d6LD\u00dcR\u00dcLEN',hudMenu:'MEN\u00dc',hudCallIn:'DESTEK \u00c7A\u011eIR',hudShots:'Ukrayna i\u00e7in at\u0131\u015flar',
@@ -369,7 +558,24 @@ $(document).ready(function () {
       navCosmetics:'KOZMET\u0130K',navSkills:'YETENEKLER',navCups:'KUPALAR',navMath:'MATEM.',navAchieve:'BA\u015eARILAR',navMissions:'G\u00d6REVLER',navStats:'\u0130STAT\u0130ST.',
       navLeaders:'SIRALAMA',navSeason:'SEZON',navNews:'HABERLER',navMemorial:'ANMA',navWallet:'C\u00dcZDAN',
       ciArty:'TOP\u00c7U',ciDrones:'\u0130HA',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'ATE\u015e \u0130HA',ciFpv:'FPV SALDIRI',ciReady:'HAZIR',
-      uiEquip:'KU\u015eAN',uiLocked:'K\u0130L\u0130TL\u0130',uiActive:'AKT\u0130F',uiOwned:'SATINALINDI',uiFree:'\u00dcCRETSIZ',uiNew:'YEN\u0130'
+      uiEquip:'KU\u015eAN',uiLocked:'K\u0130L\u0130TL\u0130',uiActive:'AKT\u0130F',uiOwned:'SATINALINDI',uiFree:'\u00dcCRETSIZ',uiNew:'YEN\u0130',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'C\u00dcZDAN',nav21:'21',navPool:'HAVUZ',
+      navArc:'ARC',navStaking:'STAKE',navTokenomics:'TOKENOM\u0130',
+      navPass:'PASS',navPrestige:'PREST\u0130J',navPvp:'PVP',
+      navClan:'KLAN',navProfile:'PROF\u0130L',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Cephanelik',secArsenalSub:'Kazand\u0131\u011f\u0131n parayla her silah i\u00e7in y\u00fckseltmelerin kilidini a\u00e7',
+      secAmmo:'M\u00fchimmat D\u00fckk\u00e2n\u0131',secAmmoSub:'Her \u015farj\u00f6r de\u011fi\u015fimi yedeklerinden bir \u015farj\u00f6r harcar \u2014 buradan sat\u0131n al',secEarn:'Anti-Ruscist Coin Kazan',
+      secEarnSub:'ARC kazanman\u0131n \u00fccretsiz yollar\u0131 \u2014 harcama gerekmez',secExchange:'Takas',secExchangeSub:'Kripto ile para sat\u0131n al veya kazand\u0131\u011f\u0131n ARC\u2019yi d\u00f6n\u00fc\u015ft\u00fcr',
+      secArc:'Anti-Ruscist Coin (ARC) Defteri',secArcSub:'Oyna-kazan \u00b7 temizlenen dalga ba\u015f\u0131na 1 ARC \u00b7 gelecekte Polygon ERC-20',secWallet:'C\u00fczdan',
+      secWalletSub:'ARC bakiyeni zincire ba\u011flamak i\u00e7in Polygon\u2019da MetaMask\u2019\u0131 ba\u011fla',secSell:'ARC \u2192 POL Sat',secSellSub:'ARC\u2019nin Polygon\u2019a (POL) \u00e7ekilmesini talep et',
+      secHeroes:'Ukraynal\u0131 Savunucular \u2014 Kahraman NFT\u2019leri',secNews:'Ukrayna Sava\u015f\u0131 \u2014 Canl\u0131 Haberler',secNewsSub:'Ba\u011f\u0131ms\u0131z kaynaklardan en son cephe haberleri',
+      wpRevolver:'Toplu Tabanca',wpShotgun:'Pompal\u0131 T\u00fcfek',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Bok F\u0131rlat\u0131c\u0131',wpGl:'Bombaatar',
+      wpSniper:'Keskin Ni\u015fanc\u0131 T\u00fcfe\u011fi',wpStugna:'Stugna-P AT',wpDroneBomb:'Bombal\u0131 Dron',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Kilidi a\u00e7mak i\u00e7in \u00f6ld\u00fcrmeye devam et \u2192',uiNoAmmo:'M\u00fchimmat almak i\u00e7in \u00f6nce silahlar\u0131n kilidini a\u00e7.',
+      uiIntel:'CEPHE \u0130ST\u0130HBARATI'
     },
     sv:{
       hudWave:'V\u00c5G',hudScore:'PO\u00c4NG',hudHryvni:'HRYVNI',hudKills:'D\u00d6DA',hudMenu:'MENY',hudCallIn:'KALLA ST\u00d6D',hudShots:'skott f\u00f6r Ukraina',
@@ -378,7 +584,24 @@ $(document).ready(function () {
       navCosmetics:'KOSMETIKA',navSkills:'F\u00c4RDIGHETER',navCups:'KOPPAR',navMath:'MATTE',navAchieve:'PRESTATIONER',navMissions:'UPPDRAG',navStats:'STATISTIK',
       navLeaders:'RANKNING',navSeason:'S\u00c4SONG',navNews:'NYHETER',navMemorial:'MINNESSIDA',navWallet:'PL\u00c5NBOK',
       ciArty:'ARTILLERI',ciDrones:'STRIDSDRONER',ciBradley:'BRADLEY',ciRover:'ROVER',ciFiredrone:'ELDDRONE',ciFpv:'FPV-ATTACK',ciReady:'KLAR',
-      uiEquip:'UTRUSTA',uiLocked:'L\u00c5ST',uiActive:'AKTIV',uiOwned:'\u00c4GD',uiFree:'GRATIS',uiNew:'NY'
+      uiEquip:'UTRUSTA',uiLocked:'L\u00c5ST',uiActive:'AKTIV',uiOwned:'\u00c4GD',uiFree:'GRATIS',uiNew:'NY',
+      topClose:'ESC \u00b7 SPACE',whHryvni:'HRYVNI',whArc:'ARC',
+      whWallet:'PL\u00c5NBOK',nav21:'21',navPool:'POOL',
+      navArc:'ARC',navStaking:'STAKING',navTokenomics:'TOKENOMICS',
+      navPass:'PASS',navPrestige:'PRESTIGE',navPvp:'PVP',
+      navClan:'KLAN',navProfile:'PROFIL',navAdmin:'ADMIN',
+      ciHimars:'HIMARS',secArsenal:'Arsenal',secArsenalSub:'L\u00e5s upp uppgraderingar f\u00f6r varje vapen med dina intj\u00e4nade pengar',
+      secAmmo:'Ammunitionsbutik',secAmmoSub:'Varje omladdning kostar ett magasin ur din reserv \u2014 k\u00f6p fler h\u00e4r',secEarn:'Tj\u00e4na Anti-Ruscist Coin',
+      secEarnSub:'Gratis s\u00e4tt att tj\u00e4na ARC \u2014 inga utgifter kr\u00e4vs',secExchange:'V\u00e4xling',secExchangeSub:'K\u00f6p pengar med krypto eller v\u00e4xla intj\u00e4nade ARC',
+      secArc:'Anti-Ruscist Coin (ARC) huvudbok',secArcSub:'Play-to-earn \u00b7 1 ARC per klarad v\u00e5g \u00b7 framtida Polygon ERC-20',secWallet:'Pl\u00e5nbok',
+      secWalletSub:'Anslut MetaMask p\u00e5 Polygon f\u00f6r att koppla ditt ARC-saldo on-chain',secSell:'S\u00e4lj ARC \u2192 POL',secSellSub:'Beg\u00e4r uttag av ARC till Polygon (POL)',
+      secHeroes:'Ukrainska f\u00f6rsvarare \u2014 hj\u00e4lte-NFT:er',secNews:'Ukrainakriget \u2014 Livenyheter',secNewsSub:'Senaste rubrikerna fr\u00e5n slagf\u00e4ltet fr\u00e5n oberoende k\u00e4llor',
+      wpRevolver:'Revolver',wpShotgun:'Hagelgev\u00e4r',wpM16:'M-16',
+      wpLmg:'LMG',wpClay:'Skitkastare',wpGl:'Granatkastare',
+      wpSniper:'Prickskyttegev\u00e4r',wpStugna:'Stugna-P AT',wpDroneBomb:'Dr\u00f6narbomb',
+      wpPanzerfaust:'Panzerfaust 3',wpPkm:'PKM LMG',wpAk12:'AK-12',
+      wpMatador:'M4 Matador',uiKeepKilling:'Forts\u00e4tt d\u00f6da f\u00f6r att l\u00e5sa upp \u2192',uiNoAmmo:'L\u00e5s upp vapen f\u00f6rst f\u00f6r att k\u00f6pa ammunition.',
+      uiIntel:'FRONTRAPPORT'
     }
   };
   var currentLang = localStorage.getItem('arc_lang') || 'en';
@@ -3125,7 +3348,10 @@ $(document).ready(function () {
 
   function startDrones() {
     // Drones in all waves (wave 1 gets longer initial delay for gentle intro)
-    // Sequential: one drone at a time, 5-10 s random gap after each resolves
+    // Sequential: one drone at a time, 5-10 s random gap after each resolves.
+    // startWave() calls this every wave — clear the previous chain first or
+    // one chain accumulates per wave and drone frequency scales with wave count.
+    stopDrones();
     const scheduleNext = () => {
       if (!gameActive) return;
       const gap = getRandom(5000, 10000);
@@ -4721,10 +4947,13 @@ $(document).ready(function () {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       $wheel.css({ transition: 'transform 4s cubic-bezier(.17,.67,.12,.99)', transform: 'rotate(' + targetDeg + 'deg)' });
     }));
+    // Claim the free spin IMMEDIATELY — writing the date only when the 4.2s
+    // animation completes let a rebuilt inventory re-enable the button for
+    // extra free spins mid-animation.
+    if (!paid) localStorage.setItem('arc_spin_date', today);
     $('#earn-spin-btn, #earn-paid-spin-btn').prop('disabled', true);
     $('#earn-spin-btn').text('Spinning…');
     setTimeout(() => {
-      if (!paid) localStorage.setItem('arc_spin_date', today);
       if (prize.arc)   earnArcoin(prize.arc, paid ? 'Extra Spin' : 'Daily Spin');
       if (prize.money) { credits += prize.money; updateScoreHUD(); }
       const $res = $('#spin-result');
@@ -4785,8 +5014,10 @@ $(document).ready(function () {
     return hand.map(_p21CardStr).join(' ');
   }
   function _p21Start(bet){
+    if(_p21.phase==='player'){sndError();shooterSpeech('Finish the current hand first!');return;} // don't swallow a live bet
     if(credits<bet||bet<=0){sndError();shooterSpeech('₴ Not enough credits!');return;}
     credits-=bet;
+    updateScoreHUD();
     _p21.bet=bet; _p21.deck=_p21Deck(); _p21.player=[]; _p21.dealer=[]; _p21.phase='player';
     _p21.player.push(_p21.deck.pop(),_p21.deck.pop());
     _p21.dealer.push(_p21.deck.pop(),_p21.deck.pop());
@@ -4851,6 +5082,7 @@ $(document).ready(function () {
   (function(){ var s=localStorage.getItem('nap_stats'); if(s) try{_nap.stats=JSON.parse(s);}catch(e){} })();
   function _napSaveStats(){ localStorage.setItem('nap_stats',JSON.stringify(_nap.stats)); }
   function _napStart(bet){
+    if(_nap.phase==='pick'){sndError();shooterSpeech('Pick a cup first!');return;} // don't swallow a live bet
     if(credits<bet||bet<=0){sndError();shooterSpeech('₴ Not enough credits!');return;}
     credits-=bet;
     _nap.bet=bet; _nap.ballIdx=Math.floor(Math.random()*3); _nap.phase='pick'; _nap.revealed=-1;
@@ -4934,6 +5166,7 @@ $(document).ready(function () {
     return qs;
   }
   function _teterStart(bet){
+    if(_teter.phase==='playing'){sndError();shooterSpeech('Finish the current quiz first!');return;} // don't swallow a live bet
     if(credits<bet||bet<=0){sndError();shooterSpeech('₴ Not enough credits!');return;}
     credits-=bet;
     _teter.bet=bet; _teter.questions=_teterGenQ(); _teter.current=0; _teter.score=0;
@@ -5076,6 +5309,7 @@ $(document).ready(function () {
     $('#chess-status').html(_chess.phase==='playing'?(_chess.turn==='w'?'Your turn (White)':'Putin is thinking...'):'');
   }
   function _chessStart(bet){
+    if(_chess.phase==='playing'){ shooterSpeech('Finish the current game first!'); return; } // don't swallow a live bet
     if(bet>0&&credits<bet){ shooterSpeech('Not enough ₴!'); return; }
     if(bet>0) credits-=bet;
     _chess.bet=bet; updateScoreHUD();
@@ -5163,9 +5397,17 @@ $(document).ready(function () {
     _ckr.board[mv.fr][mv.fc]=' ';
     if(mv.m.jump) _ckr.board[mv.m.cap[0]][mv.m.cap[1]]=' ';
     if(_ckr.board[mv.m.r][mv.m.c]==='b'&&mv.m.r===7) _ckr.board[mv.m.r][mv.m.c]='B';
-    // Multi-jump
-    if(mv.m.jump&&_ckrMoves(mv.m.r,mv.m.c,_ckr.board,true).length){ setTimeout(_ckrAI,300); return 'continue'; }
+    // Multi-jump — route the chained call through _ckrAfterAI, otherwise its
+    // result is discarded and the turn never returns to the player (soft-lock
+    // with the bet stranded).
+    if(mv.m.jump&&_ckrMoves(mv.m.r,mv.m.c,_ckr.board,true).length){ setTimeout(function(){ _ckrAfterAI(_ckrAI()); },300); return 'continue'; }
     return true;
+  }
+  function _ckrAfterAI(res){
+    if(res==='continue'){ _ckrRender(''); return; } // chain pending; it re-enters here
+    if(!res){ _ckrEnd('win'); return; }
+    if(_ckrCount('r')===0){ _ckrEnd('lose'); return; }
+    _ckr.turn='r'; _ckrRender('');
   }
   function _ckrEnd(result){
     _ckr.phase='idle';
@@ -5208,6 +5450,7 @@ $(document).ready(function () {
     $('#checkers-status').html(_ckr.phase==='playing'?(_ckr.turn==='r'?'Your turn (Red)':'Putin is thinking...'):'');
   }
   function _ckrStart(bet){
+    if(_ckr.phase==='playing'){ shooterSpeech('Finish the current game first!'); return; } // don't swallow a live bet
     if(bet>0&&credits<bet){ shooterSpeech('Not enough ₴!'); return; }
     if(bet>0) credits-=bet;
     _ckr.bet=bet; updateScoreHUD();
@@ -5231,13 +5474,7 @@ $(document).ready(function () {
         if(validMv.jump&&_ckrMoves(r,c,_ckr.board,true).length){ _ckr.selected=[r,c]; _ckrRender('Jump again!'); return; }
         if(_ckrCount('b')===0){ _ckrEnd('win'); return; }
         _ckr.turn='b'; _ckrRender('');
-        setTimeout(function(){
-          var res=_ckrAI();
-          if(res==='continue'){ _ckrRender(''); return; }
-          if(!res){ _ckrEnd('win'); return; }
-          if(_ckrCount('r')===0){ _ckrEnd('lose'); return; }
-          _ckr.turn='r'; _ckrRender('');
-        },500);
+        setTimeout(function(){ _ckrAfterAI(_ckrAI()); },500);
         return;
       }
       _ckr.selected=null;
@@ -9490,11 +9727,16 @@ $(document).ready(function () {
     var _nextStartWeapon = REVOLVER_WEAPON;
 
     const _doRestart = function () {
+      // Clear the game-over keyboard handler on EVERY restart path — click
+      // restarts otherwise leave it bound, and Space (reload) mid-run would
+      // trigger a full reset (it also stacks one per death).
+      $(document).off('keydown.gameover');
       $canves.removeClass(screenType + ' juice-death-desaturate juice-low-hp');
       $('#death-upsell').hide();
       $('#starter-pack').hide();
       $canves.find('.go-weapon-picker').remove();
       godMode = false; $godMode.removeClass('enabled');
+      if (window._restorePreGodBalances) window._restorePreGodBalances();
       _continuedThisRun = false;
       _streakSavedThisRun = false;
       // B190: Ensure game-over elements are visible before reset (prevents lurking hidden state)
@@ -9519,8 +9761,9 @@ $(document).ready(function () {
 
     // Keyboard restart: Enter or Space restarts from game-over
     setTimeout(function() {
-      $(document).on('keydown.gameover', function(e) {
+      $(document).off('keydown.gameover').on('keydown.gameover', function(e) {
         if (e.which !== 13 && e.which !== 32) return;
+        if (gameActive) return; // stale-handler guard: never fire mid-run
         if ($('#death-upsell').is(':visible') || $('#inventory-panel').hasClass('open')) return;
         e.preventDefault();
         $(document).off('keydown.gameover');
@@ -10075,7 +10318,10 @@ $(document).ready(function () {
     _liveZ = _liveZ.filter(el => el.parentNode && !el.classList.contains('killed'));
     const $zombie = $(_liveZ);
     const zLen = $zombie.length;
-    if (zLen !== 0) {
+    // Skip the frame while #canves is hidden (portrait rotate overlay sets
+    // display:none): all rects collapse to 0 and the pastEdge test would fire
+    // a false breach for EVERY zombie every frame, draining HP in seconds.
+    if (zLen !== 0 && $canves[0].getBoundingClientRect().width > 0) {
       for (let i = 0; i < zLen; i++) {
         const $z = $zombie.eq(i);
         const zombieWidth = $z.width() - 20;
@@ -10111,6 +10357,9 @@ $(document).ready(function () {
 
   // ── Reload ────────────────────────────────────────────────────
   function reload() {
+    // No-op at full magazine — otherwise a redundant reload (e.g. double
+    // trigger or tapping RLD when full) burns a spare magazine for nothing.
+    if (ammo >= getAmmoMax()) return;
     if (!godMode && currentWeapon !== REVOLVER_WEAPON) {
       if ((ammoReserve[currentWeapon] || 0) <= 0) {
         // Emergency reload: grant half a magazine so the player is never stuck
@@ -10940,10 +11189,25 @@ $(document).ready(function () {
     jumpToWave(w);
   });
 
+  // God-mode balance snapshot: the cheat grants 1,000,000₴ + 1000 ARC and
+  // persists arc_balance. Without restore-on-exit those leak into (or, for a
+  // player holding >1000 ARC, destroy) the real balance.
+  var _preGodBalances = null;
+  function _restorePreGodBalances() {
+    if (!_preGodBalances) return;
+    credits = _preGodBalances.credits;
+    arcoins = _preGodBalances.arcoins;
+    localStorage.setItem('arc_balance', String(arcoins));
+    _preGodBalances = null;
+    updateScoreHUD();
+  }
+  window._restorePreGodBalances = _restorePreGodBalances;
+
   $godMode.on('click', function () {
     godMode = !godMode;
     $(this).toggleClass('enabled', godMode);
     $canves.toggleClass('god-mode-on', godMode);  // show/hide level-jump-btns
+    if (!godMode) { _restorePreGodBalances(); return; }
     if (godMode) {
       // ── Unlock all weapons ──────────────────────────────────────
       shotgunUnlocked = true;
@@ -10984,6 +11248,8 @@ $(document).ready(function () {
       Object.keys(_ciCdEnd).forEach(k => { _ciCdEnd[k] = 0; });
 
       // ── God-mode bonus: 1 000 000 money + 1 000 ARC ─────────────
+      // Snapshot the real balances once so exiting god mode restores them
+      if (!_preGodBalances) _preGodBalances = { credits: credits, arcoins: arcoins };
       credits = 1000000;
       arcoins = 1000;
       localStorage.setItem('arc_balance', String(arcoins));
@@ -12331,8 +12597,10 @@ $(document).ready(function () {
                 { id:'ammo_bulk',    icon:'🗃️', name:'+15 Magazines',   arcCost:8,    credCost:800,   solCost:0.0005  },
                 { id:'cred1000',     icon:'₴',  name:'+1,000 ₴',       arcCost:5,    credCost:null,  solCost:0.0003  },
                 { id:'cred5000',     icon:'💵', name:'+5,000 ₴',       arcCost:22,   credCost:null,  solCost:0.001   },
-                { id:'arc50',        icon:'🪙', name:'+50 ARC',         arcCost:null, credCost:4000,  solCost:0.0015  },
-                { id:'arc200',       icon:'🏆', name:'+200 ARC',        arcCost:null, credCost:14000, solCost:0.005   },
+                // ₴→ARC must cost MORE than any ARC→₴ payout (cred5000 pays
+                // ~227₴/ARC) or buy-low/sell-high loops print infinite money.
+                { id:'arc50',        icon:'🪙', name:'+50 ARC',         arcCost:null, credCost:15000, solCost:0.0015  },
+                { id:'arc200',       icon:'🏆', name:'+200 ARC',        arcCost:null, credCost:55000, solCost:0.005   },
               ].map(item => {
                 const arcLabel  = item.arcCost  ? '<span class="inv-market-price arc-price">🪙 ' + item.arcCost + ' ARC</span>' : '';
                 const credLabel = item.credCost ? '<span class="inv-market-price cred-price">₴ ' + item.credCost + '</span>' : '';
@@ -13687,6 +13955,29 @@ $(document).ready(function () {
           '</div></div>';
       }).join(''));
     }
+    // Goods escrow: posting deposits the goods, cancelling returns them.
+    // Without this, escrow-confirm fabricates the item and a self-trade
+    // ("ARC ×10000 for 1₴" → buy → confirm) mints currency from nothing.
+    const _BM_WEP_FLAGS = {
+      wep_shotgun: [() => shotgunUnlocked, v => { shotgunUnlocked = v; }],
+      wep_m16:     [() => m16Unlocked,     v => { m16Unlocked = v; }],
+      wep_sniper:  [() => sniperUnlocked,  v => { sniperUnlocked = v; }],
+      wep_lmg:     [() => lmgUnlocked,     v => { lmgUnlocked = v; }],
+      wep_gl:      [() => glUnlocked,      v => { glUnlocked = v; }],
+    };
+    function _bmTakeGoods(item, qty) {
+      if (item === 'credits') { if (credits < qty * 100) { shooterSpeech('❌ Not enough ₴ to deposit'); return false; } credits -= qty * 100; return true; }
+      if (item === 'arc')     { if (arcoins < qty) { shooterSpeech('❌ Not enough ARC to deposit'); return false; } arcoins -= qty; localStorage.setItem('arc_balance', String(arcoins)); return true; }
+      if (item === 'ammo')    { if ((ammoReserve[currentWeapon] || 0) < qty * 5) { shooterSpeech('❌ Not enough magazines to deposit'); return false; } ammoReserve[currentWeapon] -= qty * 5; return true; }
+      if (_BM_WEP_FLAGS[item]) { if (!_BM_WEP_FLAGS[item][0]()) { shooterSpeech('❌ You don’t own that weapon'); return false; } _BM_WEP_FLAGS[item][1](false); if (currentWeapon === item.replace('wep_', '')) switchToWeapon(REVOLVER_WEAPON); return true; }
+      shooterSpeech('❌ That item can’t be listed'); return false;
+    }
+    function _bmGiveGoods(item, qty) {
+      if (item === 'credits')      credits += qty * 100;
+      else if (item === 'arc')     { arcoins += qty; localStorage.setItem('arc_balance', String(arcoins)); }
+      else if (item === 'ammo')    ammoReserve[currentWeapon] = (ammoReserve[currentWeapon] || 0) + qty * 5;
+      else if (_BM_WEP_FLAGS[item]) _BM_WEP_FLAGS[item][1](true);
+    }
     // Post listing
     $p.off('click.bmpost').on('click.bmpost', '#bm-post-listing', function() {
       const item  = $p.find('#bm-item-type').val();
@@ -13694,6 +13985,8 @@ $(document).ready(function () {
       const ptype = $p.find('#bm-price-type').val();
       const price = parseInt($p.find('#bm-price').val()) || 0;
       if (qty <= 0 || price <= 0) { shooterSpeech('❌ Enter qty and price'); return; }
+      if (!_bmTakeGoods(item, qty)) return;
+      updateScoreHUD();
       let listings; try { listings = JSON.parse(localStorage.getItem('bm_listings') || '[]'); } catch(e) { listings = []; }
       listings.push({ item, qty, price, priceType: ptype, ts: Date.now(), _mine: true });
       localStorage.setItem('bm_listings', JSON.stringify(listings));
@@ -13728,12 +14021,15 @@ $(document).ready(function () {
       _bmRenderEscrow();
       shooterSpeech('🔒 Trade in escrow — confirm to receive item!');
     });
-    // Cancel listing
+    // Cancel listing — return the deposited goods
     $p.off('click.bmcancel').on('click.bmcancel', '.bm-cancel-btn', function() {
       const idx = parseInt($(this).data('idx'));
       const listings = JSON.parse(localStorage.getItem('bm_listings') || '[]');
+      const l = listings[idx];
+      if (l && l._mine) _bmGiveGoods(l.item, l.qty);
       listings.splice(idx, 1);
       localStorage.setItem('bm_listings', JSON.stringify(listings));
+      updateScoreHUD();
       _bmRenderListings();
       shooterSpeech('✖ Listing cancelled');
     });
@@ -13746,7 +14042,8 @@ $(document).ready(function () {
       const ITEM_DELIVER = {
         credits: () => { credits += e.qty * 100; shooterSpeech('₴ +' + (e.qty*100) + ' credits received!'); },
         arc:     () => { arcoins += e.qty; localStorage.setItem('arc_balance', String(arcoins)); shooterSpeech('🪙 +' + e.qty + ' ARC received!'); },
-        ammo:    () => { Object.keys(ammoReserve).forEach(k => { ammoReserve[k] += e.qty * 5; }); shooterSpeech('📦 Ammo delivered!'); },
+        // Symmetric with the deposit taken at post time (current weapon only)
+        ammo:    () => { ammoReserve[currentWeapon] = (ammoReserve[currentWeapon] || 0) + e.qty * 5; shooterSpeech('📦 Ammo delivered!'); },
         wep_shotgun:  () => { if (!shotgunUnlocked) equipShotgun(); else shooterSpeech('💥 Shotgun unlocked!'); },
         wep_m16:      () => { if (!m16Unlocked)     equipM16();     else shooterSpeech('🔫 M-16!'); },
         wep_sniper:   () => { if (!sniperUnlocked)  equipSniper();  else shooterSpeech('🎯 Sniper!'); },
@@ -13756,6 +14053,10 @@ $(document).ready(function () {
         wep_matador:  () => { equipMatador(); },
       };
       (ITEM_DELIVER[e.item] || (() => shooterSpeech('✅ Item received!')))();
+      // Pay the seller their proceeds (local sandbox: seller is this player,
+      // so a self-trade nets to zero instead of minting goods).
+      if (e.priceType === 'arc') { arcoins += e.price; localStorage.setItem('arc_balance', String(arcoins)); }
+      else                       { credits += e.price; }
       escrows.splice(idx, 1);
       localStorage.setItem('bm_escrow', JSON.stringify(escrows));
       updateScoreHUD();
@@ -13766,9 +14067,11 @@ $(document).ready(function () {
       const idx = parseInt($(this).data('idx'));
       const escrows = JSON.parse(localStorage.getItem('bm_escrow') || '[]');
       const e = escrows[idx]; if (!e) return;
-      // Refund payment
+      // Refund payment to the buyer AND return the deposited goods to the
+      // seller — both are this player in the local sandbox.
       if (e.priceType === 'arc')     { arcoins += e.price; localStorage.setItem('arc_balance', String(arcoins)); }
       else                           { credits += e.price; }
+      _bmGiveGoods(e.item, e.qty);
       escrows.splice(idx, 1);
       localStorage.setItem('bm_escrow', JSON.stringify(escrows));
       updateScoreHUD();
@@ -14051,6 +14354,7 @@ $(document).ready(function () {
     // ── God mode toggle inside armory ──
     $p.off('click.godtoggle').on('click.godtoggle', '#inv-god-toggle-btn', function () {
       godMode = !godMode;
+      if (!godMode && window._restorePreGodBalances) window._restorePreGodBalances();
       $godMode.toggleClass('enabled', godMode);
       $canves.toggleClass('god-mode-on', godMode);
       $(this).toggleClass('active', godMode);
@@ -14111,11 +14415,15 @@ $(document).ready(function () {
       var npcPrices = { npc_ammo5: 3, npc_shotgun: 7, npc_cr500: 2, npc_m16: 10, npc_ammo15: 7 };
       var cost = npcPrices[npcId] || 5;
       if (arcoins < cost) { showConfirm({ title: '⚠ Not enough ARC', body: 'You need <b>' + cost + ' ARC</b>.', confirmTxt: 'OK', cancelTxt: false }); return; }
-      arcoins -= cost; saveArcoins();
+      arcoins -= cost;
+      localStorage.setItem('arc_balance', String(arcoins));
       localStorage.setItem('bm_npc_' + npcId, '1');
       if (npcId === 'npc_ammo5') Object.keys(ammoReserve).forEach(function(k){ ammoReserve[k] += 1; });
       if (npcId === 'npc_ammo15') Object.keys(ammoReserve).forEach(function(k){ ammoReserve[k] += 3; });
       if (npcId === 'npc_cr500') credits += 500;
+      if (npcId === 'npc_shotgun') shotgunUnlocked = true;
+      if (npcId === 'npc_m16') m16Unlocked = true;
+      updateScoreHUD();
       shooterSpeech('🛒 NPC purchase complete!');
       buildInventory();
     });
@@ -14123,8 +14431,23 @@ $(document).ready(function () {
       var npcId = $(this).data('npc-id');
       var npcPayouts = { npc_buy_ammo: 400, npc_buy_shot: 800, npc_buy_arc: 2000 };
       var payout = npcPayouts[npcId] || 400;
+      // The NPC buys actual goods — verify ownership and take them, otherwise
+      // this is a free-money button (payout with nothing deducted).
+      if (npcId === 'npc_buy_ammo') {
+        if ((ammoReserve[currentWeapon] || 0) < 5) { showConfirm({ title: '⚠ Not enough magazines', body: 'You need <b>5 spare magazines</b> for your current weapon.', confirmTxt: 'OK', cancelTxt: false }); return; }
+        ammoReserve[currentWeapon] -= 5;
+      } else if (npcId === 'npc_buy_shot') {
+        if (!shotgunUnlocked) { showConfirm({ title: '⚠ No shotgun', body: 'You don’t own a <b>Shotgun</b> to sell.', confirmTxt: 'OK', cancelTxt: false }); return; }
+        shotgunUnlocked = false;
+        if (currentWeapon === 'shotgun') switchToWeapon(REVOLVER_WEAPON);
+      } else if (npcId === 'npc_buy_arc') {
+        if (arcoins < 10) { showConfirm({ title: '⚠ Not enough ARC', body: 'You need <b>10 ARC</b> to sell.', confirmTxt: 'OK', cancelTxt: false }); return; }
+        arcoins -= 10;
+        localStorage.setItem('arc_balance', String(arcoins));
+      }
       localStorage.setItem('bm_npc_' + npcId, '1');
       credits += payout;
+      updateScoreHUD();
       shooterSpeech('📤 Sold to NPC — +₴' + payout);
       buildInventory();
     });
@@ -14315,6 +14638,14 @@ $(document).ready(function () {
 
     // ── Equip weapon — stay in inventory so player can keep shopping ──
     $p.off('click.closebtn').on('click.closebtn', '#inv-close-btn', function () {
+      // Pre-game (lobby/intro): the inventory was opened WITHOUT pausing, so
+      // the pause toggle would PAUSE the non-running game (needing a second
+      // tap and spuriously starting music). Just close the panel.
+      if (!gameActive && !gamePaused) {
+        $('#inventory-panel').removeClass('open');
+        $canves.removeClass('inv-open');
+        return;
+      }
       $pauseGameTrigger.trigger('click');
     });
 
@@ -15379,7 +15710,9 @@ $(document).ready(function () {
   // ── Auto-pause when tab loses focus ─────────────────────────────────
   document.addEventListener('visibilitychange', function() {
     if (document.hidden && gameActive && !gamePaused) {
-      gamePaused = true;
+      // Do NOT pre-set gamePaused here — the pause handler branches on
+      // !gamePaused, so pre-setting it made this run the RESUME branch
+      // (backgrounding force-resumed the game instead of pausing it).
       $canves.find('#pause-game').trigger('click');
     }
   });

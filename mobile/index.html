@@ -686,9 +686,11 @@
 
     <!-- ═══ JUKEBOX MINI PLAYER ═══ -->
     <div id="jukebox-mini">
-      <button class="jb-btn" id="jb-prev" type="button" aria-label="Previous track">⏮</button>
-      <button class="jb-btn" id="jb-play" type="button" aria-label="Play/Pause">▶</button>
-      <button class="jb-btn" id="jb-next" type="button" aria-label="Next track">⏭</button>
+      <!-- mjb-* ids: distinct from desktop's #jb-prev/#jb-next so main.js's
+           ARC_JUKEBOX handlers don't ALSO bind here (two audio streams) -->
+      <button class="jb-btn" id="mjb-prev" type="button" aria-label="Previous track">⏮</button>
+      <button class="jb-btn" id="mjb-play" type="button" aria-label="Play/Pause">▶</button>
+      <button class="jb-btn" id="mjb-next" type="button" aria-label="Next track">⏭</button>
       <div class="jb-track-info" id="jb-track-info">
         <div class="jb-track-name" id="jb-track-name">—</div>
       </div>
