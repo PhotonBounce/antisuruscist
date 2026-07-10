@@ -9786,8 +9786,13 @@ $(document).ready(function () {
       if ($restartBtn.length) $restartBtn.trigger('focus');
     }, 1500);
 
+    // The one-time Founder's Pack OTO owns the FIRST-ever game-over; the
+    // recurring continue-offer owns every later death. They render at the same
+    // centre, so exactly one may show per death (previously both stacked).
+    var _showStarterOTO = (endType === 'lose' && !localStorage.getItem('arc_starter_claimed') && !localStorage.getItem('arc_starter_dismissed'));
+
     // ── Death Upsell: show continue offer on lose ──────────────────────
-    if (endType === 'lose' && !_continuedThisRun) {
+    if (endType === 'lose' && !_continuedThisRun && !_showStarterOTO) {
       var _contCost = gcfg('economy','continue_cost_arc',25);
       $('#du-wave').text(wave);
       $('#du-kills').text(zombieKilled);
@@ -9999,9 +10004,18 @@ $(document).ready(function () {
     }
 
     // ── Starter Pack OTO: show once on first ever game-over ──────────
-    if (endType === 'lose' && !localStorage.getItem('arc_starter_claimed') && !localStorage.getItem('arc_starter_dismissed')) {
+    if (_showStarterOTO) {
       var _claimedFake = 200 + Math.floor(Math.random() * 150);
       $('#sp-claimed-count').text(_claimedFake);
+      // Hide the standard game-over title/restart while the OTO owns the
+      // screen, so nothing peeks behind it; restore them when it closes.
+      $canves.find('.game-over-title, .restart-hint, #restart-game-btn').hide();
+      var _spClose = function() {
+        $('#starter-pack').hide();
+        $canves.find('.game-over-title, .restart-hint, #restart-game-btn').show();
+        $canves.find('#restart-game-btn').off('click.sp').on('click.sp', _doRestart);
+        $canves.find('.restart-hint').off('click.sp').on('click.sp', _doRestart);
+      };
       $('#starter-pack').show();
       $('#sp-buy-btn').off('click').on('click', function() {
         // Route to proper payment — show ARC upsell for 150 ARC purchase
@@ -10012,13 +10026,13 @@ $(document).ready(function () {
           if (!_owned.includes('name_gold')) _owned.push('name_gold');
           localStorage.setItem('arc_cosmetics', JSON.stringify(_owned));
           localStorage.setItem('arc_starter_claimed', '1');
-          $('#starter-pack').hide();
+          _spClose();
           shooterSpeech('🎁 Founder\'s Pack claimed! +150 ARC + exclusive cosmetics');
         });
       });
       $('#sp-dismiss-btn').off('click').on('click', function() {
         localStorage.setItem('arc_starter_dismissed', '1');
-        $('#starter-pack').hide();
+        _spClose();
       });
     }
   }
@@ -14481,7 +14495,7 @@ $(document).ready(function () {
     $p.off('click.ppool').on('click.ppool', '#ppool-place-btn', function(){ _ppoolPlace(); });
     // ── Offerwall open ──
     $p.off('click.offerwall').on('click.offerwall', '#earn-offerwall-btn', function () {
-      if (typeof _owRefreshList === 'function') _owRefreshList();
+      if (typeof window._owRefreshList === 'function') window._owRefreshList();
       $('#offerwall-modal').addClass('open');
     });
 
@@ -15542,6 +15556,13 @@ $(document).ready(function () {
     function _owRefreshList() {
       $owModal.find('#ow-offer-list').html(_owBuildList());
     }
+    // Populate the list at init and expose globally. The inventory
+    // #earn-offerwall-btn handler lives in buildInventory's scope where
+    // _owRefreshList is NOT visible, so its typeof-guarded call was silently
+    // skipped and the offerwall opened EMPTY. Build once now (in scope) and
+    // let the button re-render via the global reference.
+    _owRefreshList();
+    window._owRefreshList = _owRefreshList;
     $owModal.on('click', '#offerwall-close', function () {
       if (_owActive) { clearInterval(_owActive.interval); _owActive = null; }
       $owModal.find('#ow-yt-frame-wrap').empty();
