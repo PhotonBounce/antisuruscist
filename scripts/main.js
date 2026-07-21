@@ -9202,6 +9202,44 @@ $(document).ready(function () {
   // NFT weapons auto-reload instead of blocking when empty
   const NFT_WEAPONS = new Set([FTDRONE_WEAPON, TANK_WEAPON, BRADLEY_WEAPON]);
 
+  // ── Battle Voices ─────────────────────────────────────────────────
+  // Real voice lines (MP3s in sounds/voices/, generated via ElevenLabs —
+  // see scripts/generate-voices.sh). Player yells Ukrainian battle cries
+  // when firing heavy weapons; enemies shout Russian commands as they
+  // spawn. Every file is OPTIONAL: a missing/404 line disables itself
+  // silently, so the game works identically before the MP3s exist.
+  var BATTLE_VOICES = {
+    ua: ['ua_slava', 'ua_heroyam', 'ua_warship', 'ua_putin', 'ua_za_ukrainu', 'ua_smert', 'ua_okupant', 'ua_trymai'],
+    ru: ['ru_vpered', 'ru_v_ataku', 'ru_ogon', 'ru_okruzhay', 'ru_otstupaem', 'ru_za_rodinu'],
+  };
+  var _bvCache = {}, _bvDead = {}, _bvLast = { ua: 0, ru: 0 };
+  var _BV_HEAVY = new Set(['stugna', 'nlaw', 'panzerfaust', 'matador', 'gl', 'drone_bomb', 'tank_cannon']);
+  function _bvPlay(group) {
+    if (typeof mutedSounds !== 'undefined' && mutedSounds) return;
+    var now = Date.now();
+    var cd = group === 'ua' ? 6000 : 9000;      // anti-spam cooldowns
+    if (now - _bvLast[group] < cd) return;
+    var pool = BATTLE_VOICES[group].filter(function (id) { return !_bvDead[id]; });
+    if (!pool.length) return;
+    var id = pool[Math.floor(Math.random() * pool.length)];
+    _bvLast[group] = now;
+    var a = _bvCache[id];
+    if (!a) {
+      a = new Audio('sounds/voices/' + id + '.mp3');
+      a.preload = 'auto';
+      a.onerror = function () { _bvDead[id] = true; };
+      _bvCache[id] = a;
+    }
+    try {
+      a.volume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem('arc_sfx_vol') || '0.8')));
+      a.currentTime = 0;
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(function () {});
+    } catch (e) {}
+  }
+  function maybeBattleCry(w) { if (_BV_HEAVY.has(w) && Math.random() < 0.35) _bvPlay('ua'); }
+  function maybeEnemyVoice() { if (Math.random() < 0.12) _bvPlay('ru'); }
+
   function doShoot(event) {
     shotsFired++;
     incrementShotsForUkraine();
@@ -9246,6 +9284,7 @@ $(document).ready(function () {
 
     // Weapon hands recoil animation
     weaponHandsShoot();
+    maybeBattleCry(currentWeapon);   // UA battle cry chance on heavy weapons
 
     // Sound by weapon
     if (currentWeapon === SHOTGUN_WEAPON) sndShootShotgun();
@@ -9381,6 +9420,7 @@ $(document).ready(function () {
     // Hard cap: skip if screen already full
     _liveZ = _liveZ.filter(el => el.parentNode && !el.classList.contains('killed'));
     if (_liveZ.length >= MAX_CONCURRENT_ZOMBIES) return false;
+    maybeEnemyVoice();               // RU enemy shout chance on spawn
     const zombieType = pickZombieType();
     const rank = _missionMode === 'kill_putins'
       ? { id: 'commander', label: 'Commander', tag: 'ПУТІН', hp: 10, minWave: 1, weight: 100 }
