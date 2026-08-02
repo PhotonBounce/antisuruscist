@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Anti-Ruscist — Media &amp; Screenshot Gallery</title>
+<meta name="description" content="Official screenshot gallery and press kit for Anti-Ruscist — a free browser game where you defend Ukraine. All levels, enemy roster and boss.">
+<link rel="canonical" href="https://www.photon-bounce.com/ar/media/">
+<meta name="theme-color" content="#060E05">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Anti-Ruscist — Media &amp; Screenshot Gallery">
+<meta property="og:description" content="All levels, the full enemy roster and the boss. Free browser game — 10% of every purchase goes to Ukraine.">
+<meta property="og:url" content="https://www.photon-bounce.com/ar/media/">
+<meta property="og:image" content="https://www.photon-bounce.com/ar/social-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.photon-bounce.com/ar/social-card.jpg">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --blue:#0057B8; --gold:#FFD700; --bg:#070c08; --panel:#0e1710;
+    --line:#25381f; --txt:#e8f2e6; --dim:#8fb992;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(ellipse at 50% -10%,#16240f 0%,var(--bg) 55%,#040704 100%);
+       color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+       min-height:100vh;padding-bottom:60px}
+  .flagbar{height:6px;background:linear-gradient(90deg,var(--blue) 50%,var(--gold) 50%);position:sticky;top:0;z-index:50}
+  header{max-width:1400px;margin:0 auto;padding:34px 20px 12px;text-align:center}
+  h1{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:1px;color:var(--gold);
+     text-shadow:0 4px 22px rgba(0,0,0,.75);line-height:1.08}
+  h1 .flag{font-size:.8em}
+  .tagline{margin-top:12px;color:var(--dim);font-size:clamp(14px,2vw,18px);font-weight:600}
+  .actions{margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:30px;
+       font-weight:800;font-size:15px;text-decoration:none;border:2px solid var(--line);
+       background:var(--panel);color:var(--txt);cursor:pointer;transition:.18s}
+  .btn:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .btn--play{background:linear-gradient(180deg,#ffe45c,var(--gold));color:#141400;border-color:var(--gold)}
+  .btn--play:hover{filter:brightness(1.08)}
+  .filters{max-width:1400px;margin:26px auto 0;padding:0 20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .chip{padding:9px 18px;border-radius:24px;border:2px solid var(--line);background:rgba(14,23,16,.8);
+        color:var(--dim);font-weight:800;font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .chip:hover{color:var(--txt);border-color:#3c5a33}
+  .chip.on{background:var(--gold);color:#141400;border-color:var(--gold)}
+  .count{max-width:1400px;margin:18px auto 0;padding:0 20px;color:var(--dim);font-size:14px;text-align:center}
+  .grid{max-width:1400px;margin:18px auto 0;padding:0 20px;
+        display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .tile{position:relative;border:2px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
+        background:var(--panel);transition:.2s;aspect-ratio:16/9}
+  .tile:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.55)}
+  .tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .tile .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;font-size:13.5px;font-weight:800;
+             background:linear-gradient(transparent,rgba(0,0,0,.88));text-shadow:0 2px 6px #000}
+  .tile .badge{position:absolute;top:8px;left:8px;padding:3px 10px;border-radius:14px;font-size:11px;font-weight:900;
+               background:rgba(0,0,0,.72);color:var(--gold);border:1px solid rgba(255,215,0,.4)}
+  /* ── lightbox ── */
+  .lb{position:fixed;inset:0;background:rgba(2,5,3,.96);z-index:100;display:none;
+      flex-direction:column;align-items:center;justify-content:center;padding:16px}
+  .lb.open{display:flex}
+  .lb img{max-width:96vw;max-height:78vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+  .lb .meta{margin-top:14px;text-align:center;max-width:90vw}
+  .lb .t{font-size:clamp(15px,2.4vw,21px);font-weight:900;color:var(--gold)}
+  .lb .s{margin-top:5px;color:var(--dim);font-size:13px}
+  .lb .bar{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .nav{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;
+       background:rgba(14,23,16,.9);border:2px solid var(--line);color:var(--txt);font-size:26px;
+       cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .nav:hover{border-color:var(--gold);background:rgba(20,32,22,.95)}
+  #lbPrev{left:14px} #lbNext{right:14px}
+  .close{position:absolute;top:14px;right:14px;width:48px;height:48px;border-radius:50%;
+         background:rgba(14,23,16,.9);border:2px solid var(--line);color:var(--txt);font-size:22px;cursor:pointer}
+  .close:hover{border-color:var(--gold)}
+  .pbar{position:absolute;top:0;left:0;height:4px;background:var(--gold);width:0;transition:width .1s linear}
+  footer{max-width:1400px;margin:50px auto 0;padding:26px 20px 0;border-top:1px solid var(--line);
+         text-align:center;color:var(--dim);font-size:14px;line-height:1.8}
+  footer a{color:var(--gold);text-decoration:none;font-weight:700}
+  footer a:hover{text-decoration:underline}
+  @media (max-width:600px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .nav{width:44px;height:44px;font-size:20px}
+    #lbPrev{left:6px} #lbNext{right:6px}
+  }
+</style>
+</head>
+<body>
+<div class="flagbar"></div>
+
+<header>
+  <h1><span class="flag">🇺🇦</span> ANTI-RUSCIST<br>MEDIA &amp; SCREENSHOTS</h1>
+  <p class="tagline">Every level · the full enemy roster · the boss — captured in-engine at 1080p</p>
+  <div class="actions">
+    <a class="btn btn--play" href="../">▶ Play the game free</a>
+    <button class="btn" id="btnSlideshow">🎞 Start slideshow</button>
+    <a class="btn" href="https://github.com/PhotonBounce/antisuruscist" target="_blank" rel="noopener">⌨ Source on GitHub</a>
+  </div>
+</header>
+
+<nav class="filters" id="filters"></nav>
+<p class="count" id="count"></p>
+<main class="grid" id="grid"></main>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Screenshot viewer">
+  <div class="pbar" id="pbar"></div>
+  <button class="close" id="lbClose" aria-label="Close">✕</button>
+  <button class="nav" id="lbPrev" aria-label="Previous">‹</button>
+  <button class="nav" id="lbNext" aria-label="Next">›</button>
+  <img id="lbImg" alt="">
+  <div class="meta">
+    <div class="t" id="lbTitle"></div>
+    <div class="s" id="lbSub"></div>
+    <div class="bar">
+      <button class="btn" id="lbPlay">▶ Slideshow</button>
+      <a class="btn" id="lbDl" download>⬇ Download full size</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p><strong>Anti-Ruscist</strong> — a free browser game. No download, no login, 15 languages.</p>
+  <p>🇺🇦 10% of every purchase goes directly to Ukraine, on-chain.</p>
+  <p style="margin-top:10px">
+    <a href="../">Play</a> ·
+    <a href="../mobile/">Mobile version</a> ·
+    <a href="https://github.com/PhotonBounce/antisuruscist" target="_blank" rel="noopener">GitHub</a>
+  </p>
+  <p style="margin-top:14px;font-size:12.5px;opacity:.75">Screenshots are free to use for press and coverage.</p>
+</footer>
+
+<script>
+const SHOTS = [
+  {f:'level1-1-wave-start.jpg', c:'level1', t:'Wave 1 — First Contact',        s:'Level 1 · Bucha — destroyed convoy'},
+  {f:'level1-2-combat.jpg',     c:'level1', t:'Opening Firefight',             s:'Level 1 · revolver engagement'},
+  {f:'level1-3-firefight.jpg',  c:'level1', t:'Shotgun, Close Quarters',       s:'Level 1 · enemies closing in'},
+  {f:'level1-4-callin.jpg',     c:'level1', t:'Artillery Call-In',             s:'Level 1 · fire support inbound'},
+  {f:'level1-5-action.jpg',     c:'level1', t:'GODLIKE Streak',                s:'Level 1 · combo multiplier peak'},
+
+  {f:'level2-1-wave-start.jpg', c:'level2', t:'Level 2 — Escalation',          s:'Level 2 · wave transition'},
+  {f:'level2-2-combat.jpg',     c:'level2', t:'Assault Rifles Engaged',        s:'Level 2 · Red Square'},
+  {f:'level2-3-firefight.jpg',  c:'level2', t:'AK-12 Firefight',               s:'Level 2 · sustained contact'},
+  {f:'level2-4-callin.jpg',     c:'level2', t:'Combat Drones Deployed',        s:'Level 2 · drone support'},
+  {f:'level2-5-action.jpg',     c:'level2', t:'Weapon Unlocked',               s:'Level 2 · grenade launcher earned'},
+
+  {f:'level3-1-wave-start.jpg', c:'level3', t:'Wave 3 — Full Assault',         s:'Level 3 · wave transition'},
+  {f:'level3-2-combat.jpg',     c:'level3', t:'Grenade Launcher Barrage',      s:'Level 3 · splash damage'},
+  {f:'level3-3-firefight.jpg',  c:'level3', t:'Overrun at St. Basil’s',        s:'Level 3 · heavy enemy density'},
+  {f:'level3-4-callin.jpg',     c:'level3', t:'H.I.M.A.R.S Strike',            s:'Level 3 · rocket artillery impact'},
+  {f:'level3-5-action.jpg',     c:'level3', t:'Strike Detonation',             s:'Level 3 · blast whiteout'},
+
+  {f:'level4-1-wave-start.jpg', c:'level4', t:'Level 4 — Boss Wave',           s:'Level 4 · final assault begins'},
+  {f:'level4-2-combat.jpg',     c:'level4', t:'Stugna-P ATGM',                 s:'Level 4 · heavy armour incoming'},
+  {f:'level4-3-firefight.jpg',  c:'level4', t:'Double Kill',                   s:'Level 4 · forest front line'},
+  {f:'level4-4-callin.jpg',     c:'level4', t:'FPV Strike',                    s:'Level 4 · precision drone hit'},
+  {f:'level4-5-action.jpg',     c:'level4', t:'Quad Kill',                     s:'Level 4 · peak action'},
+
+  {f:'roster-1-character-sheet.jpg', c:'chars', t:'Enemy Roster — All Classes &amp; Ranks', s:'6 enemy classes · 6 military ranks'},
+  {f:'roster-1-all-enemy-types.jpg', c:'chars', t:'Enemy Types In-Engine',     s:'Character line-up in gameplay'},
+
+  {f:'boss-1-incoming.jpg',     c:'boss',   t:'Boss Incoming',                 s:'Boss wave · health bar active'},
+  {f:'boss-2-engaged.jpg',      c:'boss',   t:'Engaging the Boss',             s:'Boss wave · Stugna-P vs boss'},
+  {f:'boss-4-final.jpg',        c:'boss',   t:'Boss Down',                     s:'Boss wave · target eliminated'},
+];
+const CATS = [
+  {id:'all',    label:'All shots'},
+  {id:'level1', label:'Level 1'},
+  {id:'level2', label:'Level 2'},
+  {id:'level3', label:'Level 3'},
+  {id:'level4', label:'Level 4'},
+  {id:'chars',  label:'Characters'},
+  {id:'boss',   label:'Boss'},
+];
+const CAT_LABEL = {level1:'LEVEL 1', level2:'LEVEL 2', level3:'LEVEL 3', level4:'LEVEL 4', chars:'CHARACTERS', boss:'BOSS'};
+
+const $ = (id) => document.getElementById(id);
+let filter = 'all', view = [], idx = 0, timer = null;
+
+function visible(){ return filter === 'all' ? SHOTS : SHOTS.filter((s) => s.c === filter); }
+
+function renderFilters(){
+  $('filters').innerHTML = CATS.map((c) => {
+    const n = c.id === 'all' ? SHOTS.length : SHOTS.filter((s) => s.c === c.id).length;
+    return `<button class="chip${c.id===filter?' on':''}" data-cat="${c.id}">${c.label} <span style="opacity:.7">(${n})</span></button>`;
+  }).join('');
+  $('filters').querySelectorAll('.chip').forEach((b) => b.onclick = () => { filter = b.dataset.cat; renderFilters(); renderGrid(); });
+}
+function renderGrid(){
+  view = visible();
+  $('count').textContent = view.length + ' screenshot' + (view.length === 1 ? '' : 's') + ' · click any image to open the viewer';
+  $('grid').innerHTML = view.map((s, i) => `
+    <figure class="tile" data-i="${i}">
+      <img src="thumbs/${s.f}" alt="${s.t}" loading="lazy" width="640" height="360">
+      <span class="badge">${CAT_LABEL[s.c]}</span>
+      <figcaption class="cap">${s.t}</figcaption>
+    </figure>`).join('');
+  $('grid').querySelectorAll('.tile').forEach((t) => t.onclick = () => open(+t.dataset.i));
+}
+function preload(i){
+  [i-1, i+1].forEach((k) => { if (view[k]) { const im = new Image(); im.src = 'shots/' + view[k].f; } });
+}
+function show(i){
+  idx = (i + view.length) % view.length;
+  const s = view[idx];
+  $('lbImg').src = 'shots/' + s.f;
+  $('lbImg').alt = s.t;
+  $('lbTitle').innerHTML = s.t;
+  $('lbSub').textContent = s.s + '  ·  ' + (idx + 1) + ' / ' + view.length;
+  $('lbDl').href = 'shots/' + s.f;
+  $('lbDl').setAttribute('download', s.f);
+  preload(idx);
+}
+function open(i){ $('lb').classList.add('open'); document.body.style.overflow = 'hidden'; show(i); }
+function close(){ stop(); $('lb').classList.remove('open'); document.body.style.overflow = ''; }
+function next(){ show(idx + 1); }
+function prev(){ show(idx - 1); }
+
+// ── slideshow ──
+const STEP = 4000;
+function start(){
+  if (timer) return;
+  let t0 = Date.now();
+  $('lbPlay').textContent = '⏸ Pause';
+  $('btnSlideshow').textContent = '⏸ Stop slideshow';
+  timer = setInterval(() => {
+    const p = (Date.now() - t0) / STEP;
+    $('pbar').style.width = Math.min(100, p * 100) + '%';
+    if (p >= 1) { next(); t0 = Date.now(); }
+  }, 60);
+}
+function stop(){
+  if (timer) { clearInterval(timer); timer = null; }
+  $('pbar').style.width = '0';
+  $('lbPlay').textContent = '▶ Slideshow';
+  $('btnSlideshow').textContent = '🎞 Start slideshow';
+}
+function toggle(){ timer ? stop() : start(); }
+
+$('lbClose').onclick = close;
+$('lbNext').onclick = () => { stop(); next(); };
+$('lbPrev').onclick = () => { stop(); prev(); };
+$('lbPlay').onclick = toggle;
+$('btnSlideshow').onclick = () => { if (timer) { stop(); } else { if (!$('lb').classList.contains('open')) open(0); start(); } };
+$('lb').onclick = (e) => { if (e.target === $('lb')) close(); };
+document.addEventListener('keydown', (e) => {
+  if (!$('lb').classList.contains('open')) return;
+  if (e.key === 'Escape') close();
+  else if (e.key === 'ArrowRight') { stop(); next(); }
+  else if (e.key === 'ArrowLeft') { stop(); prev(); }
+  else if (e.key === ' ') { e.preventDefault(); toggle(); }
+});
+// swipe on touch devices
+let sx = 0;
+$('lb').addEventListener('touchstart', (e) => { sx = e.changedTouches[0].clientX; }, {passive:true});
+$('lb').addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - sx;
+  if (Math.abs(dx) > 60) { stop(); dx < 0 ? next() : prev(); }
+}, {passive:true});
+
+renderFilters();
+renderGrid();
+</script>
+</body>
+</html>
