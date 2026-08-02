@@ -51,6 +51,8 @@ deployment:
     - /bin/cp -Rf icons $DEPLOYDIR/
     - /bin/cp -Rf vendor $DEPLOYDIR/
     - /bin/cp -Rf mobile $DEPLOYDIR/
+    # Media / press page — serves at /ar/media/
+    - /bin/cp -Rf media $DEPLOYDIR/
 
     # ── Clean up files that should NOT be publicly accessible ───────────
     # (defense-in-depth — .htaccess also blocks these, but belt & suspenders)
