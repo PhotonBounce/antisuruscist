@@ -1,0 +1,38 @@
+{
+  "name": "Anti-Ruscist",
+  "short_name": "Anti-Ruscist",
+  "description": "Zombie shooter game with blockchain economy — defend Ukraine, earn ARC tokens, mint NFTs. 15 languages, 4 waves, 18 weapons, 7 call-ins.",
+  "start_url": "/ar/",
+  "scope": "/ar/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#060E05",
+  "theme_color": "#060E05",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/ar/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ar/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/ar/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ar/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
